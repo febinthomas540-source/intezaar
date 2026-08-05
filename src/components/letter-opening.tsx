@@ -10,10 +10,11 @@ export function LetterOpening() {
     <section className="opening-shell">
       <div className="opening-copy">
         <p className="eyebrow">The arrival ritual</p>
-        <h2>Waiting deserves a beautiful ending.</h2>
+        <h2>The journey ends where the memory began.</h2>
         <p>
-          The letter does not become a text box at midnight. It arrives, responds to touch,
-          breaks its seal and unfolds into a keepsake.
+          At the promised moment, the seal opens. The letter arrives with every postcard,
+          trace and private memory gathered along the road—something to return to long after
+          the first reading.
         </p>
       </div>
 
@@ -35,7 +36,7 @@ export function LetterOpening() {
               <span className="large-envelope-flap" />
               <span className="large-wax-seal">I</span>
               <span className="large-envelope-name">For Ananya</span>
-              <span className="tap-instruction">Tap to break the seal</span>
+              <span className="tap-instruction">The memory has arrived · tap the seal</span>
             </motion.button>
           ) : (
             <motion.div
@@ -45,15 +46,20 @@ export function LetterOpening() {
               animate={{ opacity: 1, y: 0, rotateX: 0, scaleY: 1 }}
               transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="letter-postmark">DELHI · 04 AUG · KERALA</div>
+              <div className="letter-postmark">DELHI · TEN MEMORIES · KERALA</div>
               <p className="letter-salutation">Dear Ananya,</p>
               <p>
-                I could have sent this in a second. Instead, I wanted my words to take their
-                time finding you. Happy birthday to the person who still makes every distance
-                feel worth crossing.
+                Do you remember the evening we missed the bus and stood beneath that broken
+                shop awning while the rain came sideways? We were tired, late and laughing at
+                absolutely nothing. I did not know then that such an ordinary moment would become
+                one of the places I return to whenever I miss you.
               </p>
-              <p className="letter-signoff">Always yours,<br />Arjun</p>
-              <button className="replay-button" onClick={() => setOpened(false)}>Seal it again</button>
+              <p>
+                I could have sent these words in a second. I wanted them to travel slowly because
+                some memories deserve time to find their way home.
+              </p>
+              <p className="letter-signoff">Still remembering,<br />Arjun</p>
+              <button className="replay-button" onClick={() => setOpened(false)}>Fold it away again</button>
             </motion.div>
           )}
         </AnimatePresence>
