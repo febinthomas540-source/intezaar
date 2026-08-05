@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Navigation } from "@/components/navigation";
+import { getCityProfile } from "@/lib/city-profiles";
 import { routeCorridors } from "@/lib/routes";
 import styles from "../routes.module.css";
 
@@ -17,7 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!route) return {};
 
   const title = `${route.name}: ${route.origin} to ${route.destination}`;
-  const description = `${route.strapline}. Explore this ${route.duration} nostalgic postal journey carried by ${route.transport.toLowerCase()}.`;
+  const description = `${route.strapline}. Explore this ${route.duration} nostalgic postal journey carried by ${route.transport.toLowerCase()}, with distinctive station scenes and memory chapters at every stop.`;
 
   return {
     title,
@@ -32,19 +33,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function memoryForStop(stop: string, index: number, total: number) {
-  if (index === 0) return "The letter is weighed, stamped and placed into the first canvas mail bag.";
-  if (index === total - 1) return "The final postmark lands softly. A familiar street is now only a few steps away.";
-  const moments = [
-    "A platform announcement fades beneath the sound of a tea seller and a departing train.",
-    "The mail bag changes hands while the envelope gathers another circular postmark.",
-    "Rain touches the carriage window; inside, the letter remains dry and carefully tied.",
-    "Night passes outside the railway coach as another private memory becomes available.",
-    "The route slows here, allowing one photograph, voice fragment or handwritten clue to appear.",
-  ];
-  return moments[(index - 1) % moments.length];
-}
-
 export default async function RouteDetailPage({ params }: PageProps) {
   const { routeId } = await params;
   const route = routeCorridors.find((item) => item.id === routeId);
@@ -57,6 +45,19 @@ export default async function RouteDetailPage({ params }: PageProps) {
     description: route.strapline,
     provider: { "@type": "Organization", name: "Intezaar", url: "https://intezaar.vercel.app" },
     areaServed: route.stops.map((stop) => ({ "@type": "Place", name: stop })),
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: `${route.name} journey chapters`,
+      itemListElement: route.stops.map((stop, index) => ({
+        "@type": "Offer",
+        position: index + 1,
+        itemOffered: {
+          "@type": "Service",
+          name: `${stop} memory chapter`,
+          description: getCityProfile(stop).postalMoment,
+        },
+      })),
+    },
     url: `https://intezaar.vercel.app/routes/${route.id}`,
   };
 
@@ -79,29 +80,54 @@ export default async function RouteDetailPage({ params }: PageProps) {
 
       <section className={styles.storyBody}>
         <div className={styles.intro}>
-          <h2>A journey paced like an old letter, not a notification.</h2>
+          <h2>Every city should change the feeling of the letter.</h2>
           <p>
-            This corridor turns distance into a sequence of meaningful arrivals. Each stop can reveal
-            one carefully chosen object—a photograph edge, a voice note, a remembered sentence or a
-            private nickname—while the railway and postal world continues around it.
+            This corridor is no longer a repeated list of station updates. Each stop has its own
+            weather, sound, postal ritual and memory prompt, so the recipient feels the landscape
+            changing while the final letter remains protected and unopened.
           </p>
         </div>
 
         <div className={styles.timeline} aria-label={`${route.name} stops`}>
-          {route.stops.map((stop, index) => (
-            <article className={styles.stop} key={stop}>
-              <span className={styles.stopNumber}>{String(index + 1).padStart(2, "0")}</span>
-              <div>
-                <div className={styles.stopName}>{stop}</div>
-                <p>{memoryForStop(stop, index, route.stops.length)}</p>
-              </div>
-              <span className={styles.postmark}>{index === route.stops.length - 1 ? "Arrival postmark" : "Railway mail exchange"}</span>
-            </article>
-          ))}
+          {route.stops.map((stop, index) => {
+            const profile = getCityProfile(stop);
+            const isArrival = index === route.stops.length - 1;
+
+            return (
+              <article className={styles.stop} key={stop}>
+                <span className={styles.stopNumber}>{String(index + 1).padStart(2, "0")}</span>
+                <div className={styles.stopStory}>
+                  <div className={styles.stopHeading}>
+                    <div className={styles.stopName}>{stop}</div>
+                    <span className={styles.weather}>{profile.weather}</span>
+                  </div>
+                  <p className={styles.scene}>{profile.scene}</p>
+                  <dl className={styles.chapterDetails}>
+                    <div>
+                      <dt>What is heard</dt>
+                      <dd>{profile.sound}</dd>
+                    </div>
+                    <div>
+                      <dt>Postal moment</dt>
+                      <dd>{profile.postalMoment}</dd>
+                    </div>
+                    <div>
+                      <dt>Memory revealed</dt>
+                      <dd>{profile.memoryPrompt}</dd>
+                    </div>
+                  </dl>
+                </div>
+                <span className={styles.postmark}>{isArrival ? "Arrival postmark" : "Railway mail exchange"}</span>
+              </article>
+            );
+          })}
         </div>
 
         <div className={styles.cta}>
-          <h2>Send a letter along this route.</h2>
+          <div>
+            <p className={styles.ctaEyebrow}>{route.stops.length} distinct chapters · one sealed letter</p>
+            <h2>Send a letter along this route.</h2>
+          </div>
           <Link href={`/create?route=${route.id}`}>Choose this corridor</Link>
         </div>
         <Link className={styles.back} href="/routes">← Explore all routes</Link>
