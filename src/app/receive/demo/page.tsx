@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { RecipientMagazine } from "@/components/recipient-magazine-v2";
+import { RaahiPrototype } from "@/components/raahi-prototype";
 
 export const metadata: Metadata = {
-  title: "Recipient memory journey",
-  description: "An illustrated railway journey that reveals one memory at each station.",
+  title: "Raahi’s memory journey",
+  description: "A messenger pigeon carrying one private memory at a time.",
   robots: { index: false, follow: false },
 };
 
@@ -15,7 +15,7 @@ export default async function RecipientPage({ searchParams }: RecipientPageProps
   const params = await searchParams;
   const recipient = params.name?.trim().slice(0, 40) || "Ananya";
   const parsedDay = Number(params.day);
-  const initialPreviewDay = Number.isFinite(parsedDay) ? parsedDay : undefined;
+  const previewDay = Number.isFinite(parsedDay) ? parsedDay : undefined;
 
-  return <RecipientMagazine recipient={recipient} initialPreviewDay={initialPreviewDay} />;
+  return <RaahiPrototype recipient={recipient} previewDay={previewDay} />;
 }
