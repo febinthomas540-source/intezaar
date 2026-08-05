@@ -1,0 +1,874 @@
+/* Mobile-first repair layer for Intezaar.
+   Imported last so phone layouts are intentionally composed rather than scaled-down desktop screens. */
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --mobile-gutter: 18px;
+  }
+
+  body {
+    min-width: 0;
+    text-rendering: optimizeLegibility;
+  }
+
+  .site-nav {
+    padding: max(16px, env(safe-area-inset-top)) var(--mobile-gutter) 14px;
+    gap: 12px;
+  }
+
+  .brand-mark {
+    min-width: 0;
+    gap: 9px;
+    font-size: 17px;
+  }
+
+  .brand-seal {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+  }
+
+  .nav-links {
+    gap: 0;
+  }
+
+  .nav-cta {
+    min-height: 42px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+
+  /* Homepage hero */
+  .hero-shell,
+  .hero-content {
+    min-height: auto;
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+    padding: 116px var(--mobile-gutter) 72px;
+  }
+
+  .hero-copy {
+    width: 100%;
+  }
+
+  .hero-copy .eyebrow {
+    max-width: 330px;
+    margin-bottom: 14px;
+    font-size: 9px;
+    line-height: 1.6;
+    letter-spacing: .15em;
+  }
+
+  .hero-copy h1 {
+    max-width: 100%;
+    font-size: clamp(42px, 12.5vw, 58px);
+    line-height: .98;
+    letter-spacing: -.048em;
+  }
+
+  .hero-copy h1 span {
+    margin-top: 5px;
+  }
+
+  .hero-lede {
+    margin-top: 22px;
+    max-width: 37rem;
+    font-size: 16px;
+    line-height: 1.64;
+  }
+
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 11px;
+    margin-top: 28px;
+  }
+
+  .button {
+    width: 100%;
+    min-height: 52px;
+    padding: 0 18px;
+    font-size: 14px;
+  }
+
+  .hero-trust {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+    margin-top: 23px;
+    font-size: 11px;
+  }
+
+  .hero-letter-world {
+    width: 100%;
+    min-height: 0;
+  }
+
+  .postal-stage {
+    width: 100%;
+    min-height: 420px;
+    padding: 14px;
+    border-radius: 24px;
+    box-shadow: 0 25px 60px rgba(0,0,0,.25), inset 0 1px rgba(255,255,255,.12);
+    backdrop-filter: blur(9px);
+  }
+
+  .station-board {
+    max-width: calc(100% - 28px);
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+
+  .station-board small {
+    font-size: 8px;
+  }
+
+  .station-board strong {
+    font-size: 15px;
+  }
+
+  .inland-card {
+    position: absolute;
+    top: 82px;
+    right: 13px;
+    width: min(58%, 220px);
+    margin: 0;
+    padding: 12px;
+    transform: rotate(-2deg);
+    border-radius: 14px;
+  }
+
+  .inland-stamps {
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+
+  .inland-stamps span {
+    padding: 4px 5px;
+    font-size: 7px;
+    letter-spacing: .08em;
+  }
+
+  .inland-lines small {
+    font-size: 8px;
+  }
+
+  .inland-lines strong {
+    margin-top: 5px;
+    font-size: 18px;
+  }
+
+  .inland-lines p {
+    display: none;
+  }
+
+  .postbox-monument {
+    left: 18px;
+    bottom: 78px;
+    width: 66px;
+    height: 103px;
+  }
+
+  .postbox-top {
+    left: 8px;
+    right: 8px;
+    top: -10px;
+    height: 19px;
+  }
+
+  .postbox-slot {
+    left: 13px;
+    right: 13px;
+    top: 21px;
+    height: 8px;
+  }
+
+  .postbox-monument::after {
+    left: 11px;
+    right: 11px;
+    top: 25px;
+    height: 11px;
+  }
+
+  .postbox-mark {
+    top: 44px;
+    font-size: 11px;
+  }
+
+  .postal-track {
+    bottom: 61px;
+    height: 44px;
+  }
+
+  .mail-train-scene {
+    left: 74px;
+    right: 4px;
+    bottom: 82px;
+    height: 92px;
+  }
+
+  .mail-train {
+    gap: 7px;
+    transform: scale(.72);
+    transform-origin: left bottom;
+  }
+
+  .posting-animation {
+    left: 4px;
+    bottom: 152px;
+    width: 205px;
+    height: 118px;
+    transform: scale(.63);
+    transform-origin: left bottom;
+  }
+
+  .posting-confirmation {
+    left: 12px;
+    bottom: -3px;
+    font-size: 8px;
+    white-space: nowrap;
+  }
+
+  .postal-stage > .travelling-envelope,
+  .postal-stage > .floating-note {
+    display: none;
+  }
+
+  .scroll-whisper {
+    display: none;
+  }
+
+  .sun-haze {
+    top: 7%;
+    right: -24px;
+    width: 95px;
+    height: 95px;
+  }
+
+  .dust {
+    width: 280px;
+  }
+
+  /* Shared page sections */
+  .section {
+    padding: 68px var(--mobile-gutter);
+  }
+
+  .section-heading h2,
+  .india-copy h2,
+  .opening-copy h2 {
+    font-size: clamp(38px, 10.5vw, 48px);
+    line-height: 1.02;
+  }
+
+  .section-heading > p:last-child,
+  .india-copy > p,
+  .opening-copy > p {
+    margin-top: 20px;
+    font-size: 16px;
+    line-height: 1.68;
+  }
+
+  .moment-grid {
+    gap: 12px;
+    margin-top: 34px;
+  }
+
+  .moment-card {
+    min-height: 0;
+    padding: 24px;
+    border-radius: 20px;
+  }
+
+  .moment-card > span {
+    width: 36px;
+    height: 36px;
+  }
+
+  .moment-card h3 {
+    margin: 28px 0 10px;
+    font-size: 28px;
+  }
+
+  .moment-card p {
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  .india-section {
+    gap: 38px;
+    padding-top: 72px;
+    padding-bottom: 72px;
+  }
+
+  .route-list {
+    gap: 10px;
+  }
+
+  .route-list-item {
+    gap: 14px;
+    padding: 20px 0;
+  }
+
+  .route-list-item h3 {
+    font-size: 23px;
+  }
+
+  .route-list-item p {
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .route-schedule-card {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .route-schedule-head {
+    gap: 12px;
+    margin-bottom: 17px;
+  }
+
+  .route-schedule-head strong {
+    font-size: 25px;
+    line-height: 1.12;
+  }
+
+  .route-schedule-grid {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .schedule-stop {
+    align-items: center;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .schedule-stop span {
+    width: 31px;
+    height: 31px;
+  }
+
+  .schedule-stop p {
+    font-size: 14px;
+  }
+
+  /* Creator flow */
+  .creator-layout {
+    display: block;
+    min-height: auto;
+    padding: 44px var(--mobile-gutter) 72px;
+  }
+
+  .creator-intro {
+    display: block;
+  }
+
+  .creator-intro h1 {
+    max-width: 100%;
+    font-size: clamp(43px, 12vw, 56px);
+    line-height: .98;
+  }
+
+  .creator-intro > p:last-of-type {
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  .creator-preview-card {
+    min-height: 190px;
+    margin: 28px 0 30px;
+    border-radius: 22px;
+    padding: 20px;
+  }
+
+  .letter-form,
+  .creation-success {
+    width: 100%;
+    padding: 25px 18px;
+    border-radius: 22px;
+    box-shadow: 0 22px 55px rgba(0,0,0,.16);
+  }
+
+  .form-step {
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .form-step:not(:first-child) {
+    margin-top: 34px;
+  }
+
+  .form-step h2 {
+    padding-top: 2px;
+    font-size: 23px;
+    line-height: 1.15;
+  }
+
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .letter-form label {
+    margin-top: 15px;
+    font-size: 10px;
+    line-height: 1.45;
+  }
+
+  .letter-form input,
+  .letter-form textarea,
+  .letter-form select {
+    min-height: 50px;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 16px;
+  }
+
+  .letter-form textarea {
+    min-height: 120px;
+  }
+
+  .letter-form input[type="file"] {
+    min-height: 56px;
+    padding: 10px;
+    line-height: 1.5;
+  }
+
+  .form-actions {
+    display: grid;
+    gap: 12px;
+    margin-top: 26px;
+  }
+
+  .form-actions span {
+    margin: 0;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .creation-success {
+    min-height: 480px;
+  }
+
+  .creation-success h2 {
+    font-size: 42px;
+  }
+
+  /* Journey scene */
+  [class*="gameHeader"] {
+    gap: 24px !important;
+    padding: 112px var(--mobile-gutter) 32px !important;
+  }
+
+  [class*="gameHeader"] h1 {
+    font-size: clamp(40px, 11vw, 50px) !important;
+    line-height: 1 !important;
+  }
+
+  [class*="arrivalCard"] {
+    width: 100% !important;
+    padding: 18px !important;
+    border-radius: 18px !important;
+  }
+
+  [class*="gameShell"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    padding: 18px 12px 64px !important;
+  }
+
+  [class*="sideColumn"] {
+    position: static !important;
+    order: -1 !important;
+    width: 100%;
+  }
+
+  [class*="tabs"] {
+    position: sticky;
+    z-index: 20;
+    top: 8px;
+    min-height: 48px;
+    box-shadow: 0 10px 28px rgba(45,29,18,.1);
+  }
+
+  [class*="timeline"] {
+    padding: 14px !important;
+    border-radius: 18px !important;
+  }
+
+  [class*="timelineHead"] {
+    align-items: flex-start !important;
+  }
+
+  [class*="chapterList"] {
+    display: flex !important;
+    gap: 8px !important;
+    max-height: none !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    margin: 0 -4px !important;
+    padding: 2px 4px 10px !important;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  [class*="chapterList"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  [class*="chapterList"] button {
+    flex: 0 0 172px !important;
+    min-height: 68px !important;
+    padding: 10px !important;
+    border: 1px solid rgba(81,59,36,.09) !important;
+    border-radius: 14px !important;
+    scroll-snap-align: start;
+  }
+
+  [class*="chapterList"] button > span {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  [class*="chapterList"] button i {
+    display: none;
+  }
+
+  [class*="traceCard"],
+  [class*="returnCard"] {
+    margin-top: 12px !important;
+    padding: 16px !important;
+  }
+
+  .journey-stage-card {
+    min-height: 570px;
+    border-radius: 20px;
+  }
+
+  .journey-stage-content {
+    padding: 24px 19px;
+  }
+
+  .journey-stage-content h2 {
+    max-width: 100%;
+    font-size: clamp(39px, 11vw, 50px);
+  }
+
+  .journey-stage-content > div > p:last-child {
+    max-width: 100%;
+    font-size: 15px;
+    line-height: 1.58;
+  }
+
+  .journey-stage-meta {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding-top: 16px;
+  }
+
+  .journey-envelope {
+    left: auto;
+    right: 18px;
+    top: 38%;
+    width: 82px;
+    height: 54px;
+  }
+
+  .journey-wax {
+    left: 31px;
+    top: 25px;
+    width: 24px;
+    height: 24px;
+  }
+
+  [class*="postmanCard"] {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+    border-radius: 20px !important;
+  }
+
+  [class*="postmanScene"] {
+    min-height: 155px !important;
+    transform: none !important;
+    margin: 0 !important;
+  }
+
+  [class*="postman"] {
+    transform: scale(.78);
+    transform-origin: bottom center;
+  }
+
+  [class*="postmanCopy"] {
+    padding: 20px !important;
+  }
+
+  [class*="postmanCopy"] p {
+    min-height: 0 !important;
+    font-size: 19px !important;
+    line-height: 1.48 !important;
+  }
+
+  [class*="postcard"],
+  [class*="memoryPrompt"],
+  [class*="ritualCard"] {
+    padding: 22px 18px !important;
+    border-radius: 19px !important;
+  }
+
+  [class*="postcard"]::after {
+    width: 45px !important;
+    height: 45px !important;
+    right: 16px !important;
+    top: 16px !important;
+  }
+
+  [class*="fragmentCard"] {
+    grid-template-columns: 1fr !important;
+    border-radius: 20px !important;
+  }
+
+  [class*="fragmentVisual"] {
+    min-height: 205px !important;
+  }
+
+  [class*="fragmentCopy"] {
+    padding: 23px 18px !important;
+  }
+
+  [class*="ritualCard"] {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  [class*="ritualStamp"] {
+    width: 120px !important;
+    height: 120px !important;
+  }
+
+  [class*="umbrellaRitual"],
+  [class*="receiveRitual"] {
+    min-height: 120px !important;
+  }
+
+  [class*="memoryBox"] {
+    padding: 16px !important;
+    border-radius: 18px !important;
+  }
+
+  /* Arrival / letter opening */
+  .opening-shell {
+    gap: 30px;
+    padding: 68px var(--mobile-gutter);
+  }
+
+  .opening-stage {
+    min-height: 520px;
+  }
+
+  .delivery-handover {
+    min-height: 560px;
+    border-radius: 22px;
+  }
+
+  .delivery-door {
+    left: 12px;
+    top: 34px;
+    width: 132px;
+  }
+
+  .postman-delivery-arm {
+    right: -126px;
+    top: 152px;
+    transform: scale(.68);
+    transform-origin: right center;
+  }
+
+  .recipient-hand {
+    left: -76px;
+    top: 242px;
+    transform: scale(.65);
+    transform-origin: left center;
+  }
+
+  .delivery-copy {
+    width: calc(100% - 24px);
+    margin-bottom: 12px;
+    padding: 19px;
+    border-radius: 18px;
+  }
+
+  .delivery-copy h3 {
+    font-size: 25px;
+  }
+
+  .delivery-copy p {
+    font-size: 14px;
+  }
+
+  .receive-letter-button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .large-envelope {
+    width: min(88vw, 390px);
+    max-width: calc(100% - 16px);
+  }
+
+  .received-envelope {
+    margin-top: 44px;
+  }
+
+  .receiving-hand-under-envelope {
+    left: -72px;
+    bottom: -26px;
+    transform: rotate(-7deg) scale(.62);
+    transform-origin: right center;
+  }
+
+  .opened-letter {
+    width: 100%;
+    min-height: 0;
+    padding: 38px 22px;
+    border-radius: 7px;
+  }
+
+  .opened-letter p {
+    font-size: 17px;
+    line-height: 1.66;
+  }
+
+  .letter-salutation {
+    font-size: 25px !important;
+  }
+
+  .tap-instruction {
+    left: 8px;
+    right: 8px;
+    bottom: -51px;
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .postal-cta,
+  .final-cta {
+    min-height: 580px;
+    padding: 72px var(--mobile-gutter);
+  }
+
+  .final-cta h2 {
+    font-size: clamp(43px, 12vw, 57px);
+  }
+
+  .final-cta-copy {
+    margin: 18px auto 30px;
+    font-size: 15px;
+  }
+
+  .postal-cta .final-cta-stamp {
+    min-width: 0;
+    width: auto;
+    height: auto;
+    min-height: 48px;
+    padding: 0 14px;
+    font-size: 9px;
+  }
+
+  .site-footer {
+    gap: 18px;
+    padding: 38px var(--mobile-gutter);
+    text-align: center;
+  }
+
+  .site-footer .brand-mark {
+    justify-content: center;
+  }
+
+  .site-footer p {
+    margin: 0 auto;
+    text-align: center;
+  }
+}
+
+@media (max-width: 390px) {
+  .hero-copy h1 {
+    font-size: 40px;
+  }
+
+  .postal-stage {
+    min-height: 395px;
+  }
+
+  .inland-card {
+    width: 60%;
+  }
+
+  .posting-animation {
+    left: -8px;
+    transform: scale(.56);
+  }
+
+  .postbox-monument {
+    left: 12px;
+  }
+
+  .mail-train-scene {
+    left: 65px;
+  }
+
+  .journey-stage-card {
+    min-height: 600px;
+  }
+
+  .delivery-handover {
+    min-height: 590px;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  button,
+  .button,
+  .nav-cta,
+  .text-link {
+    touch-action: manipulation;
+  }
+
+  button:not(:disabled):active,
+  .button:active,
+  .nav-cta:active {
+    transform: scale(.985);
+  }
+}
