@@ -1,37 +1,28 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { Navigation } from "@/components/navigation";
-
-const cities = [
-  "Ahmedabad",
-  "Alappuzha",
-  "Bengaluru",
-  "Bhopal",
-  "Chandigarh",
-  "Chennai",
-  "Coimbatore",
-  "Delhi",
-  "Goa",
-  "Guwahati",
-  "Hyderabad",
-  "Jaipur",
-  "Kochi",
-  "Kolkata",
-  "Kozhikode",
-  "Lucknow",
-  "Mangaluru",
-  "Mumbai",
-  "Pune",
-  "Thiruvananthapuram",
-];
+import { allRouteCities, routeCorridors } from "@/lib/routes";
 
 export default function CreatePage() {
   const [created, setCreated] = useState(false);
-  const [origin, setOrigin] = useState("Delhi");
-  const [destination, setDestination] = useState("Kochi");
+  const [routeId, setRouteId] = useState(routeCorridors[0].id);
+  const selectedRoute = useMemo(
+    () => routeCorridors.find((route) => route.id === routeId) ?? routeCorridors[0],
+    [routeId],
+  );
+  const [origin, setOrigin] = useState(selectedRoute.origin);
+  const [destination, setDestination] = useState(selectedRoute.destination);
   const [recipient, setRecipient] = useState("Ananya");
+
+  function chooseRoute(id: string) {
+    const route = routeCorridors.find((item) => item.id === id);
+    if (!route) return;
+    setRouteId(route.id);
+    setOrigin(route.origin);
+    setDestination(route.destination);
+  }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,36 +35,80 @@ export default function CreatePage() {
       <section className="creator-layout">
         <div className="creator-intro">
           <p className="eyebrow">Create a private memory journey</p>
-          <h1>What should travel with your words?</h1>
+          <h1>Choose the road your words will remember.</h1>
           <p>
-            Give us the small details only the two of you understand. Intezaar turns them into
-            dated objects, postcards, sounds and fragments that appear slowly before the final letter arrives.
+            Start with a real postal corridor, then add the people, details and old objects only the two of you understand.
           </p>
           <div className="creator-preview-card">
             <div className="creator-preview-sky" />
-            <div className="creator-preview-envelope"><i /><b>I</b></div>
+            <div className="creator-preview-envelope"><i /><b>{selectedRoute.accent}</b></div>
             <span>{origin}</span><strong>→</strong><span>{destination}</span>
           </div>
         </div>
 
         {!created ? (
           <form className="letter-form" onSubmit={submit}>
-            <div className="form-step"><span>01</span><h2>The journey</h2></div>
+            <div className="form-step"><span>01</span><h2>Choose a postal corridor</h2></div>
+
+            <div className="corridor-picker">
+              <div>
+                <div>
+                  <h3>Curated routes</h3>
+                  <p>Each corridor has its own pace, transport and regional memories.</p>
+                </div>
+              </div>
+              <div className="corridor-grid">
+                {routeCorridors.map((route) => (
+                  <button
+                    key={route.id}
+                    type="button"
+                    className={`corridor-card ${route.id === selectedRoute.id ? "active" : ""}`}
+                    onClick={() => chooseRoute(route.id)}
+                    aria-pressed={route.id === selectedRoute.id}
+                  >
+                    <span>{route.accent}</span>
+                    <strong>{route.name}</strong>
+                    <small>{route.strapline}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <section className="corridor-detail" aria-live="polite">
+              <div className="corridor-detail-head">
+                <div>
+                  <h3>{selectedRoute.name}</h3>
+                  <p>{selectedRoute.strapline}</p>
+                </div>
+                <span className="corridor-duration">{selectedRoute.duration}</span>
+              </div>
+              <div className="corridor-stops">
+                {selectedRoute.stops.map((stop) => <span className="corridor-stop" key={stop}>{stop}</span>)}
+              </div>
+              <div className="corridor-meta">
+                <div><span>Atmosphere</span><strong>{selectedRoute.tone}</strong></div>
+                <div><span>Carried by</span><strong>{selectedRoute.transport}</strong></div>
+              </div>
+            </section>
+
+            <p className="custom-route-note">You can keep the route or customise its first and final stop.</p>
             <div className="form-grid">
               <label>Leaving from
                 <select name="origin" value={origin} onChange={(event) => setOrigin(event.target.value)} required>
-                  {cities.map((city) => <option key={city} value={city}>{city}</option>)}
+                  {allRouteCities.map((city) => <option key={city} value={city}>{city}</option>)}
                 </select>
               </label>
               <label>Travelling to
                 <select name="destination" value={destination} onChange={(event) => setDestination(event.target.value)} required>
-                  {cities.map((city) => <option key={city} value={city}>{city}</option>)}
+                  {allRouteCities.map((city) => <option key={city} value={city}>{city}</option>)}
                 </select>
               </label>
             </div>
             <label>Arrival moment<input type="datetime-local" name="arrival" required /></label>
+
+            <div className="form-step"><span>02</span><h2>The feeling</h2></div>
             <div className="form-grid">
-              <label>Journey length
+              <label>Journey rhythm
                 <select name="pace" defaultValue="story">
                   <option value="short">A brief wait · 1–2 days</option>
                   <option value="story">A slow story · 3–5 days</option>
@@ -91,8 +126,6 @@ export default function CreatePage() {
                 </select>
               </label>
             </div>
-
-            <div className="form-step"><span>02</span><h2>The feeling</h2></div>
             <div className="form-grid">
               <label>Postman voice
                 <select name="postman" defaultValue="warm">
@@ -101,51 +134,28 @@ export default function CreatePage() {
                   <option value="poetic">Quiet and poetic</option>
                 </select>
               </label>
-              <label>Reveal rhythm
-                <select name="reveal" defaultValue="daily">
-                  <option value="gentle">Gentle · a few meaningful fragments</option>
-                  <option value="daily">Daily · one memory each day</option>
-                  <option value="deep">Deep nostalgia · memories, voice and photographs</option>
-                </select>
-              </label>
-            </div>
-            <div className="form-grid">
-              <label>Mystery level
+              <label>Mystery
                 <select name="mystery" defaultValue="clues">
                   <option value="none">Reveal the sender immediately</option>
                   <option value="clues">Reveal small clues</option>
                   <option value="secret">Keep the sender secret until arrival</option>
                 </select>
               </label>
-              <label>Journey mood
-                <select name="mood" defaultValue="monsoon">
-                  <option value="monsoon">Monsoon memories</option>
-                  <option value="midnight">Midnight conversations</option>
-                  <option value="golden">Golden old photographs</option>
-                  <option value="homecoming">A journey home</option>
-                </select>
-              </label>
             </div>
 
-            <div className="form-step"><span>03</span><h2>The people</h2></div>
+            <div className="form-step"><span>03</span><h2>The people and the letter</h2></div>
             <div className="form-grid">
               <label>Your name<input name="sender" placeholder="Arjun" required /></label>
-              <label>Their name
-                <input name="recipient" value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="Ananya" required />
-              </label>
+              <label>Their name<input name="recipient" value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="Ananya" required /></label>
             </div>
-
-            <div className="form-step"><span>04</span><h2>The memories</h2></div>
             <label>The final letter<textarea name="message" rows={8} placeholder="Write what an ordinary message could never hold…" required /></label>
             <label>A memory only both of you understand<input name="private-memory" placeholder="The rainy bus stop, the burnt tea, that missed train…" /></label>
             <div className="form-grid">
-              <label>A song or sound<input name="song" placeholder="A song, film dialogue or familiar background sound" /></label>
+              <label>A song or sound<input name="song" placeholder="A song, film dialogue or familiar sound" /></label>
               <label>A private word<input name="nickname" placeholder="A nickname, joke or phrase" /></label>
             </div>
-            <label>One ordinary moment you never want to forget<textarea name="ordinary-moment" rows={4} placeholder="It does not need to sound poetic. The smallest details are usually the strongest." /></label>
-            <label>I remembered this about you<textarea name="remembered-detail" rows={3} placeholder="For example: You always looked outside when it started raining." /></label>
 
-            <div className="form-step"><span>05</span><h2>The old objects</h2></div>
+            <div className="form-step"><span>04</span><h2>The old objects</h2></div>
             <div className="form-grid">
               <label>A date that still means something<input type="date" name="memory-date" /></label>
               <label>What happened that day?<input name="date-caption" placeholder="The five-minute call that lasted until sunrise" /></label>
@@ -153,7 +163,7 @@ export default function CreatePage() {
             <label>An old message fragment<textarea name="old-message" rows={3} placeholder="A real SMS, diary line, email subject or sentence you nearly deleted…" /></label>
             <div className="form-grid">
               <label>How should it appear?
-                <select name="artifact" defaultValue="old-sms">
+                <select name="artifact" defaultValue="inland-letter">
                   <option value="old-sms">Old phone message</option>
                   <option value="diary">Diary or notebook page</option>
                   <option value="bus-ticket">Bus or train ticket</option>
@@ -163,26 +173,30 @@ export default function CreatePage() {
                   <option value="inland-letter">Indian inland letter</option>
                 </select>
               </label>
-              <label>A place-specific detail<input name="regional-detail" placeholder="KSRTC ticket, bakery cover, railway chai, church bells…" /></label>
+              <label>A place-specific detail<input name="regional-detail" placeholder="Railway chai, KSRTC ticket, bakery cover…" /></label>
             </div>
-            <label>Caption for a photograph<input name="photo-caption" placeholder="For example: We were tired, late and completely happy." /></label>
             <div className="form-grid">
               <label>Optional photograph<input type="file" name="photograph" accept="image/*" /></label>
               <label>Optional voice note<input type="file" name="voice-note" accept="audio/*" /></label>
             </div>
-            <p className="form-note">Only add what feels true. Empty fields create quiet space rather than generic AI memories.</p>
+            <p className="form-note">Only add what feels true. Empty fields create quiet space rather than invented memories.</p>
 
             <div className="form-actions">
               <button className="button button-primary" type="submit">Seal the memory journey</button>
-              <span>The recipient never has to complete a game. They simply return when they miss the story.</span>
+              <span>The recipient returns for a story, not a streak.</span>
             </div>
           </form>
         ) : (
           <div className="creation-success">
-            <div className="success-seal">I</div>
+            <div className="success-seal">{selectedRoute.accent}</div>
             <p className="eyebrow">Sealed for {recipient}</p>
-            <h2>Something remembered is ready to travel.</h2>
-            <p>A private journey from {origin} to {destination} has been prepared from your words, dates, sounds and memories.</p>
+            <h2>The route has been booked.</h2>
+            <div className="creation-route-ticket">
+              <small>{selectedRoute.name}</small>
+              <strong>{origin} → {destination}</strong>
+              <p>{selectedRoute.transport}</p>
+              <div>{selectedRoute.stops.map((stop) => <span key={stop}>{stop}</span>)}</div>
+            </div>
             <Link href="/journey/demo" className="button button-primary">Enter the journey</Link>
             <button className="text-button" onClick={() => setCreated(false)}>Edit the memories</button>
           </div>
