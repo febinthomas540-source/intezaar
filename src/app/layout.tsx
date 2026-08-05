@@ -5,32 +5,33 @@ import "./postal-interactions.css";
 import "./route-selector.css";
 import "./mobile.css";
 import "./journey-mobile-fix.css";
+import "./raahi-site.css";
 
 const siteUrl = "https://intezaar.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Intezaar — A nostalgic Indian letter journey",
+    default: "Intezaar — Memories carried home by Raahi",
     template: "%s | Intezaar",
   },
   description:
-    "Create a private letter that travels through nostalgic Indian post boxes, railway mail routes, cities and monsoon memories before it arrives.",
+    "Create a private memory journey carried by Raahi, a messenger pigeon who delivers one photograph, voice note or keepsake each day before the final sealed letter arrives.",
   applicationName: "Intezaar",
   authors: [{ name: "Intezaar" }],
   creator: "Intezaar",
   publisher: "Intezaar",
   category: "Emotional gifting",
   keywords: [
-    "nostalgic letter website",
-    "Indian postal journey",
-    "digital letter delivery",
+    "digital memory journey",
     "scheduled online letter",
-    "Indian railway nostalgia",
-    "memory gift",
+    "messenger pigeon letter",
+    "private photo gift",
+    "voice note keepsake",
     "future message",
     "romantic letter experience",
-    "India Post inspired",
+    "memory book PDF",
+    "slow digital gifting",
   ],
   alternates: { canonical: "/" },
   openGraph: {
@@ -38,15 +39,15 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: siteUrl,
     siteName: "Intezaar",
-    title: "Intezaar — A letter carried by post and rail",
+    title: "Intezaar — Send a memory. Let it find its way home.",
     description:
-      "Drop a memory into a red Indian post box and let it travel by railway mail before the final letter arrives.",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Intezaar nostalgic Indian postal and railway letter journey" }],
+      "Raahi carries one private memory each day until the final sealed letter reaches home.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Raahi the messenger pigeon carrying an Intezaar memory letter" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Intezaar — A letter carried by post and rail",
-    description: "A nostalgic Indian postal journey where memories travel before the letter arrives.",
+    title: "Intezaar — Memories carried home by Raahi",
+    description: "One memory lands each day. The final letter arrives last.",
     images: ["/opengraph-image"],
   },
   robots: {
@@ -62,8 +63,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#8f2f20",
-  colorScheme: "light dark",
+  themeColor: "#f7edcf",
+  colorScheme: "light",
 };
 
 const organizationSchema = {
@@ -79,7 +80,7 @@ const websiteSchema = {
   "@type": "WebSite",
   name: "Intezaar",
   url: siteUrl,
-  description: "A nostalgic Indian postal journey where private letters travel through cities and railway routes before they arrive.",
+  description: "A private memory journey where Raahi delivers one memory at a time before the final letter arrives.",
   inLanguage: "en-IN",
   publisher: { "@type": "Organization", name: "Intezaar" },
 };
