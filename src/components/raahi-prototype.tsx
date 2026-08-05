@@ -278,7 +278,7 @@ export function RaahiPrototype({ recipient, previewDay }: Props) {
                   <span>The journal is complete</span>
                   <h3>Nothing is blurred anymore.</h3>
                   <p>Return to any page, reread the final letter, or save everything as one keepsake.</p>
-                  <button type="button" onClick={() => { setCurrentIndex(PAGE_COUNT - 1); window.setTimeout(() => window.print(), 200); }}>
+                  <button type="button" onClick={() => window.print()}>
                     Create the A4 keepsake
                   </button>
                 </div>
@@ -328,6 +328,21 @@ export function RaahiPrototype({ recipient, previewDay }: Props) {
           <article><span>02</span><h3>The journal controls the wait</h3><p>Only unlocked tabs can be opened. Earlier pages always remain available.</p></article>
           <article><span>03</span><h3>The final page becomes a keepsake</h3><p>After the letter opens, the complete journal can be saved as an A4 PDF.</p></article>
         </div>
+      </section>
+
+      <section className={styles.printJournal} aria-label="Printable Intezaar memory journal">
+        {journalPages.map((page, index) => (
+          <article className={styles.printPage} key={`print-${page.title}`}>
+            <header><span>Intezaar</span><small>Page {index + 1} of {PAGE_COUNT} · For {recipient}</small></header>
+            {page.image ? <img src={page.image} alt="" /> : <div className={styles.printArtifact}>{page.type === "voice" ? "Voice memory · 00:28" : page.type === "keepsake" ? "Kept ticket · Platform 3" : page.type === "letter" ? "The final sealed letter" : "Written memory"}</div>}
+            <p className={styles.printEyebrow}>{page.eyebrow}</p>
+            <h2>{page.title}</h2>
+            <span className={styles.printDate}>{page.date}</span>
+            <blockquote>{page.note}</blockquote>
+            <p>{page.body}</p>
+            <footer>Memories that took time to arrive.</footer>
+          </article>
+        ))}
       </section>
 
       <footer className={styles.footer}>
