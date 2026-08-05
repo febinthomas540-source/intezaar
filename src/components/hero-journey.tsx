@@ -58,15 +58,37 @@ export function HeroJourney() {
               <strong>DELHI JN. → KERALA</strong>
             </div>
 
-            <motion.div
-              className="postbox-monument"
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
-            >
+            <div className="posting-animation" aria-label="A person posts a sealed letter into the red post box">
+              <motion.div
+                className="posting-arm"
+                animate={{ x: [150, 150, 42, 12, 12, 150], y: [34, 34, 10, 4, 4, 34], rotate: [8, 8, -3, -8, -8, 8] }}
+                transition={{ duration: 6.8, times: [0, .13, .42, .56, .72, 1], repeat: Infinity, ease: "easeInOut" }}
+              >
+                <span className="posting-sleeve" />
+                <span className="posting-hand"><i /><i /><i /><i /></span>
+                <motion.span
+                  className="posting-letter"
+                  animate={{ x: [0, 0, -6, -12, -12, 0], y: [0, 0, 5, 30, 54, 0], rotate: [-5, -5, -2, 1, 4, -5], opacity: [1, 1, 1, 1, 0, 0] }}
+                  transition={{ duration: 6.8, times: [0, .13, .42, .56, .72, 1], repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <b>For someone remembered</b>
+                  <em />
+                </motion.span>
+              </motion.div>
+              <motion.span
+                className="posting-confirmation"
+                animate={{ opacity: [0, 0, 0, 1, 1, 0], y: [8, 8, 8, 0, 0, -5] }}
+                transition={{ duration: 6.8, times: [0, .55, .66, .72, .88, 1], repeat: Infinity }}
+              >
+                Posted with care · 8:42 PM
+              </motion.span>
+            </div>
+
+            <div className="postbox-monument">
               <span className="postbox-top" />
               <span className="postbox-slot" />
               <span className="postbox-mark">POST</span>
-            </motion.div>
+            </div>
 
             <div className="postal-track" />
             <div className="mail-train-scene">
@@ -75,46 +97,24 @@ export function HeroJourney() {
                 animate={{ x: [-240, 250] }}
                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
               >
-                <div className="engine-coach">
-                  <i />
-                  <i />
-                  <b />
-                </div>
+                <div className="engine-coach"><i /><i /><b /></div>
                 <div className="mail-coach">
-                  <span>भारतीय रेल</span>
-                  <small>Post &amp; Memories</small>
-                  <i />
-                  <i />
+                  <span>भारतीय रेल</span><small>Post &amp; Memories</small><i /><i />
                 </div>
                 <div className="mail-coach short-coach">
-                  <span>RM</span>
-                  <small>Rail Mail</small>
-                  <i />
-                  <i />
+                  <span>RM</span><small>Rail Mail</small><i /><i />
                 </div>
               </motion.div>
             </div>
 
             <div className="inland-card">
-              <div className="inland-stamps">
-                <span>DEL 04 AUG</span>
-                <span>CROSSES BY RAIL</span>
-              </div>
+              <div className="inland-stamps"><span>DEL 04 AUG</span><span>CROSSES BY RAIL</span></div>
               <div className="inland-lines">
                 <small>Current chapter</small>
                 <strong>Some memories deserve to travel slowly.</strong>
                 <p>Dusty platforms, chai, rain on the window and a name written by hand.</p>
               </div>
             </div>
-
-            <motion.div
-              className="travelling-envelope"
-              animate={{ x: [0, 18, 0], y: [0, -8, 0], rotate: [-2, 2, -2] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <span className="envelope-flap" />
-              <span className="mini-seal">❤</span>
-            </motion.div>
 
             <div className="floating-note floating-note-one">Stamped in Delhi · arriving in Kerala</div>
             <div className="floating-note floating-note-two">The train carries one more clue tomorrow</div>
