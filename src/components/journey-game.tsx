@@ -2,10 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { JourneyStage, demoJourney } from "@/lib/journey";
+import { JourneyStage, MemoryArtifactType, JourneySoundKind, demoJourney } from "@/lib/journey";
 import { JourneyStageCard } from "@/components/journey-stage";
 import { LetterOpening } from "@/components/letter-opening";
 import styles from "./journey-game.module.css";
+import nostalgia from "./nostalgia.module.css";
+
+let activeAmbientContext: AudioContext | null = null;
 
 function speak(text: string) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -22,6 +25,72 @@ function speak(text: string) {
   window.speechSynthesis.speak(utterance);
 }
 
+function playAmbientMemory(kind: JourneySoundKind, onEnd: () => void) {
+  if (typeof window === "undefined" || !window.AudioContext) {
+    onEnd();
+    return;
+  }
+
+  void activeAmbientContext?.close();
+  const context = new AudioContext();
+  activeAmbientContext = context;
+  const duration = 8;
+  const master = context.createGain();
+  master.gain.setValueAtTime(0.0001, context.currentTime);
+  master.gain.exponentialRampToValueAtTime(0.055, context.currentTime + 0.7);
+  master.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
+  master.connect(context.destination);
+
+  const buffer = context.createBuffer(1, context.sampleRate * duration, context.sampleRate);
+  const data = buffer.getChannelData(0);
+  let previous = 0;
+  for (let index = 0; index < data.length; index += 1) {
+    const white = Math.random() * 2 - 1;
+    previous = previous * 0.985 + white * 0.015;
+    data[index] = previous * 2.4;
+  }
+
+  const noise = context.createBufferSource();
+  noise.buffer = buffer;
+  const filter = context.createBiquadFilter();
+  filter.type = kind === "rain" ? "highpass" : "lowpass";
+  filter.frequency.value =
+    kind === "rain" ? 950 : kind === "sea" ? 520 : kind === "station" ? 780 : kind === "rail" ? 340 : 260;
+  const noiseGain = context.createGain();
+  noiseGain.gain.value = kind === "night" ? 0.24 : 0.5;
+  noise.connect(filter);
+  filter.connect(noiseGain);
+  noiseGain.connect(master);
+
+  const hum = context.createOscillator();
+  hum.type = "sine";
+  hum.frequency.value = kind === "rail" ? 72 : kind === "station" ? 110 : kind === "sea" ? 96 : 180;
+  const humGain = context.createGain();
+  humGain.gain.value = kind === "rain" ? 0.015 : 0.045;
+  hum.connect(humGain);
+  humGain.connect(master);
+
+  const lfo = context.createOscillator();
+  lfo.frequency.value = kind === "rail" ? 2.2 : kind === "sea" ? 0.18 : 0.42;
+  const lfoGain = context.createGain();
+  lfoGain.gain.value = kind === "rail" ? 0.025 : 0.018;
+  lfo.connect(lfoGain);
+  lfoGain.connect(master.gain);
+
+  noise.start();
+  hum.start();
+  lfo.start();
+  noise.stop(context.currentTime + duration);
+  hum.stop(context.currentTime + duration);
+  lfo.stop(context.currentTime + duration);
+
+  window.setTimeout(() => {
+    if (activeAmbientContext === context) activeAmbientContext = null;
+    void context.close();
+    onEnd();
+  }, duration * 1000 + 150);
+}
+
 function parseStoredSet(key: string) {
   try {
     const value = window.localStorage.getItem(key);
@@ -29,6 +98,38 @@ function parseStoredSet(key: string) {
   } catch {
     return new Set<string>();
   }
+}
+
+function artifactClass(type: MemoryArtifactType) {
+  const classes: Record<MemoryArtifactType, string> = {
+    "old-sms": nostalgia.oldSms,
+    diary: nostalgia.diary,
+    "cinema-ticket": nostalgia.cinemaTicket,
+    "bus-ticket": nostalgia.busTicket,
+    "voice-note": nostalgia.voiceNote,
+    polaroid: nostalgia.polaroid,
+    cassette: nostalgia.cassette,
+    email: nostalgia.email,
+    postcard: nostalgia.postcardArtifact,
+    "inland-letter": nostalgia.inlandLetter,
+  };
+  return classes[type];
+}
+
+function artifactSymbol(type: MemoryArtifactType) {
+  const symbols: Record<MemoryArtifactType, string> = {
+    "old-sms": "▦",
+    diary: "✎",
+    "cinema-ticket": "◫",
+    "bus-ticket": "↟",
+    "voice-note": "▥",
+    polaroid: "□",
+    cassette: "◉",
+    email: "@",
+    postcard: "✦",
+    "inland-letter": "✉",
+  };
+  return symbols[type];
 }
 
 function Postman({ stage }: { stage: JourneyStage }) {
@@ -110,22 +211,74 @@ function QuietRitual({ stage, completed, onComplete }: { stage: JourneyStage; co
   );
 }
 
+function DateAndDetail({ stage }: { stage: JourneyStage }) {
+  return (
+    <section className={nostalgia.detailGrid}>
+      <article className={nostalgia.dateCard}>
+        <span>A date that still means something</span>
+        <strong>{stage.memoryDate}</strong>
+        <p>{stage.memoryDateCaption}</p>
+      </article>
+      <article className={nostalgia.rememberedCard}>
+        <span>I remembered this about you</span>
+        <p>“{stage.rememberedDetail}”</p>
+        <small>Not a grand memory. Just proof that somebody noticed.</small>
+      </article>
+    </section>
+  );
+}
+
 function MemoryFragment({ stage, collected, onCollect }: { stage: JourneyStage; collected: boolean; onCollect: () => void }) {
   return (
-    <section className={styles.fragmentCard}>
-      <div className={styles.fragmentVisual} aria-hidden="true">
-        <span className={styles.photoCorner} />
-        <span className={styles.handwriting}>do you remember…</span>
-        <span className={styles.tape} />
+    <section className={`${styles.fragmentCard} ${nostalgia.artifactCard}`}>
+      <div className={`${styles.fragmentVisual} ${nostalgia.artifactVisual} ${artifactClass(stage.artifact.type)}`} aria-hidden="true">
+        <span className={nostalgia.artifactSymbol}>{artifactSymbol(stage.artifact.type)}</span>
+        <div className={nostalgia.artifactPaper}>
+          <small>{stage.artifact.kicker}</small>
+          <strong>{stage.artifact.title}</strong>
+          <p>{stage.artifact.body}</p>
+          <em>{stage.artifact.footer}</em>
+        </div>
+        <span className={nostalgia.artifactTape} />
       </div>
       <div className={styles.fragmentCopy}>
-        <span>Something surfaced today</span>
+        <span>Something from the old days surfaced</span>
         <h3>{stage.keepsakeName}</h3>
         <p>{stage.keepsakeDetail}</p>
         <button type="button" onClick={onCollect} disabled={collected}>
           {collected ? "Kept in your memory box" : "Keep this fragment"}
         </button>
       </div>
+    </section>
+  );
+}
+
+function SensoryMemory({ stage }: { stage: JourneyStage }) {
+  const [playing, setPlaying] = useState(false);
+
+  const play = () => {
+    if (playing) return;
+    setPlaying(true);
+    playAmbientMemory(stage.soundMemory.kind, () => setPlaying(false));
+  };
+
+  return (
+    <section className={nostalgia.sensoryGrid}>
+      <article className={nostalgia.culturalCard}>
+        <span>The place remembers too</span>
+        <p>{stage.culturalDetail}</p>
+      </article>
+      <article className={nostalgia.soundCard}>
+        <div>
+          <span>A sound from that time</span>
+          <h3>{stage.soundMemory.title}</h3>
+          <p>{stage.soundMemory.detail}</p>
+        </div>
+        <button type="button" onClick={play} disabled={playing}>
+          <i className={playing ? nostalgia.soundPlaying : ""} />
+          {playing ? "Listening…" : "Listen for eight seconds"}
+        </button>
+      </article>
     </section>
   );
 }
@@ -142,9 +295,12 @@ function MemoryPrompt({ stage, value, saved, onChange, onSave }: { stage: Journe
   );
 }
 
-function MemoryBox({ collectedIds, notes, savedMemoryIds }: { collectedIds: Set<string>; notes: Record<string, string>; savedMemoryIds: Set<string> }) {
+function MemoryBox({ collectedIds, notes, savedMemoryIds, firstVisit }: { collectedIds: Set<string>; notes: Record<string, string>; savedMemoryIds: Set<string>; firstVisit: string }) {
   const keptStages = demoJourney.filter((stage) => collectedIds.has(stage.id));
   const writtenStages = demoJourney.filter((stage) => savedMemoryIds.has(stage.id) && notes[stage.id]);
+  const firstVisitLabel = firstVisit
+    ? new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" }).format(new Date(firstVisit))
+    : "today";
 
   return (
     <section className={styles.memoryBox}>
@@ -152,12 +308,20 @@ function MemoryBox({ collectedIds, notes, savedMemoryIds }: { collectedIds: Set<
         <span>Your private memory box</span>
         <strong>{keptStages.length} fragments · {writtenStages.length} memories</strong>
       </div>
+      <div className={nostalgia.archiveNote}>
+        <span>First found you</span>
+        <strong>{firstVisitLabel}</strong>
+        <p>This browser will remember when the journey first arrived. The real product can bring the complete letter back on meaningful anniversaries.</p>
+      </div>
       {keptStages.length === 0 && writtenStages.length === 0 ? (
         <div className={styles.emptyMemoryBox}><span>✦</span><p>Fragments you choose to keep will wait here. There are no points, streaks or missed days.</p></div>
       ) : (
         <div className={styles.memoryCollection}>
           {keptStages.map((stage) => (
-            <article key={`fragment-${stage.id}`}><span>{stage.stamp}</span><div><strong>{stage.keepsakeName}</strong><small>{stage.city}</small></div></article>
+            <article key={`fragment-${stage.id}`}>
+              <span>{artifactSymbol(stage.artifact.type)}</span>
+              <div><strong>{stage.artifact.title}</strong><small>{stage.memoryDate} · {stage.city}</small></div>
+            </article>
           ))}
           {writtenStages.map((stage) => (
             <article key={`note-${stage.id}`} className={styles.writtenMemory}><span>“</span><div><strong>{notes[stage.id]}</strong><small>Your memory · {stage.city}</small></div></article>
@@ -175,6 +339,7 @@ export function JourneyGame() {
   const [ritualIds, setRitualIds] = useState<Set<string>>(new Set());
   const [savedMemoryIds, setSavedMemoryIds] = useState<Set<string>>(new Set());
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [firstVisit, setFirstVisit] = useState("");
   const stage = useMemo(() => demoJourney[index], [index]);
   const nextStage = demoJourney[index + 1];
 
@@ -185,6 +350,10 @@ export function JourneyGame() {
     try {
       const savedNotes = window.localStorage.getItem("intezaar-memory-notes");
       if (savedNotes) setNotes(JSON.parse(savedNotes));
+      const savedFirstVisit = window.localStorage.getItem("intezaar-first-visit");
+      const visit = savedFirstVisit ?? new Date().toISOString();
+      if (!savedFirstVisit) window.localStorage.setItem("intezaar-first-visit", visit);
+      setFirstVisit(visit);
     } catch {
       setNotes({});
     }
@@ -231,9 +400,11 @@ export function JourneyGame() {
             <span>{index + 1} of {demoJourney.length}</span>
             <button type="button" onClick={() => setIndex((current) => Math.min(demoJourney.length - 1, current + 1))} disabled={index === demoJourney.length - 1}>Later →</button>
           </div>
+          <DateAndDetail stage={stage} />
           <Postman stage={stage} />
-          <section className={styles.postcard}><span>Postcard from the road</span><h3>{stage.postcardTitle}</h3><p>{stage.postcardBody}</p><small>— Arin</small></section>
           <MemoryFragment stage={stage} collected={collectedIds.has(stage.id)} onCollect={collectFragment} />
+          <SensoryMemory stage={stage} />
+          <section className={styles.postcard}><span>Postcard from the road</span><h3>{stage.postcardTitle}</h3><p>{stage.postcardBody}</p><small>— Arin</small></section>
           <QuietRitual stage={stage} completed={ritualIds.has(stage.id)} onComplete={completeRitual} />
           <MemoryPrompt stage={stage} value={notes[stage.id] ?? ""} saved={savedMemoryIds.has(stage.id)} onChange={updateNote} onSave={saveMemory} />
         </div>
@@ -251,16 +422,16 @@ export function JourneyGame() {
                 {demoJourney.map((item, itemIndex) => (
                   <button type="button" key={item.id} onClick={() => setIndex(itemIndex)} className={itemIndex === index ? styles.chapterActive : ""}>
                     <span>{itemIndex < index ? "·" : itemIndex + 1}</span>
-                    <div><strong>{item.city}</strong><small>{item.eyebrow.replace(/^.*· /, "")}</small></div>
+                    <div><strong>{item.city}</strong><small>{item.memoryDate}</small></div>
                     <i>{itemIndex <= index ? item.stamp : ""}</i>
                   </button>
                 ))}
               </div>
               <div className={styles.traceCard}><span>Today’s memory trace</span><p>“{stage.trace}”</p></div>
-              <div className={styles.returnCard}><span>{nextStage ? "When you return" : "The journey has arrived"}</span><p>{nextStage ? `Another fragment will surface near ${nextStage.city}.` : "The postcards and memories will remain after the seal is opened."}</p><small>No streaks. Nothing is lost if you come back late.</small></div>
+              <div className={styles.returnCard}><span>{nextStage ? "When you return" : "The journey has arrived"}</span><p>{nextStage ? `Another object from the past will surface near ${nextStage.city}.` : "The postcards, sounds and memories will remain after the seal is opened."}</p><small>No streaks. Nothing is lost if you come back late.</small></div>
             </div>
           ) : (
-            <MemoryBox collectedIds={collectedIds} notes={notes} savedMemoryIds={savedMemoryIds} />
+            <MemoryBox collectedIds={collectedIds} notes={notes} savedMemoryIds={savedMemoryIds} firstVisit={firstVisit} />
           )}
         </aside>
       </section>
