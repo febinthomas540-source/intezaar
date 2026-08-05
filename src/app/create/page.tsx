@@ -47,7 +47,7 @@ export default function CreatePage() {
           <h1>What should travel with your words?</h1>
           <p>
             Give us the small details only the two of you understand. Intezaar turns them into
-            postcards, traces and fragments that appear slowly before the final letter arrives.
+            dated objects, postcards, sounds and fragments that appear slowly before the final letter arrives.
           </p>
           <div className="creator-preview-card">
             <div className="creator-preview-sky" />
@@ -139,11 +139,38 @@ export default function CreatePage() {
             <label>The final letter<textarea name="message" rows={8} placeholder="Write what an ordinary message could never hold…" required /></label>
             <label>A memory only both of you understand<input name="private-memory" placeholder="The rainy bus stop, the burnt tea, that missed train…" /></label>
             <div className="form-grid">
-              <label>A song or sound<input name="song" placeholder="A song, film dialogue or voice-note moment" /></label>
+              <label>A song or sound<input name="song" placeholder="A song, film dialogue or familiar background sound" /></label>
               <label>A private word<input name="nickname" placeholder="A nickname, joke or phrase" /></label>
             </div>
             <label>One ordinary moment you never want to forget<textarea name="ordinary-moment" rows={4} placeholder="It does not need to sound poetic. The smallest details are usually the strongest." /></label>
+            <label>I remembered this about you<textarea name="remembered-detail" rows={3} placeholder="For example: You always looked outside when it started raining." /></label>
+
+            <div className="form-step"><span>05</span><h2>The old objects</h2></div>
+            <div className="form-grid">
+              <label>A date that still means something<input type="date" name="memory-date" /></label>
+              <label>What happened that day?<input name="date-caption" placeholder="The five-minute call that lasted until sunrise" /></label>
+            </div>
+            <label>An old message fragment<textarea name="old-message" rows={3} placeholder="A real SMS, diary line, email subject or sentence you nearly deleted…" /></label>
+            <div className="form-grid">
+              <label>How should it appear?
+                <select name="artifact" defaultValue="old-sms">
+                  <option value="old-sms">Old phone message</option>
+                  <option value="diary">Diary or notebook page</option>
+                  <option value="bus-ticket">Bus or train ticket</option>
+                  <option value="cinema-ticket">Cinema ticket</option>
+                  <option value="cassette">Cassette label</option>
+                  <option value="postcard">Postcard</option>
+                  <option value="inland-letter">Indian inland letter</option>
+                </select>
+              </label>
+              <label>A place-specific detail<input name="regional-detail" placeholder="KSRTC ticket, bakery cover, railway chai, church bells…" /></label>
+            </div>
             <label>Caption for a photograph<input name="photo-caption" placeholder="For example: We were tired, late and completely happy." /></label>
+            <div className="form-grid">
+              <label>Optional photograph<input type="file" name="photograph" accept="image/*" /></label>
+              <label>Optional voice note<input type="file" name="voice-note" accept="audio/*" /></label>
+            </div>
+            <p className="form-note">Only add what feels true. Empty fields create quiet space rather than generic AI memories.</p>
 
             <div className="form-actions">
               <button className="button button-primary" type="submit">Seal the memory journey</button>
@@ -155,7 +182,7 @@ export default function CreatePage() {
             <div className="success-seal">I</div>
             <p className="eyebrow">Sealed for {recipient}</p>
             <h2>Something remembered is ready to travel.</h2>
-            <p>A private journey from {origin} to {destination} has been prepared from your words and memories.</p>
+            <p>A private journey from {origin} to {destination} has been prepared from your words, dates, sounds and memories.</p>
             <Link href="/journey/demo" className="button button-primary">Enter the journey</Link>
             <button className="text-button" onClick={() => setCreated(false)}>Edit the memories</button>
           </div>
