@@ -1,0 +1,433 @@
+:root {
+  --n-ink: #1d1814;
+  --n-ink-soft: #302820;
+  --n-paper: #e9dfca;
+  --n-paper-light: #f4eddf;
+  --n-paper-deep: #cbbb9f;
+  --n-olive: #4f5848;
+  --n-burgundy: #702e2b;
+  --n-brass: #b08a53;
+  --n-muted: #776d61;
+  --n-line: rgba(39, 31, 25, .18);
+  --n-rooftop: url("https://images.unsplash.com/photo-1671137412798-85c40b41e76a?auto=format&fit=crop&w=2400&q=82");
+  --n-letters: url("https://images.unsplash.com/photo-1775297251758-6a543075180f?auto=format&fit=crop&w=2200&q=82");
+  --n-room: url("https://images.pexels.com/photos/15814837/pexels-photo-15814837.jpeg?auto=compress&cs=tinysrgb&w=2200");
+  --n-window: url("https://images.pexels.com/photos/13965414/pexels-photo-13965414.jpeg?auto=compress&cs=tinysrgb&w=2000");
+}
+
+.nostalgia-site,
+.nostalgia-create,
+.nostalgia-paths,
+.nostalgia-path-detail,
+.nostalgia-demo-page {
+  min-height: 100svh;
+  overflow-x: clip;
+  color: var(--n-ink);
+  background:
+    linear-gradient(rgba(56, 43, 32, .025) 1px, transparent 1px),
+    var(--n-paper-light);
+  background-size: 100% 5px;
+}
+
+.nostalgia-site *,
+.nostalgia-create *,
+.nostalgia-paths *,
+.nostalgia-path-detail *,
+.nostalgia-demo-page * { box-sizing: border-box; }
+
+.nostalgia-nav {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 76px;
+  padding: 0 clamp(18px, 5vw, 74px);
+  border-bottom: 1px solid rgba(242, 233, 217, .16);
+  color: #f3ecdf;
+  background: linear-gradient(180deg, rgba(20, 16, 13, .72), rgba(20, 16, 13, .18));
+  backdrop-filter: blur(10px);
+  transition: background .3s ease;
+}
+
+.nostalgia-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  color: inherit;
+  text-decoration: none;
+  font: 400 24px/1 Georgia, serif;
+  letter-spacing: .01em;
+}
+
+.nostalgia-brand::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a34d43;
+  box-shadow: 0 0 0 5px rgba(163, 77, 67, .16);
+}
+
+.nostalgia-nav-links { display: flex; align-items: center; gap: clamp(16px, 3vw, 38px); }
+.nostalgia-nav-links a { color: inherit; text-decoration: none; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.nostalgia-nav-links .nostalgia-nav-cta { padding: 11px 16px; border: 1px solid rgba(243, 236, 223, .42); border-radius: 999px; }
+
+.nostalgia-button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 22px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  transition: transform .25s ease, background .25s ease, color .25s ease;
+}
+.nostalgia-button:hover { transform: translateY(-2px); }
+.nostalgia-button-primary { color: #f5eee2; background: var(--n-burgundy); box-shadow: 0 14px 36px rgba(62, 23, 21, .24); }
+.nostalgia-button-ghost { color: inherit; border-color: currentColor; background: transparent; }
+.nostalgia-eyebrow { margin: 0 0 18px; color: var(--n-brass); font-size: 9px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; }
+
+/* Homepage */
+.nostalgia-hero {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  align-items: end;
+  overflow: hidden;
+  color: #f4eee3;
+  background-image:
+    linear-gradient(90deg, rgba(17, 13, 10, .78) 0%, rgba(17, 13, 10, .43) 46%, rgba(17, 13, 10, .12) 100%),
+    linear-gradient(180deg, rgba(14, 10, 8, .12), rgba(14, 10, 8, .62)),
+    var(--n-rooftop);
+  background-size: cover;
+  background-position: center 46%;
+}
+
+.nostalgia-hero::after,
+.nostalgia-photo-section::after,
+.nostalgia-memory-archive::after,
+.nostalgia-route-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .18;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+}
+
+.nostalgia-hero-content {
+  position: relative;
+  z-index: 4;
+  width: min(100%, 1450px);
+  padding: 150px clamp(20px, 7vw, 110px) clamp(62px, 9vw, 120px);
+}
+
+.nostalgia-hero h1 {
+  max-width: 1050px;
+  margin: 0;
+  font: 400 clamp(62px, 9vw, 132px)/.88 Georgia, serif;
+  letter-spacing: -.055em;
+  text-wrap: balance;
+}
+.nostalgia-hero h1 em { color: #d8b47b; font-weight: 400; }
+.nostalgia-hero-copy { max-width: 670px; margin: 31px 0 0; color: rgba(244, 238, 227, .76); font-size: clamp(17px, 2vw, 21px); line-height: 1.7; }
+.nostalgia-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+.nostalgia-hero-foot { position: absolute; z-index: 4; right: clamp(20px, 5vw, 76px); bottom: 36px; display: grid; gap: 5px; text-align: right; color: rgba(244,238,227,.58); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+
+.nostalgia-manifest {
+  display: grid;
+  grid-template-columns: minmax(0, .72fr) minmax(0, 1.28fr);
+  gap: clamp(35px, 8vw, 120px);
+  align-items: start;
+  padding: clamp(90px, 13vw, 190px) clamp(20px, 8vw, 130px);
+  color: #eee5d8;
+  background: var(--n-ink);
+}
+.nostalgia-manifest h2 { margin: 0; font: 400 clamp(48px, 7vw, 92px)/.96 Georgia, serif; letter-spacing: -.045em; }
+.nostalgia-manifest-copy { max-width: 760px; }
+.nostalgia-manifest-copy p { margin: 0 0 27px; color: rgba(238,229,216,.68); font-size: 19px; line-height: 1.8; }
+.nostalgia-manifest-copy strong { display: block; padding-top: 24px; border-top: 1px solid rgba(238,229,216,.16); color: #d5b277; font: 400 28px/1.4 Georgia, serif; }
+
+.nostalgia-story {
+  display: grid;
+  grid-template-columns: minmax(380px, .95fr) minmax(0, 1.05fr);
+  min-height: 270svh;
+  background: #d9cdb9;
+}
+.nostalgia-story-visual { position: relative; }
+.nostalgia-story-photo {
+  position: sticky;
+  top: 0;
+  min-height: 100svh;
+  background-image: linear-gradient(180deg, rgba(18,14,11,.08), rgba(18,14,11,.42)), var(--n-room);
+  background-size: cover;
+  background-position: center;
+}
+.nostalgia-story-photo::after { content: ""; position: absolute; inset: 0; box-shadow: inset -50px 0 80px rgba(26,20,16,.28); }
+.nostalgia-story-caption { position: absolute; z-index: 3; left: 30px; bottom: 28px; max-width: 300px; color: rgba(255,248,236,.72); font-size: 10px; line-height: 1.6; letter-spacing: .08em; text-transform: uppercase; }
+.nostalgia-story-copy { padding: 0 clamp(26px, 7vw, 100px); }
+.nostalgia-act { min-height: 90svh; display: grid; align-content: center; padding: 80px 0; border-bottom: 1px solid rgba(45,35,28,.15); }
+.nostalgia-act-number { color: var(--n-burgundy); font-size: 10px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+.nostalgia-act h3 { max-width: 640px; margin: 20px 0; font: 400 clamp(42px, 5vw, 70px)/.98 Georgia, serif; letter-spacing: -.04em; }
+.nostalgia-act p { max-width: 650px; margin: 0; color: #665c51; font-size: 18px; line-height: 1.78; }
+.nostalgia-act blockquote { margin: 34px 0 0; padding-left: 24px; border-left: 2px solid var(--n-burgundy); color: #4b4037; font: italic 25px/1.5 Georgia, serif; }
+
+.nostalgia-memory-archive {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  overflow: hidden;
+  color: #f3ebdf;
+  background-image: linear-gradient(90deg, rgba(18,14,11,.84), rgba(18,14,11,.35)), var(--n-letters);
+  background-size: cover;
+  background-position: center;
+}
+.nostalgia-archive-content { position: relative; z-index: 4; max-width: 780px; padding: 110px clamp(20px, 8vw, 130px); }
+.nostalgia-archive-content h2 { margin: 0; font: 400 clamp(52px, 7vw, 96px)/.94 Georgia, serif; letter-spacing: -.05em; }
+.nostalgia-archive-content p { max-width: 630px; color: rgba(243,235,223,.7); font-size: 19px; line-height: 1.75; }
+.nostalgia-object-list { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 30px; }
+.nostalgia-object-list span { padding: 10px 13px; border: 1px solid rgba(243,235,223,.28); border-radius: 999px; font-size: 9px; letter-spacing: .13em; text-transform: uppercase; backdrop-filter: blur(6px); }
+
+.nostalgia-wait {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+  min-height: 100svh;
+  background: #d8ccba;
+}
+.nostalgia-wait-photo { min-height: 720px; background-image: linear-gradient(180deg, rgba(20,16,13,.1), rgba(20,16,13,.5)), var(--n-window); background-size: cover; background-position: center; }
+.nostalgia-wait-copy { display: grid; align-content: center; padding: clamp(60px, 9vw, 130px); }
+.nostalgia-wait-copy h2 { margin: 0; font: 400 clamp(48px, 6vw, 82px)/.96 Georgia, serif; letter-spacing: -.045em; }
+.nostalgia-wait-copy p { color: #665c50; font-size: 18px; line-height: 1.75; }
+.nostalgia-countdown { display: flex; gap: 18px; margin-top: 26px; padding: 24px 0; border-top: 1px solid rgba(45,35,28,.2); border-bottom: 1px solid rgba(45,35,28,.2); }
+.nostalgia-countdown span { min-width: 80px; }
+.nostalgia-countdown b { display: block; font: 400 38px/1 Georgia, serif; }
+.nostalgia-countdown small { display: block; margin-top: 7px; color: #786d60; font-size: 8px; letter-spacing: .14em; text-transform: uppercase; }
+
+.nostalgia-keepsake {
+  display: grid;
+  grid-template-columns: .85fr 1.15fr;
+  gap: clamp(35px, 8vw, 120px);
+  align-items: center;
+  padding: clamp(90px, 12vw, 175px) clamp(20px, 8vw, 130px);
+  color: #eee5d8;
+  background: #2d2924;
+}
+.nostalgia-keepsake h2 { margin: 0; font: 400 clamp(48px, 7vw, 86px)/.96 Georgia, serif; letter-spacing: -.045em; }
+.nostalgia-keepsake p { color: rgba(238,229,216,.67); font-size: 18px; line-height: 1.75; }
+.nostalgia-keepsake-pages { position: relative; min-height: 500px; }
+.nostalgia-keepsake-page { position: absolute; width: min(72%, 430px); min-height: 420px; padding: 38px; border: 1px solid rgba(50,38,30,.22); color: var(--n-ink); background: #e8dec9; box-shadow: 0 30px 70px rgba(0,0,0,.28); }
+.nostalgia-keepsake-page:nth-child(1) { left: 2%; top: 58px; transform: rotate(-7deg); }
+.nostalgia-keepsake-page:nth-child(2) { left: 17%; top: 25px; transform: rotate(4deg); }
+.nostalgia-keepsake-page:nth-child(3) { left: 9%; top: 0; transform: rotate(-1deg); }
+.nostalgia-keepsake-page span { color: var(--n-burgundy); font-size: 9px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+.nostalgia-keepsake-page strong { display: block; margin-top: 120px; font: 400 40px/1.08 Georgia, serif; }
+.nostalgia-keepsake-page p { color: #6d6257; font-size: 13px; line-height: 1.6; }
+
+.nostalgia-final {
+  min-height: 78svh;
+  display: grid;
+  place-items: center;
+  padding: 90px 20px;
+  text-align: center;
+  color: #f2eade;
+  background-image: linear-gradient(rgba(22,17,13,.64), rgba(22,17,13,.75)), var(--n-rooftop);
+  background-size: cover;
+  background-position: center 35%;
+}
+.nostalgia-final-inner { max-width: 950px; }
+.nostalgia-final h2 { margin: 0 0 32px; font: 400 clamp(56px, 8vw, 104px)/.92 Georgia, serif; letter-spacing: -.05em; }
+.nostalgia-footer { display: flex; justify-content: space-between; gap: 20px; padding: 30px clamp(20px, 7vw, 100px); color: rgba(238,229,216,.6); background: #17130f; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.nostalgia-footer strong { color: #eee5d8; font: 400 19px Georgia, serif; letter-spacing: normal; text-transform: none; }
+
+/* Create */
+.nostalgia-create-layout { display: grid; grid-template-columns: minmax(390px, .84fr) minmax(0, 1.16fr); min-height: 100svh; }
+.nostalgia-create-photo { position: sticky; top: 0; min-height: 100svh; align-self: start; display: grid; align-content: end; padding: 120px clamp(25px, 5vw, 70px) 60px; color: #f2e9dc; background-image: linear-gradient(180deg, rgba(18,14,11,.12), rgba(18,14,11,.78)), var(--n-rooftop); background-size: cover; background-position: center; }
+.nostalgia-create-photo h1 { margin: 0; font: 400 clamp(54px, 6vw, 90px)/.92 Georgia, serif; letter-spacing: -.05em; }
+.nostalgia-create-photo p { max-width: 520px; color: rgba(242,233,220,.7); font-size: 17px; line-height: 1.7; }
+.nostalgia-create-form-wrap { padding: 120px clamp(22px, 6vw, 90px) 100px; background: var(--n-paper-light); }
+.nostalgia-form { max-width: 820px; margin: 0 auto; }
+.nostalgia-form-section { padding: 48px 0; border-bottom: 1px solid var(--n-line); }
+.nostalgia-form-section:first-child { padding-top: 0; }
+.nostalgia-form-heading { display: grid; grid-template-columns: 45px 1fr; gap: 15px; align-items: start; margin-bottom: 25px; }
+.nostalgia-form-heading span { color: var(--n-burgundy); font-size: 10px; font-weight: 800; letter-spacing: .13em; }
+.nostalgia-form-heading h2 { margin: 0; font: 400 34px/1.05 Georgia, serif; }
+.nostalgia-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.nostalgia-form label { display: grid; gap: 8px; margin-bottom: 15px; color: #62584e; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.nostalgia-form input,
+.nostalgia-form select,
+.nostalgia-form textarea { width: 100%; padding: 15px 0; border: 0; border-bottom: 1px solid rgba(45,35,28,.28); border-radius: 0; outline: 0; color: var(--n-ink); background: transparent; font: 400 17px/1.5 Georgia, serif; }
+.nostalgia-form textarea { min-height: 150px; resize: vertical; }
+.nostalgia-form input:focus,
+.nostalgia-form select:focus,
+.nostalgia-form textarea:focus { border-color: var(--n-burgundy); }
+.nostalgia-length-options { display: flex; flex-wrap: wrap; gap: 9px; }
+.nostalgia-length-options button { padding: 11px 16px; border: 1px solid rgba(45,35,28,.25); border-radius: 999px; cursor: pointer; color: var(--n-ink); background: transparent; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.nostalgia-length-options button.active { color: #f3ebdf; border-color: var(--n-burgundy); background: var(--n-burgundy); }
+.nostalgia-memory-row { display: grid; grid-template-columns: 42px 180px minmax(0,1fr); gap: 15px; align-items: center; padding: 18px 0; border-bottom: 1px solid rgba(45,35,28,.13); }
+.nostalgia-memory-row > span { font: 400 30px Georgia, serif; color: #9d8d7a; }
+.nostalgia-memory-row select,
+.nostalgia-memory-row input { margin: 0; }
+.nostalgia-form-note { color: #786d61; font-size: 12px; line-height: 1.6; }
+.nostalgia-form-actions { display: flex; align-items: center; gap: 18px; margin-top: 35px; }
+.nostalgia-form-actions small { max-width: 330px; color: #786d61; line-height: 1.55; }
+.nostalgia-create-success { max-width: 780px; margin: 0 auto; padding: 100px 0; }
+.nostalgia-create-success h2 { margin: 0; font: 400 clamp(52px, 7vw, 85px)/.94 Georgia, serif; letter-spacing: -.05em; }
+.nostalgia-create-success p { color: #6f6459; font-size: 17px; line-height: 1.75; }
+.nostalgia-success-ticket { margin: 35px 0; padding: 30px 0; border-top: 1px solid var(--n-line); border-bottom: 1px solid var(--n-line); }
+.nostalgia-success-ticket span, .nostalgia-success-ticket strong { display: block; }
+.nostalgia-success-ticket span { color: var(--n-burgundy); font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.nostalgia-success-ticket strong { margin-top: 12px; font: 400 35px Georgia, serif; }
+.nostalgia-success-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* Flight paths */
+.nostalgia-paths-hero,
+.nostalgia-route-hero { position: relative; min-height: 82svh; display: grid; align-items: end; overflow: hidden; color: #f3ebdf; background-image: linear-gradient(90deg, rgba(19,15,12,.79), rgba(19,15,12,.2)), var(--n-rooftop); background-size: cover; background-position: center; }
+.nostalgia-paths-hero-inner,
+.nostalgia-route-hero-inner { position: relative; z-index: 4; padding: 140px clamp(20px, 8vw, 130px) 80px; }
+.nostalgia-paths-hero h1,
+.nostalgia-route-hero h1 { max-width: 1050px; margin: 0; font: 400 clamp(58px, 8vw, 112px)/.9 Georgia, serif; letter-spacing: -.055em; }
+.nostalgia-paths-hero p:not(.nostalgia-eyebrow),
+.nostalgia-route-hero p:not(.nostalgia-eyebrow) { max-width: 680px; color: rgba(243,235,223,.72); font-size: 18px; line-height: 1.7; }
+.nostalgia-path-list { background: var(--n-paper-light); }
+.nostalgia-path-row { position: relative; min-height: 68svh; display: grid; align-items: end; padding: 55px clamp(20px, 8vw, 130px); overflow: hidden; color: #f3ebdf; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.14); background-size: cover; background-position: center; }
+.nostalgia-path-row::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(19,15,12,.84), rgba(19,15,12,.48) 52%, rgba(19,15,12,.08)); transition: background .4s ease; }
+.nostalgia-path-row:hover::before { background: linear-gradient(90deg, rgba(19,15,12,.74), rgba(19,15,12,.3) 52%, transparent); }
+.nostalgia-path-row:nth-child(4n+1) { background-image: var(--n-room); }
+.nostalgia-path-row:nth-child(4n+2) { background-image: var(--n-window); }
+.nostalgia-path-row:nth-child(4n+3) { background-image: var(--n-rooftop); }
+.nostalgia-path-row:nth-child(4n) { background-image: var(--n-letters); }
+.nostalgia-path-row-content { position: relative; z-index: 3; max-width: 850px; }
+.nostalgia-path-row small { color: #d3b57e; font-size: 9px; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
+.nostalgia-path-row h2 { margin: 14px 0 13px; font: 400 clamp(43px, 6vw, 80px)/.94 Georgia, serif; letter-spacing: -.045em; }
+.nostalgia-path-row p { max-width: 630px; color: rgba(243,235,223,.7); font-size: 17px; line-height: 1.65; }
+.nostalgia-path-meta { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 25px; color: rgba(243,235,223,.62); font-size: 9px; letter-spacing: .11em; text-transform: uppercase; }
+
+.nostalgia-route-hero.path-photo-1 { background-image: linear-gradient(90deg, rgba(19,15,12,.79), rgba(19,15,12,.2)), var(--n-window); }
+.nostalgia-route-hero.path-photo-2 { background-image: linear-gradient(90deg, rgba(19,15,12,.79), rgba(19,15,12,.2)), var(--n-room); }
+.nostalgia-route-hero.path-photo-3 { background-image: linear-gradient(90deg, rgba(19,15,12,.79), rgba(19,15,12,.2)), var(--n-letters); }
+.nostalgia-route-ticket { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 27px; }
+.nostalgia-route-ticket span { padding: 9px 12px; border: 1px solid rgba(243,235,223,.32); border-radius: 999px; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+.nostalgia-route-body { width: min(100%, 1180px); margin: 0 auto; padding: 100px 20px 130px; }
+.nostalgia-route-intro { display: grid; grid-template-columns: .8fr 1.2fr; gap: 60px; padding-bottom: 70px; border-bottom: 1px solid var(--n-line); }
+.nostalgia-route-intro h2 { margin: 0; font: 400 clamp(44px, 6vw, 72px)/.98 Georgia, serif; letter-spacing: -.04em; }
+.nostalgia-route-intro p { margin: 0; color: #706559; font-size: 18px; line-height: 1.8; }
+.nostalgia-route-stop { display: grid; grid-template-columns: 90px minmax(0,1fr); gap: 28px; padding: 42px 0; border-bottom: 1px solid var(--n-line); }
+.nostalgia-route-stop-number { color: #a2917e; font: 400 36px Georgia, serif; }
+.nostalgia-route-stop h3 { margin: 0 0 12px; font: 400 38px Georgia, serif; }
+.nostalgia-route-stop > div > p { max-width: 750px; color: #706559; line-height: 1.7; }
+.nostalgia-route-details { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-top: 20px; }
+.nostalgia-route-details div { padding-top: 14px; border-top: 1px solid rgba(45,35,28,.17); }
+.nostalgia-route-details dt { color: var(--n-burgundy); font-size: 8px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.nostalgia-route-details dd { margin: 7px 0 0; color: #5e544a; font-size: 12px; line-height: 1.5; }
+.nostalgia-route-cta { display: flex; justify-content: space-between; gap: 25px; align-items: center; margin-top: 70px; padding: 45px 0; border-top: 1px solid var(--n-line); border-bottom: 1px solid var(--n-line); }
+.nostalgia-route-cta h2 { margin: 0; font: 400 43px Georgia, serif; }
+.nostalgia-related { margin-top: 100px; }
+.nostalgia-related h2 { font: 400 45px Georgia, serif; }
+.nostalgia-related-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+.nostalgia-related-card { min-height: 220px; display: grid; align-content: end; padding: 22px; color: #f2eade; text-decoration: none; background-image: linear-gradient(rgba(20,16,13,.35), rgba(20,16,13,.76)), var(--n-room); background-size: cover; background-position: center; }
+.nostalgia-related-card:nth-child(2) { background-image: linear-gradient(rgba(20,16,13,.35), rgba(20,16,13,.76)), var(--n-window); }
+.nostalgia-related-card:nth-child(3) { background-image: linear-gradient(rgba(20,16,13,.35), rgba(20,16,13,.76)), var(--n-rooftop); }
+.nostalgia-related-card small { color: #d3b57e; font-size: 8px; letter-spacing: .12em; text-transform: uppercase; }
+.nostalgia-related-card strong { margin-top: 8px; font: 400 26px Georgia, serif; }
+
+/* Full demo */
+.nostalgia-demo { width: min(100%, 1500px); margin: 0 auto; padding: 140px clamp(18px, 5vw, 76px) 110px; }
+.nostalgia-demo-header { max-width: 980px; margin-bottom: 60px; }
+.nostalgia-demo-header h1 { margin: 0; font: 400 clamp(58px, 8vw, 110px)/.9 Georgia, serif; letter-spacing: -.055em; }
+.nostalgia-demo-header p:not(.nostalgia-eyebrow) { max-width: 680px; color: #6d6257; font-size: 18px; line-height: 1.75; }
+.nostalgia-demo-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr); gap: 18px; }
+.nostalgia-demo-scene { position: sticky; top: 90px; min-height: 700px; overflow: hidden; color: #f3ebdf; background-size: cover; background-position: center; box-shadow: 0 30px 80px rgba(40,31,25,.2); }
+.nostalgia-demo-scene.scene-1 { background-image: linear-gradient(180deg, rgba(18,14,11,.15), rgba(18,14,11,.72)), var(--n-rooftop); }
+.nostalgia-demo-scene.scene-2 { background-image: linear-gradient(180deg, rgba(18,14,11,.12), rgba(18,14,11,.75)), var(--n-room); }
+.nostalgia-demo-scene.scene-3 { background-image: linear-gradient(180deg, rgba(18,14,11,.12), rgba(18,14,11,.78)), var(--n-window); }
+.nostalgia-demo-scene.scene-4,
+.nostalgia-demo-scene.scene-5 { background-image: linear-gradient(180deg, rgba(18,14,11,.2), rgba(18,14,11,.8)), var(--n-letters); }
+.nostalgia-demo-sheet { position: absolute; left: 6%; right: 6%; bottom: 6%; max-width: 650px; padding: 30px; color: var(--n-ink); background: rgba(238,229,212,.94); box-shadow: 0 25px 60px rgba(0,0,0,.26); backdrop-filter: blur(12px); }
+.nostalgia-demo-sheet small { color: var(--n-burgundy); font-size: 9px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.nostalgia-demo-sheet h2 { margin: 14px 0 10px; font: 400 clamp(35px, 4vw, 55px)/1 Georgia, serif; }
+.nostalgia-demo-sheet p { color: #6a5f54; line-height: 1.65; }
+.nostalgia-demo-photo { width: 170px; height: 120px; margin-top: 17px; object-fit: cover; border: 9px solid #f7f0e3; transform: rotate(-3deg); box-shadow: 0 12px 28px rgba(42,32,25,.22); }
+.nostalgia-demo-wave { margin-top: 18px; color: var(--n-burgundy); font: 400 25px/1.4 Georgia, serif; letter-spacing: 7px; }
+.nostalgia-demo-letter { margin-top: 18px; padding: 28px; border: 1px solid rgba(45,35,28,.2); text-align: center; background: #e2d2b4; font: 400 20px Georgia, serif; }
+.nostalgia-demo-timeline { border-left: 1px solid var(--n-line); }
+.nostalgia-demo-timeline button { width: 100%; min-height: 135px; display: grid; align-content: center; gap: 6px; padding: 22px 26px; text-align: left; border: 0; border-bottom: 1px solid var(--n-line); cursor: pointer; color: var(--n-ink); background: transparent; }
+.nostalgia-demo-timeline button.active { color: #f2eade; background: var(--n-ink); }
+.nostalgia-demo-timeline button span { color: var(--n-burgundy); font-size: 9px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+.nostalgia-demo-timeline button.active span { color: #d5b277; }
+.nostalgia-demo-timeline button strong { font: 400 26px Georgia, serif; }
+.nostalgia-demo-timeline button small { opacity: .68; }
+.nostalgia-demo-footer { display: flex; justify-content: space-between; gap: 30px; align-items: center; margin-top: 60px; padding: 40px 0; border-top: 1px solid var(--n-line); }
+.nostalgia-demo-footer h2 { margin: 0; font: 400 39px Georgia, serif; }
+.nostalgia-demo-footer p { color: #706559; }
+
+@media (max-width: 980px) {
+  .nostalgia-manifest,
+  .nostalgia-story,
+  .nostalgia-wait,
+  .nostalgia-keepsake,
+  .nostalgia-create-layout,
+  .nostalgia-route-intro,
+  .nostalgia-demo-layout { grid-template-columns: 1fr; }
+  .nostalgia-story { min-height: auto; }
+  .nostalgia-story-photo { position: relative; min-height: 72svh; }
+  .nostalgia-act { min-height: 68svh; }
+  .nostalgia-create-photo { position: relative; min-height: 72svh; }
+  .nostalgia-route-details { grid-template-columns: 1fr; }
+  .nostalgia-related-grid { grid-template-columns: 1fr; }
+  .nostalgia-demo-scene { position: relative; top: auto; }
+  .nostalgia-demo-timeline { border-left: 0; display: grid; grid-template-columns: repeat(5,1fr); }
+  .nostalgia-demo-timeline button { min-height: 120px; padding: 14px; border-right: 1px solid var(--n-line); }
+  .nostalgia-demo-timeline button strong { font-size: 18px; }
+}
+
+@media (max-width: 700px) {
+  .nostalgia-nav { min-height: 64px; padding: 0 14px; }
+  .nostalgia-brand { font-size: 21px; }
+  .nostalgia-nav-links { gap: 8px; }
+  .nostalgia-nav-links a:not(.nostalgia-nav-cta) { display: none; }
+  .nostalgia-nav-links .nostalgia-nav-cta { padding: 10px 12px; font-size: 9px; }
+  .nostalgia-hero { min-height: 100svh; background-position: 63% center; }
+  .nostalgia-hero-content { padding-left: 16px; padding-right: 16px; }
+  .nostalgia-hero h1 { font-size: clamp(58px, 17vw, 82px); }
+  .nostalgia-hero-foot { display: none; }
+  .nostalgia-manifest { padding-left: 16px; padding-right: 16px; }
+  .nostalgia-story-copy { padding: 0 16px; }
+  .nostalgia-archive-content { padding-left: 16px; padding-right: 16px; }
+  .nostalgia-wait-photo { min-height: 65svh; }
+  .nostalgia-wait-copy { padding: 70px 16px; }
+  .nostalgia-countdown { gap: 10px; }
+  .nostalgia-countdown span { min-width: 65px; }
+  .nostalgia-keepsake { padding-left: 16px; padding-right: 16px; }
+  .nostalgia-keepsake-pages { min-height: 390px; }
+  .nostalgia-keepsake-page { width: 82%; min-height: 330px; padding: 26px; }
+  .nostalgia-keepsake-page strong { margin-top: 90px; font-size: 32px; }
+  .nostalgia-footer { flex-direction: column; }
+  .nostalgia-create-form-wrap { padding: 95px 16px 80px; }
+  .nostalgia-form-grid { grid-template-columns: 1fr; }
+  .nostalgia-memory-row { grid-template-columns: 35px 1fr; }
+  .nostalgia-memory-row input { grid-column: 1 / -1; }
+  .nostalgia-form-actions { align-items: stretch; flex-direction: column; }
+  .nostalgia-paths-hero-inner,
+  .nostalgia-route-hero-inner { padding-left: 16px; padding-right: 16px; }
+  .nostalgia-path-row { min-height: 75svh; padding-left: 16px; padding-right: 16px; }
+  .nostalgia-route-stop { grid-template-columns: 55px 1fr; gap: 12px; }
+  .nostalgia-route-cta { align-items: stretch; flex-direction: column; }
+  .nostalgia-demo { padding-left: 14px; padding-right: 14px; }
+  .nostalgia-demo-scene { min-height: 650px; }
+  .nostalgia-demo-sheet { left: 4%; right: 4%; bottom: 3%; padding: 22px; }
+  .nostalgia-demo-timeline { grid-template-columns: 1fr 1fr; }
+  .nostalgia-demo-timeline button { min-height: 105px; }
+  .nostalgia-demo-footer { align-items: stretch; flex-direction: column; }
+}
