@@ -1,16 +1,17 @@
 import Link from "next/link";
+import { RaahiMark } from "./raahi-bird";
 
 export function Navigation() {
   return (
-    <header className="site-nav">
-      <Link href="/" className="brand-mark" aria-label="Intezaar home">
-        <span className="brand-seal">I</span>
+    <header className="raahi-nav">
+      <Link href="/" className="raahi-brand" aria-label="Intezaar home">
+        <RaahiMark className="raahi-brand-mark" />
         <span>Intezaar</span>
       </Link>
-      <nav className="nav-links" aria-label="Main navigation">
-        <Link href="/routes">Postal routes</Link>
-        <Link href="/journey/demo">Journey demo</Link>
-        <Link href="/create" className="nav-cta">Write a letter</Link>
+      <nav className="raahi-nav-links" aria-label="Main navigation">
+        <Link href="/routes">Flight paths</Link>
+        <Link href="/journey/demo">See Raahi fly</Link>
+        <Link href="/create" className="raahi-nav-cta">Create a journey</Link>
       </nav>
     </header>
   );
