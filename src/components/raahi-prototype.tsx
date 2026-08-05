@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { RainGlass } from "./rain-glass";
+import printStyles from "./journal-print.module.css";
 import styles from "./raahi-prototype.module.css";
 
 type Props = {
@@ -330,14 +331,14 @@ export function RaahiPrototype({ recipient, previewDay }: Props) {
         </div>
       </section>
 
-      <section className={styles.printJournal} aria-label="Printable Intezaar memory journal">
+      <section className={printStyles.printJournal} aria-label="Printable Intezaar memory journal">
         {journalPages.map((page, index) => (
-          <article className={styles.printPage} key={`print-${page.title}`}>
+          <article className={printStyles.printPage} key={`print-${page.title}`}>
             <header><span>Intezaar</span><small>Page {index + 1} of {PAGE_COUNT} · For {recipient}</small></header>
-            {page.image ? <img src={page.image} alt="" /> : <div className={styles.printArtifact}>{page.type === "voice" ? "Voice memory · 00:28" : page.type === "keepsake" ? "Kept ticket · Platform 3" : page.type === "letter" ? "The final sealed letter" : "Written memory"}</div>}
-            <p className={styles.printEyebrow}>{page.eyebrow}</p>
+            {page.image ? <img src={page.image} alt="" /> : <div className={printStyles.printArtifact}>{page.type === "voice" ? "Voice memory · 00:28" : page.type === "keepsake" ? "Kept ticket · Platform 3" : page.type === "letter" ? "The final sealed letter" : "Written memory"}</div>}
+            <p className={printStyles.printEyebrow}>{page.eyebrow}</p>
             <h2>{page.title}</h2>
-            <span className={styles.printDate}>{page.date}</span>
+            <span className={printStyles.printDate}>{page.date}</span>
             <blockquote>{page.note}</blockquote>
             <p>{page.body}</p>
             <footer>Memories that took time to arrive.</footer>
