@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./postal-theme.css";
+import "./postal-interactions.css";
 
 export const metadata: Metadata = {
   title: "Intezaar — A letter carried by post and rail",
