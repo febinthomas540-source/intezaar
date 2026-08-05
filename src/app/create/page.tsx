@@ -43,11 +43,11 @@ export default function CreatePage() {
       <Navigation />
       <section className="creator-layout">
         <div className="creator-intro">
-          <p className="eyebrow">Create a private journey</p>
-          <h1>Where should your words begin?</h1>
+          <p className="eyebrow">Create a private memory journey</p>
+          <h1>What should travel with your words?</h1>
           <p>
-            Choose the route, waiting game and personality of the postman who will carry your
-            letter. Every journey remains private and opens only at the promised moment.
+            Give us the small details only the two of you understand. Intezaar turns them into
+            postcards, traces and fragments that appear slowly before the final letter arrives.
           </p>
           <div className="creator-preview-card">
             <div className="creator-preview-sky" />
@@ -73,11 +73,11 @@ export default function CreatePage() {
             </div>
             <label>Arrival moment<input type="datetime-local" name="arrival" required /></label>
             <div className="form-grid">
-              <label>Journey pace
+              <label>Journey length
                 <select name="pace" defaultValue="story">
-                  <option value="short">Quick journey · 1–2 days</option>
-                  <option value="story">Story journey · 3–5 days</option>
-                  <option value="epic">Epic journey · 7–10 days</option>
+                  <option value="short">A brief wait · 1–2 days</option>
+                  <option value="story">A slow story · 3–5 days</option>
+                  <option value="epic">A long return · 7–10 days</option>
                 </select>
               </label>
               <label>Occasion
@@ -92,20 +92,20 @@ export default function CreatePage() {
               </label>
             </div>
 
-            <div className="form-step"><span>02</span><h2>The waiting game</h2></div>
+            <div className="form-step"><span>02</span><h2>The feeling</h2></div>
             <div className="form-grid">
-              <label>Postman personality
+              <label>Postman voice
                 <select name="postman" defaultValue="warm">
                   <option value="warm">Warm and trustworthy</option>
-                  <option value="playful">Playful and teasing</option>
+                  <option value="playful">Gentle and teasing</option>
                   <option value="poetic">Quiet and poetic</option>
                 </select>
               </label>
-              <label>Activity level
-                <select name="activity" defaultValue="daily">
-                  <option value="light">Light · two activities</option>
-                  <option value="daily">Daily · one per chapter</option>
-                  <option value="adventure">Adventure · activities and route choices</option>
+              <label>Reveal rhythm
+                <select name="reveal" defaultValue="daily">
+                  <option value="gentle">Gentle · a few meaningful fragments</option>
+                  <option value="daily">Daily · one memory each day</option>
+                  <option value="deep">Deep nostalgia · memories, voice and photographs</option>
                 </select>
               </label>
             </div>
@@ -119,10 +119,10 @@ export default function CreatePage() {
               </label>
               <label>Journey mood
                 <select name="mood" defaultValue="monsoon">
-                  <option value="monsoon">Monsoon romance</option>
-                  <option value="midnight">Midnight postal</option>
-                  <option value="golden">Golden nostalgia</option>
-                  <option value="festival">Festival journey</option>
+                  <option value="monsoon">Monsoon memories</option>
+                  <option value="midnight">Midnight conversations</option>
+                  <option value="golden">Golden old photographs</option>
+                  <option value="homecoming">A journey home</option>
                 </select>
               </label>
             </div>
@@ -131,32 +131,33 @@ export default function CreatePage() {
             <div className="form-grid">
               <label>Your name<input name="sender" placeholder="Arjun" required /></label>
               <label>Their name
-                <input
-                  name="recipient"
-                  value={recipient}
-                  onChange={(event) => setRecipient(event.target.value)}
-                  placeholder="Ananya"
-                  required
-                />
+                <input name="recipient" value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="Ananya" required />
               </label>
             </div>
 
-            <div className="form-step"><span>04</span><h2>The letter</h2></div>
-            <label>Your words<textarea name="message" rows={7} placeholder="Write what deserves to travel..." required /></label>
-            <label>First clue for the recipient<input name="clue" placeholder="For example: We first met in the rain." /></label>
+            <div className="form-step"><span>04</span><h2>The memories</h2></div>
+            <label>The final letter<textarea name="message" rows={8} placeholder="Write what an ordinary message could never hold…" required /></label>
+            <label>A memory only both of you understand<input name="private-memory" placeholder="The rainy bus stop, the burnt tea, that missed train…" /></label>
+            <div className="form-grid">
+              <label>A song or sound<input name="song" placeholder="A song, film dialogue or voice-note moment" /></label>
+              <label>A private word<input name="nickname" placeholder="A nickname, joke or phrase" /></label>
+            </div>
+            <label>One ordinary moment you never want to forget<textarea name="ordinary-moment" rows={4} placeholder="It does not need to sound poetic. The smallest details are usually the strongest." /></label>
+            <label>Caption for a photograph<input name="photo-caption" placeholder="For example: We were tired, late and completely happy." /></label>
+
             <div className="form-actions">
-              <button className="button button-primary" type="submit">Seal and preview</button>
-              <span>This concept build creates a visual preview; secure delivery comes next.</span>
+              <button className="button button-primary" type="submit">Seal the memory journey</button>
+              <span>The recipient never has to complete a game. They simply return when they miss the story.</span>
             </div>
           </form>
         ) : (
           <div className="creation-success">
             <div className="success-seal">I</div>
             <p className="eyebrow">Sealed for {recipient}</p>
-            <h2>Your letter is ready to travel.</h2>
-            <p>A cinematic journey from {origin} to {destination} has been prepared.</p>
-            <Link href="/journey/demo" className="button button-primary">Enter the waiting game</Link>
-            <button className="text-button" onClick={() => setCreated(false)}>Edit the letter</button>
+            <h2>Something remembered is ready to travel.</h2>
+            <p>A private journey from {origin} to {destination} has been prepared from your words and memories.</p>
+            <Link href="/journey/demo" className="button button-primary">Enter the journey</Link>
+            <button className="text-button" onClick={() => setCreated(false)}>Edit the memories</button>
           </div>
         )}
       </section>
