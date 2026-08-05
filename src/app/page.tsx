@@ -4,21 +4,28 @@ import { LetterOpening } from "@/components/letter-opening";
 import { Navigation } from "@/components/navigation";
 
 const moments = [
-  ["01", "Remember", "Give the journey the details ordinary messages lose: a nickname, a rainy evening, a bad photograph, a song only two people understand."],
-  ["02", "Return", "Each visit reveals one quiet piece of the past—a postcard, a handwritten line, a voice fragment or a memory trace from the road."],
-  ["03", "Receive", "At the chosen second, the recipient breaks the seal. The journey, postcards and private memories remain together as something worth keeping."],
+  ["01", "Drop it in the post box", "The message begins like a real letter: destination chosen, date stamped, emotions sealed inside paper and wax."],
+  ["02", "Follow the railway mail", "The recipient returns for station updates, postmarks, inland-letter fragments, familiar sounds and a moving Indian train."],
+  ["03", "Open what finally arrived", "At the promised moment, the letter settles, the seal breaks and the words feel worth the wait."],
 ];
 
-const returnHooks = [
-  ["01", "A memory trace", "Not a generic notification. One intimate clue that makes the recipient wonder which moment the sender remembered."],
-  ["02", "A postcard from Arin", "The postman writes from each region with small observations about distance, rain, leaving and finding a way home."],
-  ["03", "A fragment to keep", "A photograph corner, seven seconds of a voice, an unfinished sentence or a private name appears slowly in the memory box."],
+const worldCards = [
+  ["Red post box", "A recognisable Indian postal symbol anchors the whole experience—from the homepage to the final delivery."],
+  ["Railway mail route", "Journey chapters borrow the rhythm of Indian train travel: platforms, timetables, chai, signals and changing landscapes."],
+  ["Paper memory objects", "Inland letters, bus tickets, old SMS screens, postmarks and labels make the nostalgia feel tangible rather than generic."],
 ];
 
-const routes = [
-  ["Delhi → Kerala", "Midnight conversations, old railway tea, monsoon windows and a final return beside the backwaters."],
-  ["Mumbai → Himachal", "A rain-soaked photograph travels upward into pine mist, cold air and the memory of a first winter together."],
-  ["Kochi → London", "Backwaters, airport night and cloud crossing carry a piece of home toward someone living far away."],
+const routeStops = [
+  "New Delhi Sorting Office",
+  "Mathura Junction",
+  "Jaipur Mail Exchange",
+  "Ahmedabad RMS",
+  "Mumbai Central",
+  "Konkan Coastal Line",
+  "Mangaluru Harbour",
+  "Kozhikode Head Post Office",
+  "Kottayam Night Mail",
+  "Alappuzha Arrival",
 ];
 
 export default function Home() {
@@ -29,12 +36,12 @@ export default function Home() {
 
       <section id="experience" className="section experience-section">
         <div className="section-heading">
-          <p className="eyebrow">The emotional engine</p>
-          <h2>The wait is not empty time.<br />It is the memory returning.</h2>
+          <p className="eyebrow">The core ritual</p>
+          <h2>Not a greeting card.<br />A letter carried by post and rail.</h2>
           <p>
-            Intezaar is not a game the recipient must finish. It is a slow emotional journey that
-            gives them a reason to come back: another trace, another place and another piece of a
-            shared past moving closer.
+            Intezaar should feel like India Post and Indian Railways quietly protecting something personal.
+            The website is built around station nostalgia, sealed paper, red post boxes and the emotional
+            patience of waiting for a letter to reach home.
           </p>
         </div>
         <div className="moment-grid">
@@ -48,38 +55,18 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section experience-section">
-        <div className="section-heading">
-          <p className="eyebrow">Why someone returns tomorrow</p>
-          <h2>Not points. Not streaks.<br />Something personal is still on its way.</h2>
-          <p>
-            Every return should feel like opening an old drawer and finding one more thing you had
-            forgotten. Missing a day never punishes the recipient; the journey simply waits for them.
-          </p>
-        </div>
-        <div className="moment-grid">
-          {returnHooks.map(([number, title, copy]) => (
-            <article className="moment-card" key={title}>
-              <span>{number}</span>
-              <h3>{title}</h3>
-              <p>{copy}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="section india-section">
+      <section className="section india-section postal-world-section">
         <div className="india-copy">
-          <p className="eyebrow">A living India journey library</p>
-          <h2>Heat, rain, distance and memory become part of the letter.</h2>
+          <p className="eyebrow">The Intezaar world</p>
+          <h2>Indian post box, inland paper, station boards and mail trains.</h2>
           <p>
-            Routes are storybook interpretations built from regional scenes—not fake GPS. Each city
-            adds atmosphere, while the sender’s real memories remain the heart of the journey.
+            The whole visual system now follows one idea: a memory dropped into a red post box and carried
+            across India. Every page should feel tactile, slightly worn, warm and rooted in familiar postal and railway culture.
           </p>
-          <Link href="/journey/demo" className="text-link">Follow a memory from Delhi to Kerala →</Link>
+          <Link href="/journey/demo" className="text-link">See the full postal route →</Link>
         </div>
-        <div className="route-list">
-          {routes.map(([title, copy], index) => (
+        <div className="route-list world-list">
+          {worldCards.map(([title, copy], index) => (
             <article key={title} className="route-list-item">
               <span>0{index + 1}</span>
               <div><h3>{title}</h3><p>{copy}</p></div>
@@ -88,19 +75,46 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="section schedule-section">
+        <div className="section-heading schedule-heading">
+          <p className="eyebrow">Railway schedule of memory</p>
+          <h2>The journey should feel scheduled, stamped and real.</h2>
+        </div>
+        <div className="route-schedule-card">
+          <div className="route-schedule-head">
+            <div>
+              <small>INTEZAAR MAIL · ROUTE SHEET</small>
+              <strong>Dispatch schedule: Delhi to Kerala</strong>
+            </div>
+            <span>Post &amp; Memories / RMS</span>
+          </div>
+          <div className="route-schedule-grid">
+            {routeStops.map((stop, index) => (
+              <div key={stop} className="schedule-stop">
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <p>{stop}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <LetterOpening />
 
-      <section className="final-cta">
-        <div className="final-cta-stamp">04 · 08 · 26</div>
-        <p className="eyebrow">Send back something they thought was gone</p>
-        <h2>Make someone remember<br />before they even open it.</h2>
-        <Link href="/create" className="button button-primary">Create a memory journey</Link>
+      <section className="final-cta postal-cta">
+        <div className="final-cta-stamp">POSTED · SEALED · ARRIVING</div>
+        <p className="eyebrow">The first memory can leave today</p>
+        <h2>Make it feel like<br />it came by post.</h2>
+        <p className="final-cta-copy">
+          Build a private, nostalgic letter journey with Indian post box warmth, railway movement and the slow beauty of waiting.
+        </p>
+        <Link href="/create" className="button button-primary">Write the first letter</Link>
       </section>
 
       <footer className="site-footer">
         <div className="brand-mark"><span className="brand-seal">I</span><span>Intezaar</span></div>
-        <p>A private emotional journey where memories travel before the letter arrives.</p>
-        <span>Working product identity · 2026</span>
+        <p>A nostalgic Indian postal world where letters travel by rail before they arrive.</p>
+        <span>Working product identity · post box and railway theme · 2026</span>
       </footer>
     </main>
   );
