@@ -16,14 +16,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const route = routeCorridors.find((item) => item.id === routeId);
   if (!route) return {};
 
-  const title = `${route.name}: ${route.origin} to ${route.destination}`;
-  const description = `${route.strapline}. Explore an illustrated Raahi memory journey with ${route.duration.toLowerCase()} and a different emotional landing at every place.`;
-
   return {
-    title,
-    description,
+    title: route.name,
+    description: `${route.strapline}. A slow nostalgic setting for photographs, voices, keepsakes and a final sealed letter.`,
     alternates: { canonical: `/routes/${route.id}` },
-    openGraph: { title: `${title} | Intezaar`, description, url: `/routes/${route.id}`, type: "article" },
   };
 }
 
@@ -32,38 +28,19 @@ export default async function RouteDetailPage({ params }: PageProps) {
   const route = routeCorridors.find((item) => item.id === routeId);
   if (!route) notFound();
 
-  const relatedRoutes = routeCorridors
-    .filter((candidate) => candidate.id !== route.id)
-    .map((candidate) => ({ ...candidate, affinity: candidate.stops.filter((stop) => route.stops.includes(stop)).length }))
-    .sort((a, b) => b.affinity - a.affinity)
-    .slice(0, 3);
-
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "CreativeWork",
-    name: route.name,
-    description: route.strapline,
-    creator: { "@type": "Organization", name: "Intezaar" },
-    about: route.stops.map((stop) => ({ "@type": "Place", name: stop })),
-    url: `https://intezaar.vercel.app/routes/${route.id}`,
-  };
+  const routeIndex = routeCorridors.findIndex((item) => item.id === route.id);
+  const relatedRoutes = routeCorridors.filter((candidate) => candidate.id !== route.id).slice(0, 3);
 
   return (
-    <main className="raahi-path-detail">
+    <main className="nostalgia-path-detail">
       <Navigation />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
 
-      <header className="raahi-path-hero">
-        <div className="raahi-path-hero-inner">
-          <nav className="raahi-breadcrumbs" aria-label="Breadcrumb">
-            <Link href="/">Intezaar</Link><span>/</span>
-            <Link href="/routes">Flight paths</Link><span>/</span>
-            <span>{route.name}</span>
-          </nav>
-          <p className="raahi-kicker">{route.accent} · An illustrated Raahi flight path</p>
+      <header className={`nostalgia-route-hero path-photo-${routeIndex % 4}`}>
+        <div className="nostalgia-route-hero-inner">
+          <p className="nostalgia-eyebrow">{route.accent} · A memory atmosphere</p>
           <h1>{route.name}</h1>
-          <p className="path-strapline">{route.strapline}</p>
-          <div className="raahi-path-ticket">
+          <p>{route.strapline}</p>
+          <div className="nostalgia-route-ticket">
             <span>{route.origin} → {route.destination}</span>
             <span>{route.duration}</span>
             <span>{route.transport}</span>
@@ -71,26 +48,26 @@ export default async function RouteDetailPage({ params }: PageProps) {
         </div>
       </header>
 
-      <section className="raahi-path-body">
-        <div className="raahi-path-intro">
-          <h2>The landscape changes around every memory.</h2>
+      <section className="nostalgia-route-body">
+        <div className="nostalgia-route-intro">
+          <h2>The landscape should deepen the feeling, not distract from it.</h2>
           <p>
-            This path gives Raahi a distinct world to cross. Each place contributes its own weather, sound and memory prompt, while the recipient sees only one landing become clear at a time.
+            Each place in this journey contributes a different light, texture, sound and memory prompt. The visual world changes slowly while the recipient keeps everything that has already opened.
           </p>
         </div>
 
-        <div className="raahi-flight-timeline" aria-label={`${route.name} places`}>
+        <div>
           {route.stops.map((stop, index) => {
             const profile = getCityProfile(stop);
             return (
-              <article className="raahi-flight-stop" key={stop}>
-                <span className="stop-number">{String(index + 1).padStart(2, "0")}</span>
+              <article className="nostalgia-route-stop" key={stop}>
+                <span className="nostalgia-route-stop-number">{String(index + 1).padStart(2, "0")}</span>
                 <div>
-                  <h2>{stop}</h2>
-                  <p className="stop-scene">{profile.scene}</p>
-                  <dl className="raahi-stop-details">
-                    <div><dt>What Raahi sees</dt><dd>{profile.weather}</dd></div>
-                    <div><dt>What is heard</dt><dd>{profile.sound}</dd></div>
+                  <h3>{stop}</h3>
+                  <p>{profile.scene}</p>
+                  <dl className="nostalgia-route-details">
+                    <div><dt>Light and weather</dt><dd>{profile.weather}</dd></div>
+                    <div><dt>What remains in the air</dt><dd>{profile.sound}</dd></div>
                     <div><dt>Memory prompt</dt><dd>{profile.memoryPrompt}</dd></div>
                   </dl>
                 </div>
@@ -99,23 +76,22 @@ export default async function RouteDetailPage({ params }: PageProps) {
           })}
         </div>
 
-        <div className="raahi-path-cta">
+        <div className="nostalgia-route-cta">
           <div>
-            <p className="raahi-kicker">{route.duration} · one protected final letter</p>
-            <h2>Let Raahi carry a journey through this sky.</h2>
+            <p className="nostalgia-eyebrow">{route.duration} · one final sealed letter</p>
+            <h2>Use this atmosphere for your own journey.</h2>
           </div>
-          <Link href={`/create?path=${route.id}`}>Choose this flight path</Link>
+          <Link href={`/create?path=${route.id}`} className="nostalgia-button nostalgia-button-primary">Choose this journey</Link>
         </div>
 
-        <section className="raahi-related" aria-labelledby="related-flight-paths">
-          <p className="raahi-kicker">Continue exploring</p>
-          <h2 id="related-flight-paths">Other ways a memory can find home.</h2>
-          <div className="raahi-related-grid">
+        <section className="nostalgia-related">
+          <p className="nostalgia-eyebrow">Other settings</p>
+          <h2>Another memory may need a different kind of silence.</h2>
+          <div className="nostalgia-related-grid">
             {relatedRoutes.map((related) => (
-              <Link className="raahi-related-card" href={`/routes/${related.id}`} key={related.id}>
-                <span>{related.accent} · {related.origin} to {related.destination}</span>
-                <h3>{related.name}</h3>
-                <p>{related.strapline}</p>
+              <Link className="nostalgia-related-card" href={`/routes/${related.id}`} key={related.id}>
+                <small>{related.origin} to {related.destination}</small>
+                <strong>{related.name}</strong>
               </Link>
             ))}
           </div>
