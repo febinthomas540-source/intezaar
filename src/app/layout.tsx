@@ -3,6 +3,7 @@ import "./globals.css";
 import "./postal-theme.css";
 import "./postal-interactions.css";
 import "./route-selector.css";
+import "./mobile.css";
 
 const siteUrl = "https://intezaar.vercel.app";
 
@@ -59,6 +60,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
   themeColor: "#8f2f20",
   colorScheme: "light dark",
 };
