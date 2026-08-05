@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Navigation } from "@/components/navigation";
 import { getCityProfile } from "@/lib/city-profiles";
 import { routeCorridors } from "@/lib/routes";
+import enhancements from "../route-enhancements.module.css";
 import styles from "../routes.module.css";
 
 type PageProps = { params: Promise<{ routeId: string }> };
@@ -72,24 +73,9 @@ export default async function RouteDetailPage({ params }: PageProps) {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "Home",
-          item: "https://intezaar.vercel.app",
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "Postal routes",
-          item: "https://intezaar.vercel.app/routes",
-        },
-        {
-          "@type": "ListItem",
-          position: 3,
-          name: route.name,
-          item: `https://intezaar.vercel.app/routes/${route.id}`,
-        },
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://intezaar.vercel.app" },
+        { "@type": "ListItem", position: 2, name: "Postal routes", item: "https://intezaar.vercel.app/routes" },
+        { "@type": "ListItem", position: 3, name: route.name, item: `https://intezaar.vercel.app/routes/${route.id}` },
       ],
     },
   ];
@@ -100,11 +86,9 @@ export default async function RouteDetailPage({ params }: PageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <header className={styles.storyHero}>
         <div className={styles.storyInner}>
-          <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
-            <Link href="/">Intezaar</Link>
-            <span aria-hidden="true">/</span>
-            <Link href="/routes">Postal routes</Link>
-            <span aria-hidden="true">/</span>
+          <nav className={enhancements.breadcrumbs} aria-label="Breadcrumb">
+            <Link href="/">Intezaar</Link><span aria-hidden="true">/</span>
+            <Link href="/routes">Postal routes</Link><span aria-hidden="true">/</span>
             <span aria-current="page">{route.name}</span>
           </nav>
           <p className={styles.eyebrow}>{route.accent} · Curated postal corridor</p>
@@ -115,12 +99,12 @@ export default async function RouteDetailPage({ params }: PageProps) {
             <span>{route.duration}</span>
             <span>{route.transport}</span>
           </div>
-          <div className={styles.routeRail} aria-label={`${route.origin} to ${route.destination} route overview`}>
+          <div className={enhancements.routeRail} aria-label={`${route.origin} to ${route.destination} route overview`}>
             {route.stops.map((stop, index) => (
-              <div className={styles.railStop} key={stop}>
-                <span className={styles.railDot} aria-hidden="true" />
+              <div className={enhancements.railStop} key={stop}>
+                <span className={enhancements.railDot} aria-hidden="true" />
                 <small>{stop}</small>
-                {index < route.stops.length - 1 ? <span className={styles.railLine} aria-hidden="true" /> : null}
+                {index < route.stops.length - 1 ? <span className={enhancements.railLine} aria-hidden="true" /> : null}
               </div>
             ))}
           </div>
@@ -130,18 +114,13 @@ export default async function RouteDetailPage({ params }: PageProps) {
       <section className={styles.storyBody}>
         <div className={styles.intro}>
           <h2>Every city should change the feeling of the letter.</h2>
-          <p>
-            This corridor is no longer a repeated list of station updates. Each stop has its own
-            weather, sound, postal ritual and memory prompt, so the recipient feels the landscape
-            changing while the final letter remains protected and unopened.
-          </p>
+          <p>This corridor is no longer a repeated list of station updates. Each stop has its own weather, sound, postal ritual and memory prompt, so the recipient feels the landscape changing while the final letter remains protected and unopened.</p>
         </div>
 
         <div className={styles.timeline} aria-label={`${route.name} stops`}>
           {route.stops.map((stop, index) => {
             const profile = getCityProfile(stop);
             const isArrival = index === route.stops.length - 1;
-
             return (
               <article className={styles.stop} key={stop}>
                 <span className={styles.stopNumber}>{String(index + 1).padStart(2, "0")}</span>
@@ -152,18 +131,9 @@ export default async function RouteDetailPage({ params }: PageProps) {
                   </div>
                   <p className={styles.scene}>{profile.scene}</p>
                   <dl className={styles.chapterDetails}>
-                    <div>
-                      <dt>What is heard</dt>
-                      <dd>{profile.sound}</dd>
-                    </div>
-                    <div>
-                      <dt>Postal moment</dt>
-                      <dd>{profile.postalMoment}</dd>
-                    </div>
-                    <div>
-                      <dt>Memory revealed</dt>
-                      <dd>{profile.memoryPrompt}</dd>
-                    </div>
+                    <div><dt>What is heard</dt><dd>{profile.sound}</dd></div>
+                    <div><dt>Postal moment</dt><dd>{profile.postalMoment}</dd></div>
+                    <div><dt>Memory revealed</dt><dd>{profile.memoryPrompt}</dd></div>
                   </dl>
                 </div>
                 <span className={styles.postmark}>{isArrival ? "Arrival postmark" : "Railway mail exchange"}</span>
@@ -180,24 +150,24 @@ export default async function RouteDetailPage({ params }: PageProps) {
           <Link href={`/create?route=${route.id}`}>Choose this corridor</Link>
         </div>
 
-        <section className={styles.related} aria-labelledby="related-routes-heading">
-          <div className={styles.relatedHeading}>
+        <section className={enhancements.related} aria-labelledby="related-routes-heading">
+          <div className={enhancements.relatedHeading}>
             <div>
               <p className={styles.eyebrow}>Continue exploring</p>
               <h2 id="related-routes-heading">Other ways a memory can travel.</h2>
             </div>
             <Link href="/routes">View every postal route →</Link>
           </div>
-          <div className={styles.relatedGrid}>
+          <div className={enhancements.relatedGrid}>
             {relatedRoutes.map((related) => (
-              <Link className={styles.relatedCard} href={`/routes/${related.id}`} key={related.id}>
-                <span className={styles.relatedStamp}>{related.accent}</span>
+              <Link className={enhancements.relatedCard} href={`/routes/${related.id}`} key={related.id}>
+                <span className={enhancements.relatedStamp}>{related.accent}</span>
                 <div>
                   <small>{related.origin} → {related.destination}</small>
                   <h3>{related.name}</h3>
                   <p>{related.strapline}</p>
                 </div>
-                <span className={styles.relatedMeta}>{related.duration}</span>
+                <span className={enhancements.relatedMeta}>{related.duration}</span>
               </Link>
             ))}
           </div>
