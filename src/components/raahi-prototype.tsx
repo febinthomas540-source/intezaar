@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { RainGlass } from "./rain-glass";
 import styles from "./raahi-prototype.module.css";
 
 type Props = {
@@ -72,6 +73,7 @@ export function RaahiPrototype({ recipient, previewDay }: Props) {
       </header>
 
       <section className={styles.opening}>
+        <RainGlass intensity="medium" className="recipient-rain" />
         <div className={styles.grain} />
         <div className={styles.openingCopy}>
           <p>Memory 01 · Open now</p>
@@ -93,6 +95,7 @@ export function RaahiPrototype({ recipient, previewDay }: Props) {
       </section>
 
       <section className={`${styles.nextChapter} ${secondUnlocked ? styles.isUnlocked : styles.isLocked}`}>
+        <RainGlass intensity="soft" className="recipient-rain" />
         <div className={styles.nextBackdrop} />
         <div className={styles.nextContent}>
           {!secondUnlocked ? (
