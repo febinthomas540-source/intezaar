@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { RaahiPrototype } from "@/components/raahi-prototype";
 
 export const metadata: Metadata = {
-  title: "A Private Memory Journey",
-  description: "One photograph, voice or keepsake opens at a time before the final sealed letter arrives.",
+  title: "Your Private Memory Journal",
+  description: "A private notebook where one memory page opens at a time, the final letter opens last, and the completed journal becomes an A4 keepsake.",
   robots: { index: false, follow: false },
 };
 
