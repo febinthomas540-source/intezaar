@@ -1,19 +1,18 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { Navigation } from "@/components/navigation";
-import { JourneyGame } from "@/components/journey-game";
-import { RouteSchedule } from "@/components/route-schedule";
+import { RaahiJourneyDemo } from "@/components/raahi-journey-demo";
+
+export const metadata: Metadata = {
+  title: "See Raahi’s Memory Journey",
+  description: "Preview how one photograph, postcard, voice note, keepsake and final letter arrive across five daily landings.",
+  robots: { index: false, follow: false },
+};
 
 export default function JourneyDemoPage() {
   return (
-    <main className="journey-page">
+    <main className="raahi-demo-page">
       <Navigation />
-      <JourneyGame />
-      <RouteSchedule />
-      <div className="journey-next">
-        <Link href="/create" className="button button-primary">
-          Create a journey like this
-        </Link>
-      </div>
+      <RaahiJourneyDemo />
     </main>
   );
 }
