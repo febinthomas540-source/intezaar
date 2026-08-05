@@ -47,13 +47,9 @@ export function LetterOpening() {
   return (
     <section className="opening-shell" aria-labelledby="arrival-title">
       <div className="opening-copy">
-        <p className="eyebrow">The arrival ritual</p>
-        <h2 id="arrival-title">Not a notification. A knock at the door.</h2>
-        <p>
-          The final moment should feel private and physical. Rain outside, a postman waiting under
-          the porch light, and the travelled envelope slipping through the brass letter slot before
-          the recipient finally breaks the seal.
-        </p>
+        <p className="eyebrow">Arrival</p>
+        <h2 id="arrival-title">A knock.<br />Then the letter.</h2>
+        <p>Receive it. Break the seal. Read what travelled all this way.</p>
       </div>
 
       <div className={styles.stage}>
@@ -113,13 +109,9 @@ export function LetterOpening() {
                 </div>
 
                 <div className={styles.copy}>
-                  <span>{arrivalStarted ? "Delivered at the promised moment" : "Wednesday · 7:42 PM · light rain"}</span>
-                  <h3>{arrivalStarted ? "The letter is inside." : "Someone is at the door."}</h3>
-                  <p>
-                    {arrivalStarted
-                      ? "It has crossed every station, postmark and memory. Take it from beneath the letter slot."
-                      : "Turn the sound on and let the final journey begin with two quiet knocks."}
-                  </p>
+                  <span>{arrivalStarted ? "Delivered" : "Wednesday · 7:42 PM"}</span>
+                  <h3>{arrivalStarted ? "It is here." : "Someone is at the door."}</h3>
+                  <p>{arrivalStarted ? "Pick it up." : "Two quiet knocks."}</p>
                   <button type="button" onClick={arrivalStarted ? () => setReceived(true) : startArrival}>
                     {arrivalStarted ? "Pick up the letter" : "Hear the knock"}
                   </button>
@@ -146,7 +138,7 @@ export function LetterOpening() {
               >
                 <span className={styles.receivedSeal}>I</span>
                 <span className={styles.receivedName}>For Ananya</span>
-                <span className={styles.receivedInstruction}>It is yours now · break the seal</span>
+                <span className={styles.receivedInstruction}>Break the seal</span>
               </motion.button>
             </motion.div>
           ) : (
@@ -160,17 +152,13 @@ export function LetterOpening() {
               <div className="letter-postmark">DELHI · TEN MEMORIES · KERALA</div>
               <p className="letter-salutation">Dear Ananya,</p>
               <p>
-                Do you remember the evening we missed the bus and stood beneath that broken shop
-                awning while the rain came sideways? We were tired, late and laughing at absolutely
-                nothing. I did not know then that such an ordinary moment would become one of the
-                places I return to whenever I miss you.
+                Do you remember the evening we missed the bus and laughed beneath that broken shop awning? I did not know then that such an ordinary moment would become one of the places I return to whenever I miss you.
               </p>
               <p>
-                I could have sent these words in a second. I wanted them to travel slowly because
-                some memories deserve time to find their way home.
+                I could have sent this in a second. I wanted it to take its time.
               </p>
               <p className="letter-signoff">Still remembering,<br />Arjun</p>
-              <button className="replay-button" onClick={reset}>Experience the arrival again</button>
+              <button className="replay-button" onClick={reset}>Replay arrival</button>
             </motion.div>
           )}
         </AnimatePresence>
