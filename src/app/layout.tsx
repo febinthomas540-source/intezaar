@@ -6,17 +6,18 @@ import "./route-selector.css";
 import "./mobile.css";
 import "./journey-mobile-fix.css";
 import "./raahi-site.css";
+import "./cinematic-site.css";
 
 const siteUrl = "https://intezaar.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Intezaar — Memories carried home by Raahi",
+    default: "Intezaar — Memories that take time to arrive",
     template: "%s | Intezaar",
   },
   description:
-    "Create a private memory journey carried by Raahi, a messenger pigeon who delivers one photograph, voice note or keepsake each day before the final sealed letter arrives.",
+    "Create a private journey of photographs, voice notes, keepsakes and a final sealed letter. One memory arrives each day, carried through a quiet nostalgic world.",
   applicationName: "Intezaar",
   authors: [{ name: "Intezaar" }],
   creator: "Intezaar",
@@ -25,13 +26,13 @@ export const metadata: Metadata = {
   keywords: [
     "digital memory journey",
     "scheduled online letter",
-    "messenger pigeon letter",
     "private photo gift",
     "voice note keepsake",
     "future message",
     "romantic letter experience",
     "memory book PDF",
     "slow digital gifting",
+    "nostalgic letter website",
   ],
   alternates: { canonical: "/" },
   openGraph: {
@@ -39,15 +40,15 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: siteUrl,
     siteName: "Intezaar",
-    title: "Intezaar — Send a memory. Let it find its way home.",
+    title: "Intezaar — Some memories should not arrive instantly",
     description:
-      "Raahi carries one private memory each day until the final sealed letter reaches home.",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Raahi the messenger pigeon carrying an Intezaar memory letter" }],
+      "One photograph, voice or keepsake arrives each day before the final sealed letter is opened.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Intezaar nostalgic memory and letter experience" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Intezaar — Memories carried home by Raahi",
-    description: "One memory lands each day. The final letter arrives last.",
+    title: "Intezaar — Memories that take time to arrive",
+    description: "A quiet private journey ending in one sealed letter.",
     images: ["/opengraph-image"],
   },
   robots: {
@@ -63,7 +64,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f7edcf",
+  themeColor: "#1d1814",
   colorScheme: "light",
 };
 
@@ -80,7 +81,7 @@ const websiteSchema = {
   "@type": "WebSite",
   name: "Intezaar",
   url: siteUrl,
-  description: "A private memory journey where Raahi delivers one memory at a time before the final letter arrives.",
+  description: "A private memory journey where one meaningful fragment arrives at a time before the final letter opens.",
   inLanguage: "en-IN",
   publisher: { "@type": "Organization", name: "Intezaar" },
 };
