@@ -7,9 +7,9 @@ export function Navigation() {
         <span>Intezaar</span>
       </Link>
       <nav className="nostalgia-nav-links" aria-label="Main navigation">
-        <Link href="/routes">Journeys</Link>
+        <Link href="/#how-it-works">How it works</Link>
         <Link href="/journey/demo">Experience</Link>
-        <Link href="/create" className="nostalgia-nav-cta">Create a letter</Link>
+        <Link href="/create" className="nostalgia-nav-cta">Create a journey</Link>
       </nav>
     </header>
   );
