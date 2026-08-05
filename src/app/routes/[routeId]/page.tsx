@@ -38,28 +38,61 @@ export default async function RouteDetailPage({ params }: PageProps) {
   const route = routeCorridors.find((item) => item.id === routeId);
   if (!route) notFound();
 
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    name: route.name,
-    description: route.strapline,
-    provider: { "@type": "Organization", name: "Intezaar", url: "https://intezaar.vercel.app" },
-    areaServed: route.stops.map((stop) => ({ "@type": "Place", name: stop })),
-    hasOfferCatalog: {
-      "@type": "OfferCatalog",
-      name: `${route.name} journey chapters`,
-      itemListElement: route.stops.map((stop, index) => ({
-        "@type": "Offer",
-        position: index + 1,
-        itemOffered: {
-          "@type": "Service",
-          name: `${stop} memory chapter`,
+  const relatedRoutes = routeCorridors
+    .filter((candidate) => candidate.id !== route.id)
+    .map((candidate) => ({
+      ...candidate,
+      affinity: candidate.stops.filter((stop) => route.stops.includes(stop)).length,
+    }))
+    .sort((a, b) => b.affinity - a.affinity)
+    .slice(0, 3);
+
+  const schema = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: route.name,
+      description: route.strapline,
+      provider: { "@type": "Organization", name: "Intezaar", url: "https://intezaar.vercel.app" },
+      areaServed: route.stops.map((stop) => ({ "@type": "Place", name: stop })),
+      itinerary: {
+        "@type": "ItemList",
+        name: `${route.name} postal journey`,
+        itemListOrder: "https://schema.org/ItemListOrderAscending",
+        itemListElement: route.stops.map((stop, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: stop,
           description: getCityProfile(stop).postalMoment,
-        },
-      })),
+        })),
+      },
+      url: `https://intezaar.vercel.app/routes/${route.id}`,
     },
-    url: `https://intezaar.vercel.app/routes/${route.id}`,
-  };
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://intezaar.vercel.app",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Postal routes",
+          item: "https://intezaar.vercel.app/routes",
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: route.name,
+          item: `https://intezaar.vercel.app/routes/${route.id}`,
+        },
+      ],
+    },
+  ];
 
   return (
     <main className={styles.storyPage}>
@@ -67,6 +100,13 @@ export default async function RouteDetailPage({ params }: PageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <header className={styles.storyHero}>
         <div className={styles.storyInner}>
+          <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
+            <Link href="/">Intezaar</Link>
+            <span aria-hidden="true">/</span>
+            <Link href="/routes">Postal routes</Link>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">{route.name}</span>
+          </nav>
           <p className={styles.eyebrow}>{route.accent} · Curated postal corridor</p>
           <h1>{route.name}</h1>
           <p className={styles.strapline}>{route.strapline}</p>
@@ -74,6 +114,15 @@ export default async function RouteDetailPage({ params }: PageProps) {
             <span>{route.origin} → {route.destination}</span>
             <span>{route.duration}</span>
             <span>{route.transport}</span>
+          </div>
+          <div className={styles.routeRail} aria-label={`${route.origin} to ${route.destination} route overview`}>
+            {route.stops.map((stop, index) => (
+              <div className={styles.railStop} key={stop}>
+                <span className={styles.railDot} aria-hidden="true" />
+                <small>{stop}</small>
+                {index < route.stops.length - 1 ? <span className={styles.railLine} aria-hidden="true" /> : null}
+              </div>
+            ))}
           </div>
         </div>
       </header>
@@ -98,7 +147,7 @@ export default async function RouteDetailPage({ params }: PageProps) {
                 <span className={styles.stopNumber}>{String(index + 1).padStart(2, "0")}</span>
                 <div className={styles.stopStory}>
                   <div className={styles.stopHeading}>
-                    <div className={styles.stopName}>{stop}</div>
+                    <h2 className={styles.stopName}>{stop}</h2>
                     <span className={styles.weather}>{profile.weather}</span>
                   </div>
                   <p className={styles.scene}>{profile.scene}</p>
@@ -130,6 +179,30 @@ export default async function RouteDetailPage({ params }: PageProps) {
           </div>
           <Link href={`/create?route=${route.id}`}>Choose this corridor</Link>
         </div>
+
+        <section className={styles.related} aria-labelledby="related-routes-heading">
+          <div className={styles.relatedHeading}>
+            <div>
+              <p className={styles.eyebrow}>Continue exploring</p>
+              <h2 id="related-routes-heading">Other ways a memory can travel.</h2>
+            </div>
+            <Link href="/routes">View every postal route →</Link>
+          </div>
+          <div className={styles.relatedGrid}>
+            {relatedRoutes.map((related) => (
+              <Link className={styles.relatedCard} href={`/routes/${related.id}`} key={related.id}>
+                <span className={styles.relatedStamp}>{related.accent}</span>
+                <div>
+                  <small>{related.origin} → {related.destination}</small>
+                  <h3>{related.name}</h3>
+                  <p>{related.strapline}</p>
+                </div>
+                <span className={styles.relatedMeta}>{related.duration}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
         <Link className={styles.back} href="/routes">← Explore all routes</Link>
       </section>
     </main>
