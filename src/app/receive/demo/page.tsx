@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
-import { RecipientDemo } from "@/components/recipient-demo";
+import { RecipientStory } from "@/components/recipient-story";
 
 export const metadata: Metadata = {
-  title: "Recipient experience",
-  description: "Preview what someone sees when an Intezaar letter begins travelling to them.",
+  title: "Recipient railway story",
+  description: "A continuous railway journey carrying one memory at every station.",
   robots: { index: false, follow: false },
 };
 
-type RecipientDemoPageProps = {
+type RecipientStoryPageProps = {
   searchParams: Promise<{ name?: string }>;
 };
 
-export default async function RecipientDemoPage({ searchParams }: RecipientDemoPageProps) {
+export default async function RecipientStoryPage({ searchParams }: RecipientStoryPageProps) {
   const params = await searchParams;
   const recipient = params.name?.trim().slice(0, 40) || "Ananya";
 
-  return <RecipientDemo recipient={recipient} />;
+  return <RecipientStory recipient={recipient} />;
 }
