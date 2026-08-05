@@ -4,6 +4,7 @@ import "./postal-theme.css";
 import "./postal-interactions.css";
 import "./route-selector.css";
 import "./mobile.css";
+import "./journey-mobile-fix.css";
 
 const siteUrl = "https://intezaar.vercel.app";
 
