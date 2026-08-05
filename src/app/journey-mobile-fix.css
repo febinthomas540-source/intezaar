@@ -1,0 +1,115 @@
+/* Journey-specific mobile containment.
+   The timeline uses a horizontal chapter rail; every ancestor must be allowed
+   to shrink or the rail's intrinsic width can widen the whole page. */
+
+@media (max-width: 760px) {
+  html,
+  body {
+    overflow-x: hidden !important;
+  }
+
+  .journey-page {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  [class*="gameHeader"],
+  [class*="gameShell"],
+  [class*="mainColumn"],
+  [class*="sideColumn"],
+  [class*="tabs"],
+  [class*="timeline"],
+  [class*="memoryBox"] {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  [class*="gameHeader"] > *,
+  [class*="gameShell"] > *,
+  [class*="mainColumn"] > *,
+  [class*="sideColumn"] > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  [class*="arrivalCard"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  [class*="tabs"] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    overflow: hidden;
+  }
+
+  [class*="tabs"] button {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 8px;
+    text-align: center;
+    white-space: nowrap;
+    font-size: 13px;
+  }
+
+  [class*="timeline"],
+  [class*="memoryBox"] {
+    overflow: hidden;
+  }
+
+  [class*="timelineHead"] {
+    width: 100%;
+    min-width: 0;
+  }
+
+  [class*="chapterList"] {
+    box-sizing: border-box;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-inline: 4px;
+  }
+
+  [class*="chapterList"] button {
+    box-sizing: border-box;
+    flex: 0 0 min(72vw, 220px) !important;
+    width: min(72vw, 220px) !important;
+    min-width: 0 !important;
+    max-width: 220px !important;
+    grid-template-columns: 32px minmax(0, 1fr) !important;
+  }
+
+  [class*="chapterList"] button > div {
+    min-width: 0;
+  }
+
+  [class*="chapterList"] button strong,
+  [class*="chapterList"] button small {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  [class*="traceCard"],
+  [class*="returnCard"] {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  [class*="traceCard"] p,
+  [class*="returnCard"] p,
+  [class*="returnCard"] small {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
