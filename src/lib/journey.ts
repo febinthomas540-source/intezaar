@@ -14,6 +14,34 @@ export type JourneyRitual = {
   completion: string;
 };
 
+export type MemoryArtifactType =
+  | "old-sms"
+  | "diary"
+  | "cinema-ticket"
+  | "bus-ticket"
+  | "voice-note"
+  | "polaroid"
+  | "cassette"
+  | "email"
+  | "postcard"
+  | "inland-letter";
+
+export type JourneySoundKind = "station" | "rail" | "rain" | "sea" | "night";
+
+export type MemoryArtifact = {
+  type: MemoryArtifactType;
+  kicker: string;
+  title: string;
+  body: string;
+  footer: string;
+};
+
+export type SoundMemory = {
+  kind: JourneySoundKind;
+  title: string;
+  detail: string;
+};
+
 export type JourneyStage = {
   id: string;
   region: string;
@@ -33,6 +61,12 @@ export type JourneyStage = {
   keepsakeName: string;
   keepsakeDetail: string;
   memoryPrompt: string;
+  memoryDate: string;
+  memoryDateCaption: string;
+  rememberedDetail: string;
+  culturalDetail: string;
+  artifact: MemoryArtifact;
+  soundMemory: SoundMemory;
   ritual?: JourneyRitual;
 };
 
@@ -59,6 +93,22 @@ export const demoJourney: JourneyStage[] = [
     keepsakeName: "A handwritten date",
     keepsakeDetail: "04 · 08 · 2020, written twice and underlined once.",
     memoryPrompt: "What was the first ordinary moment with them that became special later?",
+    memoryDate: "04 AUG 2020",
+    memoryDateCaption: "The night a five-minute call lasted until sunrise.",
+    rememberedDetail: "You always said ‘one last thing’ when neither of you wanted to end the call.",
+    culturalDetail: "Platform chai in a paper cup, the smell of warm dust and a train announcement fading into the night.",
+    artifact: {
+      type: "old-sms",
+      kicker: "Saved message · 12:47 AM",
+      title: "Are you still awake?",
+      body: "I was going to sleep. Then I saw your name.",
+      footer: "Nokia inbox · message 17 of 50",
+    },
+    soundMemory: {
+      kind: "station",
+      title: "The station after midnight",
+      detail: "A distant announcement, a tea seller and the low hum before a train begins moving.",
+    },
     ritual: {
       type: "stamp",
       title: "Begin the journey",
@@ -88,6 +138,22 @@ export const demoJourney: JourneyStage[] = [
     keepsakeName: "A tea-stained corner",
     keepsakeDetail: "The faint ring of a cup from the night the letter was written.",
     memoryPrompt: "Which small habit of theirs would you recognise anywhere?",
+    memoryDate: "16 NOV 2020",
+    memoryDateCaption: "The first morning you shared tea without checking the time.",
+    rememberedDetail: "You always waited for their tea to cool before taking the first sip from their cup.",
+    culturalDetail: "A steel tumbler, Parle-G biscuits broken in half and morning light through railway bars.",
+    artifact: {
+      type: "diary",
+      kicker: "Notebook margin",
+      title: "Nothing important happened today.",
+      body: "We drank tea for two hours. I think that may have been the important thing.",
+      footer: "Written in blue ink · page 31",
+    },
+    soundMemory: {
+      kind: "rail",
+      title: "Morning train rhythm",
+      detail: "Metal wheels, a spoon against glass and birds waking beside the tracks.",
+    },
   },
   {
     id: "jaipur",
@@ -111,6 +177,22 @@ export const demoJourney: JourneyStage[] = [
     keepsakeName: "A familiar scent",
     keepsakeDetail: "Not enough to name, only enough to remember.",
     memoryPrompt: "What smell, song or place takes you back to them immediately?",
+    memoryDate: "02 FEB 2021",
+    memoryDateCaption: "The film you barely watched because you kept whispering.",
+    rememberedDetail: "You never smiled when someone asked for a photograph—only in the second after they lowered the camera.",
+    culturalDetail: "A single-screen cinema, cold orange drink, torn paper tickets and an autorickshaw waiting outside.",
+    artifact: {
+      type: "cinema-ticket",
+      kicker: "Balcony · Row G",
+      title: "Two seats, one unfinished film",
+      body: "The ticket is creased where it stayed inside a wallet for years.",
+      footer: "Evening show · ₹180",
+    },
+    soundMemory: {
+      kind: "night",
+      title: "Outside the old cinema",
+      detail: "A bicycle bell, traffic far away and a film song leaking through the lobby doors.",
+    },
   },
   {
     id: "udaipur",
@@ -134,6 +216,22 @@ export const demoJourney: JourneyStage[] = [
     keepsakeName: "An unfinished sentence",
     keepsakeDetail: "‘Do you remember…’ followed by a line crossed out gently.",
     memoryPrompt: "Which day with them felt unimportant then, but means everything now?",
+    memoryDate: "21 MAR 2021",
+    memoryDateCaption: "The bus ride with no plan after the final stop.",
+    rememberedDetail: "They always chose the window seat, then spent the journey turning around to talk to you.",
+    culturalDetail: "A faded state-bus ticket, a cloth seat cover and roadside peanuts folded into newspaper.",
+    artifact: {
+      type: "bus-ticket",
+      kicker: "Ordinary service",
+      title: "Two tickets to nowhere particular",
+      body: "Boarded at 4:20 PM. Destination written in ink that has almost disappeared.",
+      footer: "Seat 17 · Keep until journey ends",
+    },
+    soundMemory: {
+      kind: "rail",
+      title: "The old road beside the lake",
+      detail: "A bus engine, wind through an open window and temple bells across the water.",
+    },
   },
   {
     id: "mumbai",
@@ -157,6 +255,22 @@ export const demoJourney: JourneyStage[] = [
     keepsakeName: "Seven seconds of a voice",
     keepsakeDetail: "A breath, a laugh, and the beginning of your name.",
     memoryPrompt: "What would you want to hear them say exactly as they used to say it?",
+    memoryDate: "09 JUL 2021",
+    memoryDateCaption: "The evening the rain cancelled every plan except staying together.",
+    rememberedDetail: "You always looked outside when rain began, even if someone was still speaking to you.",
+    culturalDetail: "Wet local-train windows, cutting chai, newspaper held above two heads and a radio playing an old Hindi song.",
+    artifact: {
+      type: "voice-note",
+      kicker: "Voice message · 0:07",
+      title: "Your name, then laughter",
+      body: "The waveform begins with a breath and ends before the sentence becomes brave.",
+      footer: "Recorded 11:42 PM · not forwarded",
+    },
+    soundMemory: {
+      kind: "rain",
+      title: "Monsoon against glass",
+      detail: "Heavy rain, a local train slowing and a radio playing somewhere under the bridge.",
+    },
     ritual: {
       type: "umbrella",
       title: "Keep one memory dry",
@@ -186,6 +300,22 @@ export const demoJourney: JourneyStage[] = [
     keepsakeName: "A sun-faded photograph",
     keepsakeDetail: "Only one corner is visible: two hands and an old plastic chair.",
     memoryPrompt: "Which imperfect photograph of both of you would you never delete?",
+    memoryDate: "18 DEC 2021",
+    memoryDateCaption: "The photograph taken after everyone stopped posing.",
+    rememberedDetail: "They closed their eyes in nearly every photograph but never asked you to delete one.",
+    culturalDetail: "A bakery paper bag, sea salt on sandals, church bells and a plastic chair pulled into the shade.",
+    artifact: {
+      type: "polaroid",
+      kicker: "Photo 23 of 41",
+      title: "We were tired, late and completely happy.",
+      body: "The image is slightly blurred. One hand is reaching toward the camera.",
+      footer: "Printed later · kept anyway",
+    },
+    soundMemory: {
+      kind: "sea",
+      title: "A slow morning near the coast",
+      detail: "Small waves, church bells and chairs moving across a tiled floor.",
+    },
   },
   {
     id: "mangaluru",
@@ -209,6 +339,22 @@ export const demoJourney: JourneyStage[] = [
     keepsakeName: "A private name",
     keepsakeDetail: "The last word remains hidden, but its first letter has appeared.",
     memoryPrompt: "Which name, joke or phrase belongs only to the two of you?",
+    memoryDate: "01 JAN 2022",
+    memoryDateCaption: "The song played twice because neither of you wanted the ride to end.",
+    rememberedDetail: "They always sang the wrong lyric with complete confidence, and you eventually learned their version.",
+    culturalDetail: "A scratched car stereo, coconut trees passing the window and a song copied long ago from someone else’s cassette.",
+    artifact: {
+      type: "cassette",
+      kicker: "Side B · Track 04",
+      title: "The wrong lyric became the right one",
+      body: "A handwritten label carries the nickname nobody else uses.",
+      footer: "Recorded over an older song",
+    },
+    soundMemory: {
+      kind: "sea",
+      title: "The harbour road song",
+      detail: "A soft cassette hiss, gulls and the sea appearing between buildings.",
+    },
   },
   {
     id: "ghats",
@@ -232,6 +378,22 @@ export const demoJourney: JourneyStage[] = [
     keepsakeName: "Four abandoned openings",
     keepsakeDetail: "Crossed-out beginnings still visible beneath the final line.",
     memoryPrompt: "What have you always wanted to tell them without making it sound perfect?",
+    memoryDate: "23 MAY 2022",
+    memoryDateCaption: "The unsent draft saved after an argument neither of you remembers clearly.",
+    rememberedDetail: "Even when angry, they still asked whether you had eaten before ending the conversation.",
+    culturalDetail: "Mist on a hill road, a roadside tea shop, wet newspaper and the smell of eucalyptus through an open door.",
+    artifact: {
+      type: "email",
+      kicker: "Draft · never sent",
+      title: "I do not know how to begin this properly.",
+      body: "Four openings remain below it, crossed out but still readable.",
+      footer: "Saved 2:13 AM · no subject",
+    },
+    soundMemory: {
+      kind: "rain",
+      title: "Rain inside the hills",
+      detail: "Water on leaves, a ceiling fan in a tea shop and one vehicle passing through fog.",
+    },
   },
   {
     id: "kochi",
@@ -255,6 +417,22 @@ export const demoJourney: JourneyStage[] = [
     keepsakeName: "The first complete line",
     keepsakeDetail: "‘I wanted this to feel like finding something we had lost.’",
     memoryPrompt: "What part of your relationship would you bring back for one evening?",
+    memoryDate: "11 SEP 2022",
+    memoryDateCaption: "The airport goodbye when both of you pretended it was only a short distance.",
+    rememberedDetail: "They always called after reaching home, even if you had watched them walk through the door.",
+    culturalDetail: "A ferry horn, banana chips in a bakery cover, an airport trolley and the first call after landing abroad.",
+    artifact: {
+      type: "postcard",
+      kicker: "Air mail · home to away",
+      title: "Reached safely. The house feels too quiet.",
+      body: "The writing becomes smaller near the edge because there was more to say than space allowed.",
+      footer: "Stamped Kochi · carried overseas",
+    },
+    soundMemory: {
+      kind: "night",
+      title: "The last ferry and the first call home",
+      detail: "Water, a ferry horn and an old phone vibrating on a wooden table.",
+    },
   },
   {
     id: "alappuzha",
@@ -278,6 +456,22 @@ export const demoJourney: JourneyStage[] = [
     keepsakeName: "The unopened letter",
     keepsakeDetail: "Warm wax, your name, and the exact minute it may be opened.",
     memoryPrompt: "Before you open it: what do you hope this letter remembers about you?",
+    memoryDate: "17 AUG 2026",
+    memoryDateCaption: "The day an old memory found its way back home.",
+    rememberedDetail: "The sender remembered the version of you that existed before distance, work and time made everything faster.",
+    culturalDetail: "Evening rain on a tiled roof, a ceiling fan turning slowly and the backwater quiet after the final boat.",
+    artifact: {
+      type: "inland-letter",
+      kicker: "Private · open at midnight",
+      title: "For the person I still remember in small details",
+      body: "Folded twice, corrected by hand and sealed before courage could change its mind.",
+      footer: "Delivered with care · do not rush",
+    },
+    soundMemory: {
+      kind: "night",
+      title: "A house waiting after rain",
+      detail: "A ceiling fan, night insects, distant water and the silence before a letter opens.",
+    },
     ritual: {
       type: "receive",
       title: "Receive the letter",
