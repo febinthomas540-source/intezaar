@@ -197,7 +197,8 @@ export default function CreatePage() {
               <p>{selectedRoute.transport}</p>
               <div>{selectedRoute.stops.map((stop) => <span key={stop}>{stop}</span>)}</div>
             </div>
-            <Link href="/journey/demo" className="button button-primary">Enter the journey</Link>
+            <Link href={`/receive/demo?name=${encodeURIComponent(recipient)}`} className="button button-primary">See what {recipient} receives</Link>
+            <Link href="/journey/demo" className="text-button">Skip to the full journey</Link>
             <button className="text-button" onClick={() => setCreated(false)}>Edit the memories</button>
           </div>
         )}
