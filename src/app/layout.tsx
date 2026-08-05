@@ -7,17 +7,18 @@ import "./mobile.css";
 import "./journey-mobile-fix.css";
 import "./raahi-site.css";
 import "./cinematic-site.css";
+import "./clarity-home.css";
 
 const siteUrl = "https://intezaar.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Intezaar — Memories that take time to arrive",
+    default: "Intezaar — One memory arrives each day",
     template: "%s | Intezaar",
   },
   description:
-    "Create a private journey of photographs, voice notes, keepsakes and a final sealed letter. One memory arrives each day, carried through a quiet nostalgic world.",
+    "Create a private journey of photographs, notes, voice messages and a final sealed letter. One memory unlocks each day, then the complete story becomes an A4 keepsake.",
   applicationName: "Intezaar",
   authors: [{ name: "Intezaar" }],
   creator: "Intezaar",
@@ -42,13 +43,13 @@ export const metadata: Metadata = {
     siteName: "Intezaar",
     title: "Intezaar — Some memories should not arrive instantly",
     description:
-      "One photograph, voice or keepsake arrives each day before the final sealed letter is opened.",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Intezaar nostalgic memory and letter experience" }],
+      "Upload memories and a final letter. Your recipient receives one memory each day before the full letter arrives.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Intezaar rainy-night private memory journey" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Intezaar — Memories that take time to arrive",
-    description: "A quiet private journey ending in one sealed letter.",
+    title: "Intezaar — One memory arrives each day",
+    description: "A private daily memory journey ending in one sealed letter and an A4 keepsake.",
     images: ["/opengraph-image"],
   },
   robots: {
@@ -64,8 +65,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#1d1814",
-  colorScheme: "light",
+  themeColor: "#0f0d0b",
+  colorScheme: "dark",
 };
 
 const organizationSchema = {
@@ -81,7 +82,7 @@ const websiteSchema = {
   "@type": "WebSite",
   name: "Intezaar",
   url: siteUrl,
-  description: "A private memory journey where one meaningful fragment arrives at a time before the final letter opens.",
+  description: "A private journey where one memory opens each day before the final letter and A4 keepsake arrive.",
   inLanguage: "en-IN",
   publisher: { "@type": "Organization", name: "Intezaar" },
 };
