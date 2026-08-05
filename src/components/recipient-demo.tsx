@@ -223,8 +223,8 @@ export function RecipientDemo({ recipient }: RecipientDemoProps) {
                   >
                     <div className={styles.stationAtmosphere} aria-hidden="true">
                       <div className={styles.skyGlow} />
-                      <div className={styles.cloud cloudOne} />
-                      <div className={styles.cloud cloudTwo} />
+                      <div className={`${styles.cloud} ${styles.cloudOne}`} />
+                      <div className={`${styles.cloud} ${styles.cloudTwo}`} />
                       <div className={styles.stationRoof} />
                       <div className={styles.platformLights} />
                       <div className={styles.treeGroupLeft}><i /><i /><i /></div>
