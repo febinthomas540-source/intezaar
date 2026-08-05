@@ -1,0 +1,426 @@
+/* Intezaar: nostalgic Indian postal and railway identity */
+:root {
+  --ink: #281b16;
+  --paper: #f3ead8;
+  --paper-bright: #fff9ef;
+  --forest: #4b2d23;
+  --forest-deep: #241510;
+  --terracotta: #b53f2a;
+  --gold: #d39a45;
+  --line: rgba(70, 45, 31, 0.16);
+  --muted: #75675d;
+}
+
+body {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(211,154,69,.14), transparent 28%),
+    radial-gradient(circle at 82% 14%, rgba(181,63,42,.07), transparent 20%),
+    var(--paper);
+  color: var(--ink);
+}
+
+.site-nav { color: #fff4e6; }
+.nav-links { color: rgba(255,244,230,.78); }
+.nav-cta {
+  border-color: rgba(255,242,220,.32);
+  background: rgba(78,27,17,.18);
+}
+.brand-seal {
+  background: #b63e2b;
+  color: #ffe4bf;
+  box-shadow: 0 8px 25px rgba(48,13,8,.28), inset 0 0 0 3px rgba(89,20,12,.25);
+}
+
+.hero-shell {
+  background:
+    radial-gradient(circle at 75% 17%, rgba(255,214,153,.15), transparent 20%),
+    linear-gradient(180deg, #47271f 0%, #6e3b2d 25%, #985b3a 50%, #d2a067 70%, #74412e 70.5%, #4b281f 100%);
+}
+.hero-atmosphere::after {
+  background: linear-gradient(90deg, rgba(38,17,11,.42), transparent 48%, rgba(34,12,9,.18));
+}
+.postal-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 76% 19%, rgba(255,206,142,.32), transparent 16%);
+}
+.sun-haze {
+  position: absolute;
+  top: 11%;
+  right: 11%;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,226,179,.96) 0 38%, rgba(255,206,142,.38) 54%, transparent 72%);
+  box-shadow: 0 0 70px rgba(255,206,142,.26);
+}
+.dust {
+  position: absolute;
+  width: 480px;
+  height: 120px;
+  border-radius: 50%;
+  filter: blur(28px);
+  background: rgba(255,228,193,.1);
+  animation: clouds 32s linear infinite;
+}
+.dust-one { top: 26%; left: -12%; }
+.dust-two { top: 36%; left: 48%; animation-duration: 39s; animation-direction: reverse; }
+.telegraph-line {
+  position: absolute;
+  left: -10%;
+  width: 120%;
+  height: 2px;
+  background: rgba(46,23,18,.2);
+}
+.telegraph-one { top: 29%; transform: rotate(-3deg); }
+.telegraph-two { top: 33%; transform: rotate(2deg); }
+.hero-shell .distant-hills { background: #7d492f; opacity: .45; bottom: 15%; }
+.hero-shell .near-hills { background: #5f3427; bottom: 7%; height: 32%; }
+.platform-shadow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 18%;
+  background: linear-gradient(180deg, rgba(28,12,9,.06), rgba(23,10,7,.38));
+}
+.hero-copy h1 span { color: #ffdfa8; }
+.hero-lede { color: rgba(255,244,230,.82); }
+.hero-trust { color: rgba(255,244,230,.62); }
+.hero-trust span::before { color: #ffd18f; }
+.button-primary { color: #3b2018; background: #ffd7a0; }
+.button-primary:hover { background: #ffe4bb; }
+.button-ghost { background: rgba(255,245,230,.07); }
+
+.hero-letter-world { min-height: 540px; }
+.postal-stage {
+  position: relative;
+  width: min(100%, 550px);
+  min-height: 470px;
+  padding: 22px;
+  border-radius: 34px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255,247,235,.18), rgba(255,247,235,.06)), rgba(61,29,18,.17);
+  border: 1px solid rgba(255,245,230,.19);
+  box-shadow: 0 42px 95px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.12);
+  backdrop-filter: blur(14px);
+}
+.station-board {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: #1e1712;
+  border: 1px solid rgba(255,219,153,.14);
+  color: #ffeccf;
+}
+.station-board small {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  opacity: .62;
+}
+.station-board strong { font: 400 18px Georgia, serif; }
+
+.postbox-monument {
+  position: absolute;
+  left: 34px;
+  bottom: 108px;
+  width: 86px;
+  height: 128px;
+  border-radius: 18px 18px 16px 16px;
+  background: linear-gradient(180deg, #d14c32, #982d20);
+  box-shadow: inset 0 -10px 18px rgba(92,20,10,.26), 0 16px 24px rgba(0,0,0,.23);
+}
+.postbox-top {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: -13px;
+  height: 24px;
+  border-radius: 12px 12px 8px 8px;
+  background: linear-gradient(180deg, #dc5b3e, #a63222);
+}
+.postbox-slot {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 26px;
+  height: 10px;
+  border-radius: 10px;
+  background: rgba(51,11,6,.52);
+}
+.postbox-mark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 55px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .18em;
+  color: #ffe4be;
+}
+.postal-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 86px;
+  height: 54px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 20px, #6d4b39 20px 34px, transparent 34px 78px),
+    linear-gradient(180deg, transparent 16px, #352018 16px 20px, transparent 20px 24px, #352018 24px 28px, transparent 28px),
+    linear-gradient(180deg, transparent 0 16px, #a77a5c 16px 19px, transparent 19px 28px, #a77a5c 28px 31px, transparent 31px);
+  opacity: .88;
+}
+.mail-train-scene {
+  position: absolute;
+  left: 120px;
+  right: 28px;
+  bottom: 112px;
+  height: 112px;
+  overflow: hidden;
+}
+.mail-train {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.engine-coach,
+.mail-coach {
+  position: relative;
+  width: 122px;
+  height: 68px;
+  border-radius: 12px 12px 8px 8px;
+  background: linear-gradient(180deg, #c64a31, #8f2f20);
+  border: 1px solid rgba(255,220,194,.16);
+  box-shadow: inset 0 -8px 14px rgba(81,21,12,.24);
+}
+.engine-coach { width: 104px; height: 74px; }
+.engine-coach::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: -16px;
+  height: 22px;
+  border-radius: 7px 7px 0 0;
+  background: #cb6045;
+}
+.engine-coach i,
+.mail-coach i {
+  position: absolute;
+  bottom: -13px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #251714;
+  border: 3px solid #9f7963;
+}
+.engine-coach i:first-of-type,
+.mail-coach i:first-of-type { left: 18px; }
+.engine-coach i:last-of-type,
+.mail-coach i:last-of-type { right: 18px; }
+.engine-coach b {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 16px;
+  height: 18px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f1d2a3 0 27%, transparent 27% 36%, #f1d2a3 36% 63%, transparent 63% 72%, #f1d2a3 72%);
+}
+.mail-coach span,
+.mail-coach small {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  color: #ffe4bf;
+}
+.mail-coach span { top: 16px; font-size: 14px; font-weight: 750; letter-spacing: .06em; }
+.mail-coach small { top: 39px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; opacity: .86; }
+.short-coach { width: 96px; }
+
+.inland-card {
+  position: absolute;
+  right: 20px;
+  top: 110px;
+  width: 252px;
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,249,238,.98), rgba(248,238,218,.97));
+  color: #3d2a1f;
+  box-shadow: 0 18px 40px rgba(0,0,0,.17);
+  transform: rotate(-4deg);
+}
+.inland-stamps { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.inland-stamps span {
+  padding: 6px 8px;
+  border: 1px dashed rgba(61,42,31,.28);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: #7b5142;
+}
+.inland-lines small {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .15em;
+  color: #816559;
+}
+.inland-lines strong { display: block; margin-top: 8px; font: 400 24px/1.08 Georgia, serif; }
+.inland-lines p { margin: 10px 0 0; font-size: 14px; line-height: 1.55; color: #6f5b52; }
+.postal-stage .travelling-envelope { top: 84px; right: 58px; left: auto; }
+
+.experience-section { background: #f5ecdc; }
+.moment-card {
+  background: linear-gradient(180deg, rgba(255,252,246,.94), rgba(249,238,220,.94));
+  box-shadow: 0 18px 40px rgba(88,62,36,.05);
+}
+.moment-card > span { color: #b53f2a; background: rgba(255,250,244,.8); }
+.moment-card h3 { color: #2f211a; }
+.moment-card p { color: #6c6157; }
+
+.india-section {
+  background: linear-gradient(180deg, #4a2a21, #291914);
+  color: #f6e9d8;
+}
+.india-copy > p { color: rgba(246,233,216,.72); }
+.text-link { color: #ffddb1; }
+.route-list-item span { color: #ffcc8f; }
+.route-list-item h3 { color: #fff3e3; }
+.route-list-item p { color: rgba(246,233,216,.68); }
+
+.schedule-section { background: linear-gradient(180deg, #efe4d1, #f7efe1); }
+.schedule-heading { margin-bottom: 36px; }
+.route-schedule-card {
+  border: 1px solid rgba(69,45,31,.14);
+  border-radius: 30px;
+  padding: 28px;
+  background: linear-gradient(180deg, rgba(255,253,248,.94), rgba(245,235,217,.95));
+  box-shadow: 0 24px 60px rgba(72,49,31,.08);
+}
+.route-schedule-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.route-schedule-head small,
+.route-schedule-head span {
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8a6e5a;
+}
+.route-schedule-head strong { display: block; margin-top: 8px; font: 400 32px Georgia, serif; color: #2a1d17; }
+.route-schedule-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+.schedule-stop {
+  display: flex;
+  gap: 14px;
+  align-items: start;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255,248,237,.74);
+  border: 1px dashed rgba(106,69,49,.18);
+}
+.schedule-stop span {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #b53f2a;
+  color: #ffe6c8;
+  font: 400 14px Georgia, serif;
+}
+.schedule-stop p { margin: 0; font-size: 15px; line-height: 1.4; color: #4c3a31; }
+
+.opening-shell {
+  background:
+    linear-gradient(130deg, rgba(230,214,190,.96), rgba(255,249,238,.98)),
+    repeating-linear-gradient(0deg, transparent 0 27px, rgba(99,70,45,.04) 28px 29px);
+}
+.large-envelope { background: #e6d0aa; }
+.large-envelope-flap { background: #f2dec0; }
+.large-wax-seal { background: #ad3b2b; }
+.opened-letter { background: #fff8e9; }
+
+.creator-page,
+.journey-page {
+  background:
+    radial-gradient(circle at 10% 0%, rgba(211,154,69,.12), transparent 24%),
+    linear-gradient(180deg, #43261f, #2a1814 36%, #1f1411 100%);
+  color: #f7ead8;
+}
+.creator-page .site-nav,
+.journey-page .site-nav { background: rgba(41,20,15,.55); border-bottom: 1px solid rgba(255,237,212,.08); }
+.creator-preview-card { background: linear-gradient(#9b6544,#c79861 58%,#69412d); }
+.letter-form,
+.creation-success {
+  background:
+    linear-gradient(180deg, rgba(255,250,240,.98), rgba(245,232,209,.98));
+  color: #2d2019;
+  border: 1px solid rgba(83,50,32,.12);
+}
+.letter-form input,
+.letter-form textarea,
+.letter-form select { background: #fffaf0; border-color: rgba(92,56,34,.18); }
+
+.journey-stage-card { border-color: rgba(255,224,187,.13); box-shadow: 0 34px 85px rgba(18,7,4,.38); }
+.journey-stage-overlay {
+  background: linear-gradient(90deg, rgba(41,19,13,.76), transparent 65%), linear-gradient(0deg, rgba(35,15,10,.83), transparent 45%);
+}
+.journey-envelope { background: #e7d0ad; }
+.journey-envelope-flap { background: #f4dfbd; }
+.journey-wax { background: #ad3b2b; color: #ffd9b7; }
+.scene-city { background: linear-gradient(#38251f,#9b6648); }
+.scene-desert { background: linear-gradient(#855140,#dda167 63%,#bb7446); }
+.scene-coast { background: linear-gradient(#596d68,#bd9265); }
+.scene-monsoon { background: linear-gradient(#53635d,#342a24); }
+.scene-arrival { background: linear-gradient(#68766b,#c09a6c); }
+
+.postal-cta {
+  min-height: 680px;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(255,214,153,.16), transparent 18%),
+    linear-gradient(180deg, #5c3225, #2a1711 64%, #1e120f 100%);
+}
+.final-cta-copy {
+  max-width: 620px;
+  margin: 20px auto 38px;
+  color: rgba(255,243,226,.76);
+  line-height: 1.7;
+}
+.postal-cta .final-cta-stamp {
+  width: auto;
+  min-width: 180px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: rgba(255,245,229,.05);
+}
+.site-footer { background: #211612; color: #eddcc8; }
+
+@media (max-width: 980px) {
+  .postal-stage { min-height: 500px; }
+  .inland-card { position: relative; top: auto; right: auto; margin: 28px 0 0 auto; width: min(100%,280px); }
+  .mail-train-scene { left: 100px; right: 18px; }
+}
+
+@media (max-width: 720px) {
+  .postal-stage { min-height: 530px; padding: 18px; }
+  .postbox-monument { width: 74px; height: 114px; left: 18px; }
+  .mail-train-scene { left: 78px; right: 8px; }
+  .mail-coach { width: 102px; }
+  .short-coach { width: 82px; }
+  .inland-card { width: 100%; transform: rotate(0deg); }
+  .route-schedule-grid { grid-template-columns: 1fr; }
+  .route-schedule-head { flex-direction: column; align-items: flex-start; }
+}
