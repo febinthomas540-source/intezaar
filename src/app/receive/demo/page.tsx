@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { RaahiPrototype } from "@/components/raahi-prototype";
 
 export const metadata: Metadata = {
-  title: "Raahi’s memory journey",
-  description: "A messenger pigeon carrying one private memory at a time.",
+  title: "A Private Memory Journey",
+  description: "One photograph, voice or keepsake opens at a time before the final sealed letter arrives.",
   robots: { index: false, follow: false },
 };
 
