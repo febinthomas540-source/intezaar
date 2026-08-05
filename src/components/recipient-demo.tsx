@@ -28,17 +28,17 @@ function playArrivalCue() {
   const now = context.currentTime;
 
   gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.exponentialRampToValueAtTime(0.08, now + 0.03);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.25);
+  gain.gain.exponentialRampToValueAtTime(0.07, now + 0.03);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.35);
   gain.connect(context.destination);
 
   const whistle = context.createOscillator();
   whistle.type = "sine";
-  whistle.frequency.setValueAtTime(330, now);
-  whistle.frequency.exponentialRampToValueAtTime(205, now + 1.1);
+  whistle.frequency.setValueAtTime(320, now);
+  whistle.frequency.exponentialRampToValueAtTime(200, now + 1.15);
   whistle.connect(gain);
   whistle.start(now);
-  whistle.stop(now + 1.25);
+  whistle.stop(now + 1.3);
 
   window.setTimeout(() => void context.close(), 1500);
 }
@@ -58,13 +58,13 @@ export function RecipientDemo({ recipient }: RecipientDemoProps) {
     const instant = Boolean(reduceMotion);
 
     if (phase === "platform") {
-      timer = setTimeout(() => setPhase("arriving"), instant ? 40 : 420);
+      timer = setTimeout(() => setPhase("arriving"), instant ? 40 : 380);
     } else if (phase === "arriving") {
-      timer = setTimeout(() => setPhase("stopped"), instant ? 60 : 2100);
+      timer = setTimeout(() => setPhase("stopped"), instant ? 50 : 2200);
     } else if (phase === "stopped") {
-      timer = setTimeout(() => setPhase("revealed"), instant ? 60 : 950);
+      timer = setTimeout(() => setPhase("revealed"), instant ? 60 : 900);
     } else if (phase === "departing") {
-      timer = setTimeout(() => setPhase("waiting"), instant ? 80 : 1850);
+      timer = setTimeout(() => setPhase("waiting"), instant ? 80 : 1800);
     }
 
     return () => {
@@ -80,10 +80,10 @@ export function RecipientDemo({ recipient }: RecipientDemoProps) {
 
   const trainX =
     phase === "platform"
-      ? "-125%"
+      ? "-118%"
       : phase === "arriving" || phase === "stopped" || phase === "revealed"
         ? "0%"
-        : "135%";
+        : "122%";
 
   const postmanVisible = ["stopped", "revealed", "departing"].includes(phase);
 
@@ -160,7 +160,7 @@ export function RecipientDemo({ recipient }: RecipientDemoProps) {
             <div className={styles.journeyHeader}>
               <div>
                 <p>Private delivery for {recipient}</p>
-                <h1>Today&apos;s train<br /><em>has arrived.</em></h1>
+                <h1>Today&apos;s train <em>has arrived.</em></h1>
               </div>
               <div className={styles.dayStamp}>
                 <span>DAY</span>
@@ -170,8 +170,15 @@ export function RecipientDemo({ recipient }: RecipientDemoProps) {
             </div>
 
             <div className={styles.journeySurface}>
-              <div className={styles.blurredFuture} aria-hidden="true">
-                <div /><div /><div />
+              <div className={styles.futureTrack} aria-hidden="true">
+                {recipientJourneyDays.map((day, index) => (
+                  <div
+                    key={day.day}
+                    className={`${styles.futureStop} ${index <= dayIndex ? styles.futurePast : ""} ${index > dayIndex ? styles.futureLocked : ""}`}
+                  >
+                    <span>{day.station}</span>
+                  </div>
+                ))}
               </div>
 
               <AnimatePresence mode="wait">
@@ -197,7 +204,7 @@ export function RecipientDemo({ recipient }: RecipientDemoProps) {
                   <motion.section
                     key="opened-letter"
                     className={styles.finalLetter}
-                    initial={reduceMotion ? false : { opacity: 0, y: 28, rotateX: 10 }}
+                    initial={reduceMotion ? false : { opacity: 0, y: 28, rotateX: 8 }}
                     animate={{ opacity: 1, y: 0, rotateX: 0 }}
                   >
                     <div className={styles.letterPostmark}>DELHI · FIVE STATIONS · ALAPPUZHA</div>
@@ -216,8 +223,13 @@ export function RecipientDemo({ recipient }: RecipientDemoProps) {
                   >
                     <div className={styles.stationAtmosphere} aria-hidden="true">
                       <div className={styles.skyGlow} />
+                      <div className={styles.cloud cloudOne} />
+                      <div className={styles.cloud cloudTwo} />
                       <div className={styles.stationRoof} />
                       <div className={styles.platformLights} />
+                      <div className={styles.treeGroupLeft}><i /><i /><i /></div>
+                      <div className={styles.treeGroupRight}><i /><i /><i /></div>
+                      <div className={styles.bushRow} />
                       <div className={styles.railTrack} />
                     </div>
 
@@ -252,88 +264,42 @@ export function RecipientDemo({ recipient }: RecipientDemoProps) {
                       {postmanVisible && (
                         <motion.div
                           className={styles.postman}
-                          initial={reduceMotion ? false : { opacity: 0, x: -55, y: 20 }}
+                          initial={reduceMotion ? false : { opacity: 0, x: -50, y: 20 }}
                           animate={{ opacity: 1, x: 0, y: 0 }}
-                          exit={reduceMotion ? undefined : { opacity: 0, x: 70 }}
+                          exit={reduceMotion ? undefined : { opacity: 0, x: 60 }}
                           transition={{ duration: 0.65 }}
                         >
                           <span className={styles.postmanCap} />
                           <span className={styles.postmanHead} />
                           <span className={styles.postmanBody} />
-                          <span className={styles.postmanBag}>I</span>
-                          <span className={styles.postmanArm} />
+                          <span className={styles.postmanBag} />
                         </motion.div>
                       )}
                     </AnimatePresence>
 
-                    <AnimatePresence>
-                      {phase === "revealed" && (
-                        <motion.div
-                          className={styles.revealPanel}
-                          initial={reduceMotion ? false : { opacity: 0, y: 26, scale: 0.96 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
-                        >
-                          <div className={`${styles.artifact} ${styles[currentDay.artifactType]}`}>
-                            <span>{currentDay.artifactLabel}</span>
-                            {currentDay.artifactType === "voice" && <div className={styles.voiceBars}><i /><i /><i /><i /><i /><i /></div>}
-                            {currentDay.artifactType === "letter" && <div className={styles.miniWax}>I</div>}
-                          </div>
-                          <div className={styles.revealCopy}>
-                            <span>The postman says</span>
-                            <h2>“{currentDay.postmanLine}”</h2>
-                            <p>{currentDay.memory}</p>
-                            <small>{currentDay.detail}</small>
-                            <button
-                              type="button"
-                              onClick={() => setPhase(currentDay.final ? "opened" : "departing")}
-                            >
-                              {currentDay.final ? "Receive and open the letter" : "Keep today’s memory"}
-                            </button>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    {!phaseHasReveal(phase) && (
-                      <div className={styles.arrivalStatus} aria-live="polite">
-                        {phase === "platform" && "Signal cleared"}
-                        {phase === "arriving" && "Intezaar Mail is entering the station"}
-                        {phase === "stopped" && "The postman is stepping down"}
+                    <div className={styles.sceneLayout}>
+                      <div className={styles.copyCard}>
+                        <span className={styles.copyLabel}>{currentDay.artifactLabel}</span>
+                        <h2>{currentDay.memory}</h2>
+                        <p>{currentDay.postmanLine}</p>
                       </div>
-                    )}
+
+                      <div className={`${styles.artifactCard} ${styles[currentDay.artifactType]}`}>
+                        <small>{currentDay.artifactLabel}</small>
+                        <strong>{currentDay.detail}</strong>
+                        <p>{currentDay.memory}</p>
+                        {currentDay.artifactType === "voice" ? <button type="button">Play 00:07</button> : null}
+                        {currentDay.final ? (
+                          <button type="button" onClick={() => setPhase("opened")}>Open the letter</button>
+                        ) : phase === "revealed" ? (
+                          <button type="button" onClick={() => setPhase("departing")}>Let the train leave</button>
+                        ) : null}
+                      </div>
+                    </div>
                   </motion.section>
                 )}
               </AnimatePresence>
             </div>
-
-            <section className={styles.routeArchive} aria-label="Daily journey chapters">
-              <div className={styles.archiveHeading}>
-                <span>Journey archive</span>
-                <p>Past memories stay. Future memories remain blurred.</p>
-              </div>
-              <div className={styles.archiveGrid}>
-                {recipientJourneyDays.map((day, index) => {
-                  const isPast = index < dayIndex;
-                  const isCurrent = index === dayIndex;
-                  const isRevealed = isPast || (isCurrent && phaseHasReveal(phase));
-                  const isFuture = index > dayIndex;
-
-                  return (
-                    <article
-                      key={day.day}
-                      className={`${styles.archiveCard} ${isCurrent ? styles.archiveCurrent : ""} ${isFuture ? styles.archiveFuture : ""}`}
-                    >
-                      <div><span>{String(day.day).padStart(2, "0")}</span><small>{day.final ? "Arrival" : "Station"}</small></div>
-                      <strong>{day.station}</strong>
-                      <p>{isRevealed ? day.memory : isFuture ? "Future delivery locked" : "Still on the train"}</p>
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-
-            <p className={styles.previewNote}>Preview mode lets you simulate each day. A real recipient only unlocks the current day.</p>
           </motion.section>
         )}
       </AnimatePresence>
