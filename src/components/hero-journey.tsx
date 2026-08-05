@@ -24,23 +24,23 @@ export function HeroJourney() {
           transition={{ duration: 0.8 }}
           className="hero-copy"
         >
-          <p className="eyebrow">A message should feel like it travelled for you.</p>
+          <p className="eyebrow">Some memories deserve more than an instant message.</p>
           <h1>
-            Send a letter that
-            <span> travels before it arrives.</span>
+            Send back something
+            <span> they thought was gone.</span>
           </h1>
           <p className="hero-lede">
-            Choose the moment. Seal your words. Let someone watch them cross cities,
-            deserts, rain and coastlines before the letter finally opens.
+            Turn a private memory into a letter that travels slowly. Each return reveals another
+            trace—a place, a photograph, a voice, a sentence—before the final words arrive.
           </p>
           <div className="hero-actions">
-            <Link href="/create" className="button button-primary">Begin a journey</Link>
-            <Link href="/journey/demo" className="button button-ghost">Experience the demo</Link>
+            <Link href="/create" className="button button-primary">Create a memory journey</Link>
+            <Link href="/journey/demo" className="button button-ghost">Feel the journey</Link>
           </div>
           <div className="hero-trust">
-            <span>Private link</span>
+            <span>Private and personal</span>
             <span>No app required</span>
-            <span>Opens exactly on time</span>
+            <span>No streaks or pressure</span>
           </div>
         </motion.div>
 
@@ -53,7 +53,7 @@ export function HeroJourney() {
           <div className="route-card">
             <div className="route-card-topline">
               <span>Delhi</span>
-              <span className="route-status">Travelling</span>
+              <span className="route-status">Carrying a memory</span>
               <span>Kerala</span>
             </div>
             <div className="route-track">
@@ -71,20 +71,20 @@ export function HeroJourney() {
               </motion.div>
             </div>
             <div className="route-scene-name">
-              <small>Current chapter</small>
-              <strong>Crossing the monsoon hills</strong>
+              <small>Today’s memory trace</small>
+              <strong>“Do you remember that rainy evening?”</strong>
             </div>
             <div className="route-weather">
-              <span>23°C</span>
-              <span>Rainfall · forest birds</span>
+              <span>Western Ghats</span>
+              <span>Rainfall · old song on the radio</span>
             </div>
           </div>
-          <div className="floating-note floating-note-one">3 sleeps until arrival</div>
-          <div className="floating-note floating-note-two">A new clue tomorrow</div>
+          <div className="floating-note floating-note-one">3 evenings until arrival</div>
+          <div className="floating-note floating-note-two">Another fragment tomorrow</div>
         </motion.div>
       </div>
 
-      <div className="scroll-whisper">Scroll into the journey</div>
+      <div className="scroll-whisper">Somewhere, a memory is coming home</div>
     </section>
   );
 }
