@@ -1,0 +1,374 @@
+.page {
+  min-height: 100vh;
+  color: #3f2a21;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(151, 49, 35, .08), transparent 24%),
+    linear-gradient(180deg, #fbf4e8 0%, #f4eadb 100%);
+}
+
+.hero {
+  position: relative;
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 112px 0 54px;
+  display: grid;
+  grid-template-columns: 120px minmax(0, 720px);
+  gap: 30px;
+  align-items: start;
+  border-bottom: 1px solid rgba(76, 45, 30, .14);
+}
+
+.heroMark {
+  position: relative;
+  width: 104px;
+  height: 132px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(115, 36, 28, .55);
+  background: #f8e7c9;
+  box-shadow: 0 18px 42px rgba(73, 40, 24, .13);
+}
+
+.heroMark::before,
+.heroMark::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: rgba(115, 36, 28, .28);
+}
+
+.heroMark::before { top: 18px; }
+.heroMark::after { bottom: 18px; }
+
+.heroMark span {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #f4d4a4;
+  background: #922e24;
+  box-shadow: inset 0 0 0 5px rgba(82, 18, 14, .2);
+  font: italic 26px Georgia, serif;
+}
+
+.heroMark i {
+  position: absolute;
+  right: -9px;
+  top: 26px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #b74534;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: #9a3b2e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0;
+  max-width: 760px;
+  font: 500 clamp(44px, 7vw, 82px)/.98 Georgia, serif;
+  letter-spacing: -.045em;
+}
+
+.intro {
+  max-width: 760px;
+  margin: 24px 0 14px;
+  color: #6a5145;
+  font-size: 19px;
+  line-height: 1.7;
+}
+
+.hero small {
+  color: #8b7468;
+  font-size: 12px;
+}
+
+.layout {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 56px 0 90px;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 760px);
+  gap: 64px;
+  align-items: start;
+}
+
+.sideNav {
+  position: sticky;
+  top: 92px;
+  display: grid;
+  gap: 6px;
+  padding: 20px;
+  border: 1px solid rgba(79, 45, 28, .14);
+  border-radius: 18px;
+  background: rgba(255, 250, 242, .68);
+  box-shadow: 0 18px 42px rgba(69, 37, 21, .07);
+}
+
+.sideNav strong {
+  margin-bottom: 8px;
+  font: 600 19px Georgia, serif;
+}
+
+.sideNav a {
+  padding: 10px 11px;
+  border-radius: 10px;
+  color: #60463a;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.sideNav a:hover,
+.sideNav a:focus-visible {
+  background: rgba(146, 46, 36, .08);
+  color: #8f2d24;
+}
+
+.sideNav .postLink {
+  margin-top: 12px;
+  color: #fff3df;
+  background: #8f2d24;
+  text-align: center;
+  font-weight: 700;
+}
+
+.content {
+  min-width: 0;
+}
+
+.content section {
+  padding: 0 0 34px;
+  margin: 0 0 34px;
+  border-bottom: 1px solid rgba(80, 47, 30, .12);
+}
+
+.content section:last-child {
+  border-bottom: 0;
+}
+
+.content h2 {
+  margin: 0 0 14px;
+  font: 500 clamp(27px, 4vw, 38px)/1.15 Georgia, serif;
+  letter-spacing: -.025em;
+}
+
+.content h3 {
+  margin: 24px 0 8px;
+  font: 600 21px/1.3 Georgia, serif;
+}
+
+.content p,
+.content li {
+  color: #624b3f;
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.content p {
+  margin: 0 0 14px;
+}
+
+.content ul,
+.content ol {
+  margin: 14px 0 0;
+  padding-left: 22px;
+}
+
+.content li + li {
+  margin-top: 9px;
+}
+
+.content strong {
+  color: #3f2a21;
+}
+
+.content a {
+  color: #8f2d24;
+}
+
+.note,
+.warning {
+  margin: 20px 0;
+  padding: 17px 18px;
+  border-radius: 14px;
+}
+
+.note {
+  border: 1px solid rgba(119, 78, 43, .16);
+  background: rgba(239, 218, 184, .38);
+}
+
+.warning {
+  border: 1px solid rgba(143, 45, 36, .2);
+  background: rgba(143, 45, 36, .07);
+}
+
+.faq details {
+  border-bottom: 1px solid rgba(80, 47, 30, .12);
+}
+
+.faq summary {
+  position: relative;
+  cursor: pointer;
+  list-style: none;
+  padding: 20px 42px 20px 0;
+  font: 600 20px/1.35 Georgia, serif;
+}
+
+.faq summary::-webkit-details-marker { display: none; }
+
+.faq summary::after {
+  content: "+";
+  position: absolute;
+  right: 4px;
+  top: 17px;
+  color: #9a3b2e;
+  font: 400 26px/1 Georgia, serif;
+}
+
+.faq details[open] summary::after { content: "–"; }
+
+.faq details > div {
+  padding: 0 34px 20px 0;
+}
+
+.footer {
+  padding: 30px max(24px, calc((100vw - 1120px) / 2));
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 28px;
+  align-items: center;
+  color: #f8e8cf;
+  background: #321c16;
+}
+
+.footer > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer > div span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #f3d3a4;
+  background: #922e24;
+  font: italic 16px Georgia, serif;
+}
+
+.footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+}
+
+.footer a {
+  color: #f2d9ba;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.footer p {
+  margin: 0;
+  color: #cdb49d;
+  font-size: 12px;
+  text-align: right;
+}
+
+@media (max-width: 800px) {
+  .hero {
+    padding-top: 92px;
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .heroMark {
+    width: 72px;
+    height: 94px;
+  }
+
+  .heroMark span {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .sideNav {
+    position: static;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sideNav strong,
+  .sideNav .postLink {
+    grid-column: 1 / -1;
+  }
+
+  .sideNav a {
+    text-align: center;
+  }
+
+  .footer {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .footer > div,
+  .footer nav {
+    justify-content: center;
+  }
+
+  .footer p { text-align: center; }
+}
+
+@media (max-width: 520px) {
+  .hero,
+  .layout {
+    width: min(100% - 28px, 1120px);
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    padding-bottom: 38px;
+  }
+
+  .heroMark {
+    width: 64px;
+    height: 76px;
+  }
+
+  .hero h1 {
+    font-size: clamp(42px, 15vw, 62px);
+  }
+
+  .intro {
+    font-size: 17px;
+  }
+
+  .sideNav {
+    grid-template-columns: 1fr;
+  }
+
+  .sideNav strong,
+  .sideNav .postLink {
+    grid-column: auto;
+  }
+}
