@@ -2,6 +2,7 @@
 
 import {
   ChangeEvent,
+  CSSProperties,
   FormEvent,
   PointerEvent as ReactPointerEvent,
   useEffect,
@@ -42,8 +43,25 @@ type PhotoItem = {
   zoom: number;
   positionX: number;
   positionY: number;
+  canvasX: number;
+  canvasY: number;
+  canvasWidth: number;
+  aspectRatio: number;
+  zIndex: number;
 };
-type PhotoAdjustment = Pick<PhotoItem, "caption" | "fit" | "zoom" | "positionX" | "positionY">;
+type PhotoAdjustment = Pick<
+  PhotoItem,
+  | "caption"
+  | "fit"
+  | "zoom"
+  | "positionX"
+  | "positionY"
+  | "canvasX"
+  | "canvasY"
+  | "canvasWidth"
+  | "aspectRatio"
+  | "zIndex"
+>;
 type VoiceItem = { id: string; name: string; url: string; label: string };
 type VideoItem = { id: string; name: string; url: string; caption: string; size: number };
 type FormatDefinition = { id: LetterFormat; name: string; category: FormatCategory; description: string };
@@ -71,9 +89,9 @@ const formats: FormatDefinition[] = [
   { id: "typewriter", name: "Typewritten letter", category: "Letter papers", description: "An archival page with a mature typewriter feel." },
   { id: "airmail", name: "Airmail letter", category: "Letter papers", description: "A light postal sheet with route marks and edging." },
   { id: "inland", name: "Inland letter", category: "Letter papers", description: "A folded blue-green sheet inspired by Indian inland mail." },
-  { id: "postcard", name: "Postcard", category: "Cards & photos", description: "One strong photograph with a shorter message." },
+  { id: "postcard", name: "Postcard", category: "Cards & photos", description: "A compact postal card with freely placed photographs." },
   { id: "folded", name: "Folded card", category: "Cards & photos", description: "A cover followed by the message inside." },
-  { id: "photo", name: "Photo letter", category: "Cards & photos", description: "A large photograph leads into the complete letter." },
+  { id: "photo", name: "Photo letter", category: "Cards & photos", description: "A visual letter where photographs can be placed freely." },
   { id: "festival", name: "Celebration card", category: "Cards & photos", description: "A maroon-and-gold design for Indian celebrations." },
   { id: "telegram", name: "Digital telegram", category: "Heritage", description: "Short direct words presented like a preserved telegram." },
 ];
@@ -83,6 +101,12 @@ const writingStarters = [
   { label: "Remember a moment", text: "There is one small moment I still carry with me." },
   { label: "Say it honestly", text: "I should have said this more clearly before." },
   { label: "Look ahead", text: "What I hope for you from here is simple." },
+];
+
+const initialPhotoPlacements = [
+  { canvasX: 50, canvasY: 27, canvasWidth: 62 },
+  { canvasX: 29, canvasY: 63, canvasWidth: 38 },
+  { canvasX: 72, canvasY: 75, canvasWidth: 36 },
 ];
 
 function formatName(format: LetterFormat) {
@@ -113,7 +137,7 @@ function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
-function photoStyle(photo: PhotoItem) {
+function photoImageStyle(photo: PhotoItem): CSSProperties {
   return {
     objectFit: photo.fit,
     objectPosition: `${photo.positionX}% ${photo.positionY}%`,
@@ -122,166 +146,260 @@ function photoStyle(photo: PhotoItem) {
   };
 }
 
-function PhotoFrame({
+function FreePhoto({
   photo,
-  active,
-  onActivate,
+  selected,
+  paperRef,
+  select,
   update,
-  remove,
 }: {
   photo: PhotoItem;
-  active: boolean;
-  onActivate: (id: string | null) => void;
+  selected: boolean;
+  paperRef: { current: HTMLDivElement | null };
+  select: (id: string) => void;
   update: (id: string, patch: Partial<PhotoAdjustment>) => void;
-  remove: (id: string) => void;
 }) {
   const drag = useRef<{
     pointerId: number;
-    startX: number;
-    startY: number;
-    positionX: number;
-    positionY: number;
+    offsetX: number;
+    offsetY: number;
   } | null>(null);
 
-  function startDrag(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!active) {
-      onActivate(photo.id);
-      return;
-    }
+  function startDrag(event: ReactPointerEvent<HTMLElement>) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
+    const bounds = paperRef.current?.getBoundingClientRect();
+    if (!bounds) return;
+
     event.preventDefault();
+    event.stopPropagation();
+    select(photo.id);
+
+    const centreX = bounds.left + (photo.canvasX / 100) * bounds.width;
+    const centreY = bounds.top + (photo.canvasY / 100) * bounds.height;
     drag.current = {
       pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      positionX: photo.positionX,
-      positionY: photo.positionY,
+      offsetX: event.clientX - centreX,
+      offsetY: event.clientY - centreY,
     };
     event.currentTarget.setPointerCapture(event.pointerId);
   }
 
-  function moveDrag(event: ReactPointerEvent<HTMLDivElement>) {
+  function moveDrag(event: ReactPointerEvent<HTMLElement>) {
     const state = drag.current;
-    if (!state || state.pointerId !== event.pointerId) return;
-    const bounds = event.currentTarget.getBoundingClientRect();
-    if (!bounds.width || !bounds.height) return;
+    const bounds = paperRef.current?.getBoundingClientRect();
+    if (!state || state.pointerId !== event.pointerId || !bounds) return;
+
     event.preventDefault();
+    const frameWidth = (photo.canvasWidth / 100) * bounds.width;
+    const frameHeight = frameWidth / Math.max(.55, photo.aspectRatio);
+    const halfWidthPercent = (frameWidth / 2 / bounds.width) * 100;
+    const halfHeightPercent = (frameHeight / 2 / bounds.height) * 100;
+    const nextX = ((event.clientX - state.offsetX - bounds.left) / bounds.width) * 100;
+    const nextY = ((event.clientY - state.offsetY - bounds.top) / bounds.height) * 100;
+
     update(photo.id, {
-      positionX: clamp(state.positionX - ((event.clientX - state.startX) / bounds.width) * 100, 0, 100),
-      positionY: clamp(state.positionY - ((event.clientY - state.startY) / bounds.height) * 100, 0, 100),
+      canvasX: clamp(nextX, halfWidthPercent, 100 - halfWidthPercent),
+      canvasY: clamp(nextY, halfHeightPercent, 100 - halfHeightPercent),
     });
   }
 
-  function stopDrag(event: ReactPointerEvent<HTMLDivElement>) {
+  function stopDrag(event: ReactPointerEvent<HTMLElement>) {
     if (drag.current?.pointerId === event.pointerId) drag.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
   }
 
+  function nudge(event: React.KeyboardEvent<HTMLElement>) {
+    const amount = event.shiftKey ? 5 : 1;
+    const movement: Record<string, Partial<PhotoAdjustment>> = {
+      ArrowLeft: { canvasX: clamp(photo.canvasX - amount, 0, 100) },
+      ArrowRight: { canvasX: clamp(photo.canvasX + amount, 0, 100) },
+      ArrowUp: { canvasY: clamp(photo.canvasY - amount, 0, 100) },
+      ArrowDown: { canvasY: clamp(photo.canvasY + amount, 0, 100) },
+    };
+    if (!movement[event.key]) return;
+    event.preventDefault();
+    select(photo.id);
+    update(photo.id, movement[event.key]);
+  }
+
   return (
-    <div
-      className={`adjustable-photo-frame inline-photo-editor ${active ? "editing" : ""}`}
+    <figure
+      className={`free-photo-item ${selected ? "selected" : ""}`}
+      style={{
+        left: `${photo.canvasX}%`,
+        top: `${photo.canvasY}%`,
+        width: `${photo.canvasWidth}%`,
+        zIndex: photo.zIndex,
+      }}
       role="button"
       tabIndex={0}
-      aria-label={active ? "Drag to reposition this photo" : "Tap to adjust this photo"}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onActivate(active ? null : photo.id);
-        }
-      }}
+      aria-label={`${selected ? "Selected" : "Select"} ${photo.caption || photo.name}. Drag to move it around the letter.`}
       onPointerDown={startDrag}
       onPointerMove={moveDrag}
       onPointerUp={stopDrag}
       onPointerCancel={stopDrag}
+      onKeyDown={nudge}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={photo.url} alt={photo.caption || photo.name} style={photoStyle(photo)} draggable={false} />
-
-      {!active ? (
-        <span className="inline-photo-edit-hint">Tap photo to adjust</span>
-      ) : (
-        <>
-          <span className="inline-photo-drag-hint">Drag the photo to move it</span>
-          <section
-            className="inline-photo-controls"
-            aria-label="Photo controls"
-            onPointerDown={(event) => event.stopPropagation()}
-            onPointerMove={(event) => event.stopPropagation()}
-          >
-            <header>
-              <strong>Adjust photo</strong>
-              <button type="button" onClick={() => onActivate(null)}>Done</button>
-            </header>
-
-            <div className="inline-photo-fit" role="group" aria-label="Photo display mode">
-              <button
-                type="button"
-                className={photo.fit === "cover" ? "active" : ""}
-                onClick={() => update(photo.id, { fit: "cover" })}
-              >
-                Fill
-              </button>
-              <button
-                type="button"
-                className={photo.fit === "contain" ? "active" : ""}
-                onClick={() => update(photo.id, { fit: "contain", zoom: 1 })}
-              >
-                Whole photo
-              </button>
-            </div>
-
-            <label className="inline-photo-zoom">
-              <span>Zoom</span>
-              <input
-                type="range"
-                min="1"
-                max="2.2"
-                step="0.05"
-                value={photo.zoom}
-                onChange={(event) => update(photo.id, { zoom: Number(event.target.value) })}
-              />
-              <output>{Math.round(photo.zoom * 100)}%</output>
-            </label>
-
-            <div className="inline-photo-actions">
-              <button
-                type="button"
-                onClick={() => update(photo.id, { fit: "cover", zoom: 1, positionX: 50, positionY: 50 })}
-              >
-                Reset
-              </button>
-              <button type="button" className="danger" onClick={() => remove(photo.id)}>Remove</button>
-            </div>
-          </section>
-        </>
-      )}
-    </div>
+      <div className="free-photo-frame" style={{ aspectRatio: photo.aspectRatio }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photo.url} alt={photo.caption || photo.name} style={photoImageStyle(photo)} draggable={false} />
+      </div>
+      {photo.caption ? <figcaption>{photo.caption}</figcaption> : null}
+    </figure>
   );
 }
 
-function PhotoCaption({
-  photo,
-  active,
+function PhotoProperties({
+  photos,
+  selectedId,
+  select,
   update,
+  remove,
+  done,
 }: {
-  photo: PhotoItem;
-  active: boolean;
+  photos: PhotoItem[];
+  selectedId: string | null;
+  select: (id: string) => void;
   update: (id: string, patch: Partial<PhotoAdjustment>) => void;
+  remove: (id: string) => void;
+  done: () => void;
 }) {
-  if (active) {
-    return (
-      <input
-        className="inline-photo-caption-input"
-        value={photo.caption}
-        onChange={(event) => update(photo.id, { caption: event.target.value })}
-        placeholder="Add a caption"
-        aria-label="Photo caption"
-      />
-    );
-  }
-  return photo.caption ? <figcaption>{photo.caption}</figcaption> : null;
+  if (!photos.length) return null;
+  const selected = photos.find((photo) => photo.id === selectedId) ?? photos[0];
+  const selectedIndex = photos.findIndex((photo) => photo.id === selected.id);
+  const placement = initialPhotoPlacements[selectedIndex] ?? initialPhotoPlacements[0];
+
+  return (
+    <section className="free-photo-properties" aria-label="Selected photo settings">
+      <header>
+        <div>
+          <span>Photo placement</span>
+          <strong>Drag the photo anywhere on the letter</strong>
+        </div>
+        <button type="button" onClick={done}>Done</button>
+      </header>
+
+      {photos.length > 1 ? (
+        <div className="free-photo-selector" role="group" aria-label="Choose a photo to edit">
+          {photos.map((photo, index) => (
+            <button
+              type="button"
+              key={photo.id}
+              className={photo.id === selected.id ? "active" : ""}
+              onClick={() => select(photo.id)}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photo.url} alt="" />
+              <span>Photo {index + 1}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      <label className="free-photo-caption">
+        Caption
+        <input
+          value={selected.caption}
+          onChange={(event) => update(selected.id, { caption: event.target.value })}
+          placeholder="Optional caption"
+        />
+      </label>
+
+      <div className="free-photo-fit" role="group" aria-label="Photo fitting">
+        <button
+          type="button"
+          className={selected.fit === "cover" ? "active" : ""}
+          onClick={() => update(selected.id, { fit: "cover" })}
+        >
+          Fill frame
+        </button>
+        <button
+          type="button"
+          className={selected.fit === "contain" ? "active" : ""}
+          onClick={() => update(selected.id, { fit: "contain", zoom: 1 })}
+        >
+          Show whole photo
+        </button>
+      </div>
+
+      <div className="free-photo-sliders">
+        <label>
+          <span>Photo size</span>
+          <input
+            type="range"
+            min="20"
+            max="88"
+            step="1"
+            value={selected.canvasWidth}
+            onChange={(event) => {
+              const canvasWidth = Number(event.target.value);
+              update(selected.id, {
+                canvasWidth,
+                canvasX: clamp(selected.canvasX, canvasWidth / 2, 100 - canvasWidth / 2),
+              });
+            }}
+          />
+          <output>{Math.round(selected.canvasWidth)}%</output>
+        </label>
+        <label>
+          <span>Image zoom</span>
+          <input
+            type="range"
+            min="1"
+            max="2.4"
+            step="0.05"
+            value={selected.zoom}
+            onChange={(event) => update(selected.id, { zoom: Number(event.target.value) })}
+          />
+          <output>{Math.round(selected.zoom * 100)}%</output>
+        </label>
+        <label>
+          <span>Crop left / right</span>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={selected.positionX}
+            onChange={(event) => update(selected.id, { positionX: Number(event.target.value) })}
+          />
+          <output>{Math.round(selected.positionX)}%</output>
+        </label>
+        <label>
+          <span>Crop up / down</span>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={selected.positionY}
+            onChange={(event) => update(selected.id, { positionY: Number(event.target.value) })}
+          />
+          <output>{Math.round(selected.positionY)}%</output>
+        </label>
+      </div>
+
+      <div className="free-photo-actions">
+        <button
+          type="button"
+          onClick={() => update(selected.id, {
+            fit: "cover",
+            zoom: 1,
+            positionX: 50,
+            positionY: 50,
+            canvasX: placement.canvasX,
+            canvasY: placement.canvasY,
+            canvasWidth: placement.canvasWidth,
+          })}
+        >
+          Reset placement
+        </button>
+        <button type="button" className="danger" onClick={() => remove(selected.id)}>Remove photo</button>
+      </div>
+    </section>
+  );
 }
 
 function LiveLetterPreview({
@@ -311,13 +429,32 @@ function LiveLetterPreview({
   updatePhoto: (id: string, patch: Partial<PhotoAdjustment>) => void;
   removePhoto: (id: string) => void;
 }) {
-  const [activePhotoId, setActivePhotoId] = useState<string | null>(null);
+  const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
+  const paperRef = useRef<HTMLDivElement | null>(null);
   const message = letter.trim() || "Your letter will appear here as you write.";
-  const galleryPhotos = format === "postcard" ? [] : format === "photo" ? photos.slice(1) : photos;
 
-  function removeFromLetter(id: string) {
+  useEffect(() => {
+    if (!photos.length) {
+      setSelectedPhotoId(null);
+      return;
+    }
+    if (!selectedPhotoId || !photos.some((photo) => photo.id === selectedPhotoId)) {
+      setSelectedPhotoId(photos[photos.length - 1].id);
+    }
+  }, [photos, selectedPhotoId]);
+
+  function selectPhoto(id: string) {
+    if (id !== selectedPhotoId) {
+      const highestZ = Math.max(0, ...photos.map((photo) => photo.zIndex));
+      updatePhoto(id, { zIndex: highestZ + 1 });
+    }
+    setSelectedPhotoId(id);
+  }
+
+  function removeSelectedPhoto(id: string) {
     removePhoto(id);
-    setActivePhotoId(null);
+    const remaining = photos.filter((photo) => photo.id !== id);
+    setSelectedPhotoId(remaining.at(-1)?.id ?? null);
   }
 
   return (
@@ -332,7 +469,7 @@ function LiveLetterPreview({
         <div className="festival-cover"><small>Intezaar celebration mail</small><strong>{occasion}</strong><span>For {recipient || "someone special"}</span></div>
       ) : null}
 
-      <div className="letter-preview-paper">
+      <div className="letter-preview-paper free-photo-canvas" ref={paperRef}>
         {format === "telegram" ? <div className="telegram-strip"><span>तार · TELEGRAM</span><strong>PRIORITY: PERSONAL</strong></div> : null}
         {format === "inland" ? <div className="inland-fold-guide" aria-hidden="true"><span>Fold here</span><i /><i /></div> : null}
 
@@ -342,57 +479,12 @@ function LiveLetterPreview({
           <span className="letter-preview-postmark">INTEZAAR MAIL<br />POSTED WITH PATIENCE</span>
         </header>
 
-        {format === "postcard" && photos[0] ? (
-          <figure className="postcard-main-photo">
-            <PhotoFrame
-              photo={photos[0]}
-              active={activePhotoId === photos[0].id}
-              onActivate={setActivePhotoId}
-              update={updatePhoto}
-              remove={removeFromLetter}
-            />
-            <PhotoCaption photo={photos[0]} active={activePhotoId === photos[0].id} update={updatePhoto} />
-          </figure>
-        ) : null}
-
-        {format === "photo" ? (
-          photos[0] ? (
-            <figure className="photo-letter-cover">
-              <PhotoFrame
-                photo={photos[0]}
-                active={activePhotoId === photos[0].id}
-                onActivate={setActivePhotoId}
-                update={updatePhoto}
-                remove={removeFromLetter}
-              />
-              <PhotoCaption photo={photos[0]} active={activePhotoId === photos[0].id} update={updatePhoto} />
-            </figure>
-          ) : <div className="photo-letter-placeholder">Your cover photograph will appear here</div>
-        ) : null}
-
         <div className="letter-preview-copy">
           <small>{occasion}</small>
           <h3>{heading.trim() || `Dear ${recipient || "you"},`}</h3>
           <p>{message}</p>
           <em>{closing.trim() || (sender ? `With love, ${sender}` : "Your closing")}</em>
         </div>
-
-        {galleryPhotos.length ? (
-          <div className={`letter-preview-photos photo-count-${Math.min(galleryPhotos.length, 3)}`}>
-            {galleryPhotos.map((photo) => (
-              <figure key={photo.id}>
-                <PhotoFrame
-                  photo={photo}
-                  active={activePhotoId === photo.id}
-                  onActivate={setActivePhotoId}
-                  update={updatePhoto}
-                  remove={removeFromLetter}
-                />
-                <PhotoCaption photo={photo} active={activePhotoId === photo.id} update={updatePhoto} />
-              </figure>
-            ))}
-          </div>
-        ) : null}
 
         {voices.length ? (
           <div className="letter-preview-voices">
@@ -418,7 +510,31 @@ function LiveLetterPreview({
         ) : null}
 
         <footer><span>{formatMark(format)}</span><span>{photos.length + voices.length + videos.length} optional item{photos.length + voices.length + videos.length === 1 ? "" : "s"}</span></footer>
+
+        {photos.length ? (
+          <div className="free-photo-stage" aria-label="Freely positioned photographs">
+            {photos.map((photo) => (
+              <FreePhoto
+                key={photo.id}
+                photo={photo}
+                selected={selectedPhotoId === photo.id}
+                paperRef={paperRef}
+                select={selectPhoto}
+                update={updatePhoto}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
+
+      <PhotoProperties
+        photos={photos}
+        selectedId={selectedPhotoId}
+        select={selectPhoto}
+        update={updatePhoto}
+        remove={removeSelectedPhoto}
+        done={() => setSelectedPhotoId(null)}
+      />
     </article>
   );
 }
@@ -503,21 +619,41 @@ export default function CreatePage() {
     setLetter((current) => current.trim() ? `${current.trim()}\n\n${text}` : text);
   }
 
+  function updatePhoto(id: string, patch: Partial<PhotoAdjustment>) {
+    setPhotos((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item));
+  }
+
   function addPhotos(event: ChangeEvent<HTMLInputElement>) {
     setMediaError("");
     const files = Array.from(event.target.files ?? []);
-    const added = files.slice(0, mediaSlotsLeft).map((file) => {
+    const startingIndex = photos.length;
+    const added: PhotoItem[] = files.slice(0, mediaSlotsLeft).map((file, index) => {
       const url = URL.createObjectURL(file);
+      const id = crypto.randomUUID();
+      const placement = initialPhotoPlacements[startingIndex + index] ?? initialPhotoPlacements[0];
       objectUrls.current.add(url);
+
+      const image = new Image();
+      image.onload = () => {
+        const aspectRatio = clamp(image.naturalWidth / Math.max(1, image.naturalHeight), .55, 1.9);
+        updatePhoto(id, { aspectRatio });
+      };
+      image.src = url;
+
       return {
-        id: crypto.randomUUID(),
+        id,
         name: file.name,
         url,
         caption: "",
-        fit: "cover" as const,
+        fit: "cover",
         zoom: 1,
         positionX: 50,
         positionY: 50,
+        canvasX: placement.canvasX,
+        canvasY: placement.canvasY,
+        canvasWidth: placement.canvasWidth,
+        aspectRatio: 4 / 3,
+        zIndex: startingIndex + index + 1,
       };
     });
     setPhotos((current) => [...current, ...added]);
@@ -548,10 +684,6 @@ export default function CreatePage() {
     const url = URL.createObjectURL(file);
     objectUrls.current.add(url);
     setVideos([{ id: crypto.randomUUID(), name: file.name, url, caption: "", size: file.size }]);
-  }
-
-  function updatePhoto(id: string, patch: Partial<PhotoAdjustment>) {
-    setPhotos((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item));
   }
 
   function updateVoice(id: string, label: string) {
@@ -712,8 +844,8 @@ export default function CreatePage() {
                       <div className="media-item-list compact-media-list">
                         {photos.length ? (
                           <div className="photo-edit-inside-note">
-                            <strong>{photos.length} photo{photos.length === 1 ? "" : "s"} added</strong>
-                            <span>Tap the photo inside the letter preview to move, zoom, fit, caption or remove it.</span>
+                            <strong>{photos.length} photo{photos.length === 1 ? "" : "s"} placed on the letter</strong>
+                            <span>Drag each photo directly around the paper. Tap one to resize, crop, caption or remove it below the preview.</span>
                           </div>
                         ) : null}
                         {voices.map((voice, index) => (
