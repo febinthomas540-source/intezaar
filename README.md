@@ -1,19 +1,29 @@
 # Intezaar
 
-**An emotional delivery platform where messages travel before they arrive.**
+**A private digital letter that takes a cinematic Indian mail journey before it arrives.**
 
-This repository contains the first production-style product foundation:
+The product promise is intentionally simple:
 
-- cinematic landing experience
-- sender composition flow
-- five-stage Delhi-to-Kerala journey demo
-- animated regional atmospheres
-- changing daily clue system
-- interactive wax-seal opening ritual
-- production-oriented PostgreSQL/Supabase schema
-- standalone zero-install HTML prototype
+> Write a letter. It travels through post offices and railway stations for 3, 5 or 7 days. Then it arrives and can be opened.
 
-## Run the Next.js application
+## Product hierarchy
+
+1. The letter is the main object.
+2. Waiting and arrival create the emotional experience.
+3. Indian post and rail provide the visual journey.
+4. Up to three photographs, short memories or voice notes are optional extras inside the letter.
+
+There is no long chapter system and no requirement for the recipient to return every day.
+
+## Current routes
+
+- `/` — letter-first Indian mail landing page
+- `/create` — four-step sender prototype
+- `/journey/demo` — interactive 5-day postal journey preview
+- `/receive/demo` — sealed recipient letter and arrival experience
+- `/celebrations` — personalised Indian celebration-letter studio
+
+## Run locally
 
 ```bash
 npm install
@@ -22,31 +32,28 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-## Open the standalone prototype
+## Current prototype limitations
 
-Open `static-demo/index.html` directly in a modern browser. It has no build step and no external dependencies.
+The current build demonstrates the product language, creation flow, postal route and seal-opening experience. It does not yet:
 
-## Product routes
+- store private letters in a production database
+- encrypt letter bodies on the server
+- collect payment
+- create persistent secure recipient links
+- upload private media
+- calculate journey progress from a trusted server clock
 
-- `/` — cinematic product landing page
-- `/create` — sender creation experience
-- `/journey/demo` — interactive journey and opening demo
-
-## Current scope
-
-This build proves the visual and emotional product direction. The create form is a front-end demonstration and does not yet save private letters or collect payment.
+The interface must continue to describe the route as a cinematic or storybook interpretation. It is not physical postage, live GPS or official India Post / Indian Railways tracking.
 
 ## Production implementation order
 
-1. Create Supabase project and apply `supabase/schema.sql`.
-2. Add server-only encryption for letter bodies.
-3. Generate a cryptographically random recipient token; store only its hash.
-4. Build a server route that returns the current journey chapter based on server UTC time.
+1. Create the database and sender account model.
+2. Encrypt letter bodies before persistence.
+3. Generate cryptographically random recipient tokens and store only token hashes.
+4. Calculate 3, 5 or 7-day journey progress from server UTC time.
 5. Add private media uploads with short-lived signed URLs.
 6. Integrate Razorpay or Cashfree in test mode.
-7. Add sender authentication and dashboard.
-8. Add reporting, deletion and moderation controls.
-9. Test mobile performance and reduced-motion accessibility.
+7. Add sender preview, edit, cancellation and deletion controls.
+8. Add reporting, consent and moderation controls.
+9. Test mobile performance, printing and reduced-motion accessibility.
 10. Deploy to a branded domain.
-
-Journey scenes are storybook interpretations. Never describe them as literal GPS or postal tracking.
