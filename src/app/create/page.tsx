@@ -1,6 +1,14 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  PointerEvent as ReactPointerEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import { Navigation } from "@/components/navigation";
 import "../photo-adjustment.css";
@@ -25,7 +33,6 @@ type LetterFormat =
 
 type FormatCategory = "Letter papers" | "Cards & photos" | "Heritage";
 type PhotoFit = "cover" | "contain";
-type PhotoAdjustment = Pick<PhotoItem, "caption" | "fit" | "zoom" | "positionX" | "positionY">;
 type PhotoItem = {
   id: string;
   name: string;
@@ -36,6 +43,7 @@ type PhotoItem = {
   positionX: number;
   positionY: number;
 };
+type PhotoAdjustment = Pick<PhotoItem, "caption" | "fit" | "zoom" | "positionX" | "positionY">;
 type VoiceItem = { id: string; name: string; url: string; label: string };
 type VideoItem = { id: string; name: string; url: string; caption: string; size: number };
 type FormatDefinition = { id: LetterFormat; name: string; category: FormatCategory; description: string };
@@ -101,6 +109,10 @@ function formatFileSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function clamp(value: number, minimum: number, maximum: number) {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+
 function photoStyle(photo: PhotoItem) {
   return {
     objectFit: photo.fit,
@@ -110,110 +122,166 @@ function photoStyle(photo: PhotoItem) {
   };
 }
 
-function PhotoFrame({ photo }: { photo: PhotoItem }) {
-  return (
-    <div className="adjustable-photo-frame">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={photo.url} alt={photo.caption || photo.name} style={photoStyle(photo)} />
-    </div>
-  );
-}
-
-function PhotoEditor({
+function PhotoFrame({
   photo,
-  index,
+  active,
+  onActivate,
   update,
   remove,
 }: {
   photo: PhotoItem;
-  index: number;
+  active: boolean;
+  onActivate: (id: string | null) => void;
   update: (id: string, patch: Partial<PhotoAdjustment>) => void;
   remove: (id: string) => void;
 }) {
+  const drag = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    positionX: number;
+    positionY: number;
+  } | null>(null);
+
+  function startDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (!active) {
+      onActivate(photo.id);
+      return;
+    }
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.preventDefault();
+    drag.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      positionX: photo.positionX,
+      positionY: photo.positionY,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function moveDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    const state = drag.current;
+    if (!state || state.pointerId !== event.pointerId) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return;
+    event.preventDefault();
+    update(photo.id, {
+      positionX: clamp(state.positionX - ((event.clientX - state.startX) / bounds.width) * 100, 0, 100),
+      positionY: clamp(state.positionY - ((event.clientY - state.startY) / bounds.height) * 100, 0, 100),
+    });
+  }
+
+  function stopDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (drag.current?.pointerId === event.pointerId) drag.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
+
   return (
-    <article className="media-item photo-editor-card">
-      <div className="photo-editor-thumb">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={photo.url} alt="" style={photoStyle(photo)} />
-      </div>
+    <div
+      className={`adjustable-photo-frame inline-photo-editor ${active ? "editing" : ""}`}
+      role="button"
+      tabIndex={0}
+      aria-label={active ? "Drag to reposition this photo" : "Tap to adjust this photo"}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onActivate(active ? null : photo.id);
+        }
+      }}
+      onPointerDown={startDrag}
+      onPointerMove={moveDrag}
+      onPointerUp={stopDrag}
+      onPointerCancel={stopDrag}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={photo.url} alt={photo.caption || photo.name} style={photoStyle(photo)} draggable={false} />
 
-      <div className="photo-editor-content">
-        <div className="photo-editor-heading">
-          <strong>Photo {index + 1}</strong>
-          <small>Adjust the recipient view</small>
-        </div>
+      {!active ? (
+        <span className="inline-photo-edit-hint">Tap photo to adjust</span>
+      ) : (
+        <>
+          <span className="inline-photo-drag-hint">Drag the photo to move it</span>
+          <section
+            className="inline-photo-controls"
+            aria-label="Photo controls"
+            onPointerDown={(event) => event.stopPropagation()}
+            onPointerMove={(event) => event.stopPropagation()}
+          >
+            <header>
+              <strong>Adjust photo</strong>
+              <button type="button" onClick={() => onActivate(null)}>Done</button>
+            </header>
 
-        <input
-          type="text"
-          value={photo.caption}
-          onChange={(event) => update(photo.id, { caption: event.target.value })}
-          placeholder="Editable caption"
-          aria-label={`Caption for photo ${index + 1}`}
-        />
+            <div className="inline-photo-fit" role="group" aria-label="Photo display mode">
+              <button
+                type="button"
+                className={photo.fit === "cover" ? "active" : ""}
+                onClick={() => update(photo.id, { fit: "cover" })}
+              >
+                Fill
+              </button>
+              <button
+                type="button"
+                className={photo.fit === "contain" ? "active" : ""}
+                onClick={() => update(photo.id, { fit: "contain", zoom: 1 })}
+              >
+                Whole photo
+              </button>
+            </div>
 
-        <div className="photo-fit-controls" role="group" aria-label={`Photo ${index + 1} display mode`}>
-          <button type="button" className={photo.fit === "cover" ? "active" : ""} onClick={() => update(photo.id, { fit: "cover" })}>
-            Fill the frame
-          </button>
-          <button type="button" className={photo.fit === "contain" ? "active" : ""} onClick={() => update(photo.id, { fit: "contain", zoom: 1 })}>
-            Show whole photo
-          </button>
-        </div>
+            <label className="inline-photo-zoom">
+              <span>Zoom</span>
+              <input
+                type="range"
+                min="1"
+                max="2.2"
+                step="0.05"
+                value={photo.zoom}
+                onChange={(event) => update(photo.id, { zoom: Number(event.target.value) })}
+              />
+              <output>{Math.round(photo.zoom * 100)}%</output>
+            </label>
 
-        <div className="photo-adjustment-grid">
-          <label className="photo-range-control">
-            <span>Zoom</span>
-            <input
-              type="range"
-              min="1"
-              max="2.2"
-              step="0.05"
-              value={photo.zoom}
-              onChange={(event) => update(photo.id, { zoom: Number(event.target.value) })}
-            />
-            <output>{Math.round(photo.zoom * 100)}%</output>
-          </label>
-
-          <label className="photo-range-control">
-            <span>Left / right</span>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              value={photo.positionX}
-              onChange={(event) => update(photo.id, { positionX: Number(event.target.value) })}
-            />
-            <output>{photo.positionX}%</output>
-          </label>
-
-          <label className="photo-range-control">
-            <span>Up / down</span>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              value={photo.positionY}
-              onChange={(event) => update(photo.id, { positionY: Number(event.target.value) })}
-            />
-            <output>{photo.positionY}%</output>
-          </label>
-        </div>
-
-        <button
-          type="button"
-          className="photo-reset-button"
-          onClick={() => update(photo.id, { fit: "cover", zoom: 1, positionX: 50, positionY: 50 })}
-        >
-          Reset photo
-        </button>
-        <p className="photo-adjustment-note">The live preview changes immediately. These settings will be stored with the photo when the secure upload system is connected.</p>
-      </div>
-
-      <button type="button" className="photo-remove-button" onClick={() => remove(photo.id)}>Remove</button>
-    </article>
+            <div className="inline-photo-actions">
+              <button
+                type="button"
+                onClick={() => update(photo.id, { fit: "cover", zoom: 1, positionX: 50, positionY: 50 })}
+              >
+                Reset
+              </button>
+              <button type="button" className="danger" onClick={() => remove(photo.id)}>Remove</button>
+            </div>
+          </section>
+        </>
+      )}
+    </div>
   );
+}
+
+function PhotoCaption({
+  photo,
+  active,
+  update,
+}: {
+  photo: PhotoItem;
+  active: boolean;
+  update: (id: string, patch: Partial<PhotoAdjustment>) => void;
+}) {
+  if (active) {
+    return (
+      <input
+        className="inline-photo-caption-input"
+        value={photo.caption}
+        onChange={(event) => update(photo.id, { caption: event.target.value })}
+        placeholder="Add a caption"
+        aria-label="Photo caption"
+      />
+    );
+  }
+  return photo.caption ? <figcaption>{photo.caption}</figcaption> : null;
 }
 
 function LiveLetterPreview({
@@ -227,6 +295,8 @@ function LiveLetterPreview({
   photos,
   voices,
   videos,
+  updatePhoto,
+  removePhoto,
 }: {
   format: LetterFormat;
   sender: string;
@@ -238,9 +308,17 @@ function LiveLetterPreview({
   photos: PhotoItem[];
   voices: VoiceItem[];
   videos: VideoItem[];
+  updatePhoto: (id: string, patch: Partial<PhotoAdjustment>) => void;
+  removePhoto: (id: string) => void;
 }) {
+  const [activePhotoId, setActivePhotoId] = useState<string | null>(null);
   const message = letter.trim() || "Your letter will appear here as you write.";
   const galleryPhotos = format === "postcard" ? [] : format === "photo" ? photos.slice(1) : photos;
+
+  function removeFromLetter(id: string) {
+    removePhoto(id);
+    setActivePhotoId(null);
+  }
 
   return (
     <article className={`letter-live-preview letter-format-${format}`} aria-label={`${formatName(format)} preview`}>
@@ -266,16 +344,28 @@ function LiveLetterPreview({
 
         {format === "postcard" && photos[0] ? (
           <figure className="postcard-main-photo">
-            <PhotoFrame photo={photos[0]} />
-            {photos[0].caption ? <figcaption>{photos[0].caption}</figcaption> : null}
+            <PhotoFrame
+              photo={photos[0]}
+              active={activePhotoId === photos[0].id}
+              onActivate={setActivePhotoId}
+              update={updatePhoto}
+              remove={removeFromLetter}
+            />
+            <PhotoCaption photo={photos[0]} active={activePhotoId === photos[0].id} update={updatePhoto} />
           </figure>
         ) : null}
 
         {format === "photo" ? (
           photos[0] ? (
             <figure className="photo-letter-cover">
-              <PhotoFrame photo={photos[0]} />
-              {photos[0].caption ? <figcaption>{photos[0].caption}</figcaption> : null}
+              <PhotoFrame
+                photo={photos[0]}
+                active={activePhotoId === photos[0].id}
+                onActivate={setActivePhotoId}
+                update={updatePhoto}
+                remove={removeFromLetter}
+              />
+              <PhotoCaption photo={photos[0]} active={activePhotoId === photos[0].id} update={updatePhoto} />
             </figure>
           ) : <div className="photo-letter-placeholder">Your cover photograph will appear here</div>
         ) : null}
@@ -291,8 +381,14 @@ function LiveLetterPreview({
           <div className={`letter-preview-photos photo-count-${Math.min(galleryPhotos.length, 3)}`}>
             {galleryPhotos.map((photo) => (
               <figure key={photo.id}>
-                <PhotoFrame photo={photo} />
-                {photo.caption ? <figcaption>{photo.caption}</figcaption> : null}
+                <PhotoFrame
+                  photo={photo}
+                  active={activePhotoId === photo.id}
+                  onActivate={setActivePhotoId}
+                  update={updatePhoto}
+                  remove={removeFromLetter}
+                />
+                <PhotoCaption photo={photo} active={activePhotoId === photo.id} update={updatePhoto} />
               </figure>
             ))}
           </div>
@@ -508,7 +604,20 @@ export default function CreatePage() {
   }
 
   const preview = (
-    <LiveLetterPreview format={format} sender={sender} recipient={recipient} occasion={occasion} heading={heading} letter={letter} closing={closing} photos={photos} voices={voices} videos={videos} />
+    <LiveLetterPreview
+      format={format}
+      sender={sender}
+      recipient={recipient}
+      occasion={occasion}
+      heading={heading}
+      letter={letter}
+      closing={closing}
+      photos={photos}
+      voices={voices}
+      videos={videos}
+      updatePhoto={updatePhoto}
+      removePhoto={(id) => removeMedia("photo", id)}
+    />
   );
 
   return (
@@ -601,7 +710,12 @@ export default function CreatePage() {
                       {mediaError ? <p className="media-error" role="alert">{mediaError}</p> : null}
 
                       <div className="media-item-list compact-media-list">
-                        {photos.map((photo, index) => <PhotoEditor key={photo.id} photo={photo} index={index} update={updatePhoto} remove={(id) => removeMedia("photo", id)} />)}
+                        {photos.length ? (
+                          <div className="photo-edit-inside-note">
+                            <strong>{photos.length} photo{photos.length === 1 ? "" : "s"} added</strong>
+                            <span>Tap the photo inside the letter preview to move, zoom, fit, caption or remove it.</span>
+                          </div>
+                        ) : null}
                         {voices.map((voice, index) => (
                           <article className="media-item media-item-audio" key={voice.id}><span className="media-audio-icon">▶</span><div><strong>Voice note {index + 1}</strong><input value={voice.label} onChange={(event) => updateVoice(voice.id, event.target.value)} placeholder="Editable title" /><audio controls src={voice.url} preload="metadata" /></div><button type="button" onClick={() => removeMedia("voice", voice.id)}>Remove</button></article>
                         ))}
