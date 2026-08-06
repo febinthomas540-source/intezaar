@@ -1,30 +1,76 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useMemo, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Navigation } from "@/components/navigation";
 
 const occasions = ["Just because", "Birthday", "Anniversary", "Farewell", "Apology", "Wedding", "Celebration"];
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 
-type LetterFormat = "classic" | "postcard" | "folded" | "airmail";
+type LetterFormat =
+  | "classic"
+  | "postcard"
+  | "folded"
+  | "airmail"
+  | "inland"
+  | "telegram"
+  | "photo"
+  | "festival"
+  | "typewriter"
+  | "minimal";
+
+type FormatCategory = "Letter papers" | "Cards & photos" | "Heritage";
 type PhotoItem = { id: string; name: string; url: string; caption: string };
 type VoiceItem = { id: string; name: string; url: string; label: string };
+type VideoItem = { id: string; name: string; url: string; caption: string; size: number };
 
-const formats: Array<{
+type FormatDefinition = {
   id: LetterFormat;
   name: string;
+  category: FormatCategory;
   description: string;
   photoLimit: number;
   voiceLimit: number;
-}> = [
-  { id: "classic", name: "Classic letter", description: "A full handwritten-style page for longer words.", photoLimit: 2, voiceLimit: 2 },
-  { id: "postcard", name: "Postcard", description: "One strong photograph with a shorter message beside it.", photoLimit: 1, voiceLimit: 1 },
-  { id: "folded", name: "Folded card", description: "A cover, an inside message and space for a small photo set.", photoLimit: 3, voiceLimit: 1 },
-  { id: "airmail", name: "Airmail letter", description: "A lighter postal sheet with route marks and compact media.", photoLimit: 2, voiceLimit: 1 },
+  videoLimit: number;
+};
+
+const formatCategories: FormatCategory[] = ["Letter papers", "Cards & photos", "Heritage"];
+
+const formats: FormatDefinition[] = [
+  { id: "classic", name: "Classic letter", category: "Letter papers", description: "A full handwritten-style page for longer words.", photoLimit: 2, voiceLimit: 2, videoLimit: 1 },
+  { id: "airmail", name: "Airmail letter", category: "Letter papers", description: "A light postal sheet with route marks and airmail edging.", photoLimit: 2, voiceLimit: 1, videoLimit: 1 },
+  { id: "inland", name: "Inland letter", category: "Letter papers", description: "An Indian-inspired folded sheet with quiet blue-green paper.", photoLimit: 1, voiceLimit: 1, videoLimit: 1 },
+  { id: "typewriter", name: "Typewritten letter", category: "Letter papers", description: "A mature archival page with typewriter-style words.", photoLimit: 2, voiceLimit: 1, videoLimit: 1 },
+  { id: "minimal", name: "Minimal letter", category: "Letter papers", description: "Clean, spacious and modern while still feeling personal.", photoLimit: 3, voiceLimit: 2, videoLimit: 1 },
+  { id: "postcard", name: "Postcard", category: "Cards & photos", description: "One strong photograph with a shorter message beside it.", photoLimit: 1, voiceLimit: 1, videoLimit: 1 },
+  { id: "folded", name: "Folded card", category: "Cards & photos", description: "A cover, an inside message and space for a small photo set.", photoLimit: 3, voiceLimit: 1, videoLimit: 1 },
+  { id: "photo", name: "Photo letter", category: "Cards & photos", description: "A large cover photograph followed by the complete letter.", photoLimit: 4, voiceLimit: 1, videoLimit: 1 },
+  { id: "festival", name: "Celebration card", category: "Cards & photos", description: "A warm maroon-and-gold design for Indian celebrations.", photoLimit: 3, voiceLimit: 2, videoLimit: 1 },
+  { id: "telegram", name: "Digital telegram", category: "Heritage", description: "Short, direct words presented like a preserved telegram slip.", photoLimit: 0, voiceLimit: 1, videoLimit: 1 },
 ];
 
 function formatName(format: LetterFormat) {
   return formats.find((item) => item.id === format)?.name ?? "Classic letter";
+}
+
+function formatMark(format: LetterFormat) {
+  const marks: Record<LetterFormat, string> = {
+    classic: "PRIVATE LETTER",
+    postcard: "POST CARD",
+    folded: "FOLDED CARD",
+    airmail: "BY AIR MAIL",
+    inland: "INLAND LETTER",
+    telegram: "DIGITAL TELEGRAM",
+    photo: "PHOTO LETTER",
+    festival: "CELEBRATION MAIL",
+    typewriter: "TYPEWRITTEN LETTER",
+    minimal: "PRIVATE NOTE",
+  };
+  return marks[format];
+}
+
+function formatFileSize(bytes: number) {
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function LiveLetterPreview({
@@ -37,6 +83,7 @@ function LiveLetterPreview({
   closing,
   photos,
   voices,
+  videos,
 }: {
   format: LetterFormat;
   sender: string;
@@ -47,8 +94,10 @@ function LiveLetterPreview({
   closing: string;
   photos: PhotoItem[];
   voices: VoiceItem[];
+  videos: VideoItem[];
 }) {
   const message = letter.trim() || "Your letter will appear here as you write.";
+  const galleryPhotos = format === "postcard" ? [] : format === "photo" ? photos.slice(1) : photos;
 
   return (
     <article className={`letter-live-preview letter-format-${format}`} aria-label={`${formatName(format)} live preview`}>
@@ -65,7 +114,18 @@ function LiveLetterPreview({
         </div>
       ) : null}
 
+      {format === "festival" ? (
+        <div className="festival-cover">
+          <small>Intezaar celebration mail</small>
+          <strong>{occasion}</strong>
+          <span>For {recipient || "someone special"}</span>
+        </div>
+      ) : null}
+
       <div className="letter-preview-paper">
+        {format === "telegram" ? <div className="telegram-strip"><span>तार · TELEGRAM</span><strong>PRIORITY: PERSONAL</strong></div> : null}
+        {format === "inland" ? <div className="inland-fold-guide" aria-hidden="true"><span>Fold here</span><i /><i /></div> : null}
+
         <header className="letter-preview-address">
           <div><small>From</small><strong>{sender || "Your name"}</strong></div>
           <div><small>To</small><strong>{recipient || "Their name"}</strong></div>
@@ -80,6 +140,16 @@ function LiveLetterPreview({
           </figure>
         ) : null}
 
+        {format === "photo" ? (
+          photos[0] ? (
+            <figure className="photo-letter-cover">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photos[0].url} alt={photos[0].caption || photos[0].name} />
+              {photos[0].caption ? <figcaption>{photos[0].caption}</figcaption> : null}
+            </figure>
+          ) : <div className="photo-letter-placeholder">Your cover photograph will appear here</div>
+        ) : null}
+
         <div className="letter-preview-copy">
           <small>{occasion}</small>
           <h3>{heading.trim() || `Dear ${recipient || "you"},`}</h3>
@@ -87,9 +157,9 @@ function LiveLetterPreview({
           <em>{closing.trim() || (sender ? `With love, ${sender}` : "Your closing")}</em>
         </div>
 
-        {format !== "postcard" && photos.length ? (
-          <div className={`letter-preview-photos photo-count-${Math.min(photos.length, 3)}`}>
-            {photos.map((photo) => (
+        {galleryPhotos.length ? (
+          <div className={`letter-preview-photos photo-count-${Math.min(galleryPhotos.length, 4)}`}>
+            {galleryPhotos.map((photo) => (
               <figure key={photo.id}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={photo.url} alt={photo.caption || photo.name} />
@@ -111,9 +181,20 @@ function LiveLetterPreview({
           </div>
         ) : null}
 
+        {videos.length ? (
+          <div className="letter-preview-videos">
+            {videos.map((video) => (
+              <figure key={video.id}>
+                <video controls playsInline preload="metadata" src={video.url} aria-label={video.caption || video.name} />
+                <figcaption><strong>{video.caption || "A video inside this letter"}</strong><small>{video.name} · {formatFileSize(video.size)}</small></figcaption>
+              </figure>
+            ))}
+          </div>
+        ) : null}
+
         <footer>
-          <span>{format === "airmail" ? "BY AIR MAIL" : format === "postcard" ? "POST CARD" : "PRIVATE LETTER"}</span>
-          <span>{photos.length} photo{photos.length === 1 ? "" : "s"} · {voices.length} voice note{voices.length === 1 ? "" : "s"}</span>
+          <span>{formatMark(format)}</span>
+          <span>{photos.length} photo{photos.length === 1 ? "" : "s"} · {voices.length} voice · {videos.length} video</span>
         </footer>
       </div>
     </article>
@@ -133,20 +214,29 @@ export default function CreatePage() {
   const [closing, setClosing] = useState("");
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [voices, setVoices] = useState<VoiceItem[]>([]);
+  const [videos, setVideos] = useState<VideoItem[]>([]);
+  const [mediaError, setMediaError] = useState("");
   const [fromCity, setFromCity] = useState("Delhi");
   const [toCity, setToCity] = useState("Kochi");
   const objectUrls = useRef(new Set<string>());
 
   const selectedFormat = formats.find((item) => item.id === format) ?? formats[0];
   const canContinue = sender.trim().length > 0 && recipient.trim().length > 0 && letter.trim().length > 0;
-  const mediaCount = photos.length + voices.length;
+  const mediaCount = photos.length + voices.length + videos.length;
 
   const progressCopy = useMemo(() => [
     "Format & words",
-    "Photos & voice",
+    "Media inside",
     "Postal journey",
     "Review & seal",
   ], []);
+
+  useEffect(() => {
+    return () => {
+      objectUrls.current.forEach((url) => URL.revokeObjectURL(url));
+      objectUrls.current.clear();
+    };
+  }, []);
 
   function selectFormat(nextFormat: LetterFormat) {
     const next = formats.find((item) => item.id === nextFormat) ?? formats[0];
@@ -158,8 +248,14 @@ export default function CreatePage() {
       URL.revokeObjectURL(item.url);
       objectUrls.current.delete(item.url);
     });
+    videos.slice(next.videoLimit).forEach((item) => {
+      URL.revokeObjectURL(item.url);
+      objectUrls.current.delete(item.url);
+    });
     setPhotos((current) => current.slice(0, next.photoLimit));
     setVoices((current) => current.slice(0, next.voiceLimit));
+    setVideos((current) => current.slice(0, next.videoLimit));
+    setMediaError("");
     setFormat(nextFormat);
   }
 
@@ -187,12 +283,38 @@ export default function CreatePage() {
     event.target.value = "";
   }
 
+  function addVideo(event: ChangeEvent<HTMLInputElement>) {
+    setMediaError("");
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (videos.length >= selectedFormat.videoLimit) {
+      setMediaError("This format already contains its video clip. Remove it before adding another.");
+      return;
+    }
+    if (!file.type.startsWith("video/")) {
+      setMediaError("Choose a video file. MP4 or WebM works best.");
+      return;
+    }
+    if (file.size > MAX_VIDEO_BYTES) {
+      setMediaError("This video is larger than 50 MB. Choose a shorter or compressed clip for the browser preview.");
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    objectUrls.current.add(url);
+    setVideos([{ id: crypto.randomUUID(), name: file.name, url, caption: "", size: file.size }]);
+  }
+
   function updatePhoto(id: string, caption: string) {
     setPhotos((current) => current.map((item) => item.id === id ? { ...item, caption } : item));
   }
 
   function updateVoice(id: string, label: string) {
     setVoices((current) => current.map((item) => item.id === id ? { ...item, label } : item));
+  }
+
+  function updateVideo(id: string, caption: string) {
+    setVideos((current) => current.map((item) => item.id === id ? { ...item, caption } : item));
   }
 
   function removePhoto(id: string) {
@@ -217,6 +339,18 @@ export default function CreatePage() {
     });
   }
 
+  function removeVideo(id: string) {
+    setVideos((current) => {
+      const target = current.find((item) => item.id === id);
+      if (target) {
+        URL.revokeObjectURL(target.url);
+        objectUrls.current.delete(target.url);
+      }
+      return current.filter((item) => item.id !== id);
+    });
+    setMediaError("");
+  }
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setCreated(true);
@@ -238,6 +372,7 @@ export default function CreatePage() {
       closing={closing}
       photos={photos}
       voices={voices}
+      videos={videos}
     />
   );
 
@@ -268,7 +403,7 @@ export default function CreatePage() {
             <p className="nostalgia-eyebrow">Create it your way</p>
             <h1>Choose the form your words should take.</h1>
             <p>
-              Write a classic letter, make a postcard, open a folded card or send it as airmail. Every word, photograph, caption and voice note stays editable.
+              Select from ten editable letter styles. Add photographs, captions, voice notes and one private video clip without turning the letter into a complicated scrapbook.
             </p>
           </div>
         </aside>
@@ -289,15 +424,23 @@ export default function CreatePage() {
 
               {step === 1 ? (
                 <section className="nostalgia-form-section letter-editor-section">
-                  <div className="nostalgia-form-heading"><span>01</span><div><h2>Choose a format and write</h2><p>Start with the shape of the letter. You can change it later without losing your words.</p></div></div>
+                  <div className="nostalgia-form-heading"><span>01</span><div><h2>Choose a format and write</h2><p>Start with the shape of the letter. Change it later without losing your words or uploaded media.</p></div></div>
 
-                  <div className="letter-format-grid" role="group" aria-label="Choose a letter format">
-                    {formats.map((item) => (
-                      <button key={item.id} type="button" className={format === item.id ? "active" : ""} onClick={() => selectFormat(item.id)} aria-pressed={format === item.id}>
-                        <span className={`format-miniature format-miniature-${item.id}`} aria-hidden="true"><i /><i /></span>
-                        <strong>{item.name}</strong>
-                        <small>{item.description}</small>
-                      </button>
+                  <div className="letter-format-library">
+                    {formatCategories.map((category) => (
+                      <section className="letter-format-group" key={category}>
+                        <header><strong>{category}</strong><span>{formats.filter((item) => item.category === category).length} formats</span></header>
+                        <div className="letter-format-grid" role="group" aria-label={`${category} formats`}>
+                          {formats.filter((item) => item.category === category).map((item) => (
+                            <button key={item.id} type="button" className={format === item.id ? "active" : ""} onClick={() => selectFormat(item.id)} aria-pressed={format === item.id}>
+                              <span className={`format-miniature format-miniature-${item.id}`} aria-hidden="true"><i /><i /></span>
+                              <strong>{item.name}</strong>
+                              <small>{item.description}</small>
+                              <em>{item.photoLimit} photo{item.photoLimit === 1 ? "" : "s"} · {item.voiceLimit} voice · {item.videoLimit} video</em>
+                            </button>
+                          ))}
+                        </div>
+                      </section>
                     ))}
                   </div>
 
@@ -324,19 +467,19 @@ export default function CreatePage() {
                   </div>
 
                   <div className="nostalgia-form-actions">
-                    <button className="nostalgia-button nostalgia-button-primary" type="button" disabled={!canContinue} onClick={() => setStep(2)}>Add photos and voice</button>
+                    <button className="nostalgia-button nostalgia-button-primary" type="button" disabled={!canContinue} onClick={() => setStep(2)}>Add media inside</button>
                   </div>
                 </section>
               ) : null}
 
               {step === 2 ? (
                 <section className="nostalgia-form-section letter-editor-section">
-                  <div className="nostalgia-form-heading"><span>02</span><div><h2>Place photos and voice inside</h2><p>These become part of the chosen letter design. Add captions, rename voice notes, remove them or change the format at any time.</p></div></div>
+                  <div className="nostalgia-form-heading"><span>02</span><div><h2>Place photos, voice and video inside</h2><p>Everything remains editable. Media appears within the selected design and never replaces the letter itself.</p></div></div>
 
                   <div className="letter-editor-layout">
                     <div className="letter-editor-fields media-editor-fields">
                       <section className="media-upload-panel">
-                        <header><div><span>Photographs</span><strong>{photos.length} of {selectedFormat.photoLimit}</strong></div><p>{format === "postcard" ? "The photograph becomes the postcard image." : "Photos are arranged inside the letter automatically."}</p></header>
+                        <header><div><span>Photographs</span><strong>{photos.length} of {selectedFormat.photoLimit}</strong></div><p>{selectedFormat.photoLimit === 0 ? "This concise format keeps the focus entirely on the words." : format === "postcard" ? "The photograph becomes the postcard image." : format === "photo" ? "The first photograph becomes the cover." : "Photos are arranged inside the letter automatically."}</p></header>
                         {photos.length < selectedFormat.photoLimit ? (
                           <label className="media-dropzone">＋ Add your photos<input type="file" accept="image/*" multiple onChange={addPhotos} /></label>
                         ) : null}
@@ -368,7 +511,25 @@ export default function CreatePage() {
                         </div>
                       </section>
 
-                      {!mediaCount ? <p className="nostalgia-form-note">Photos and voice are optional. The letter remains complete without them.</p> : null}
+                      <section className="media-upload-panel video-upload-panel">
+                        <header><div><span>Video clip</span><strong>{videos.length} of {selectedFormat.videoLimit}</strong></div><p>Add one short personal clip. MP4 or WebM is recommended; the browser preview limit is 50 MB.</p></header>
+                        {videos.length < selectedFormat.videoLimit ? (
+                          <label className="media-dropzone media-video-dropzone">＋ Add a video<input type="file" accept="video/mp4,video/webm,video/quicktime" onChange={addVideo} /></label>
+                        ) : null}
+                        {mediaError ? <p className="media-error" role="alert">{mediaError}</p> : null}
+                        <div className="media-item-list">
+                          {videos.map((video, index) => (
+                            <article className="media-item media-item-video" key={video.id}>
+                              <video controls playsInline preload="metadata" src={video.url} />
+                              <div><strong>Video {index + 1} · {formatFileSize(video.size)}</strong><input value={video.caption} onChange={(event) => updateVideo(video.id, event.target.value)} placeholder="Add an editable video caption" /></div>
+                              <button type="button" onClick={() => removeVideo(video.id)} aria-label={`Remove ${video.name}`}>Remove</button>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+
+                      {!mediaCount ? <p className="nostalgia-form-note">All media is optional. The letter remains complete without it.</p> : null}
+                      <p className="media-privacy-note">Prototype privacy: selected files stay in this browser session. They are not uploaded, stored or sent to the recipient yet.</p>
                     </div>
                     {preview}
                   </div>
@@ -403,7 +564,7 @@ export default function CreatePage() {
 
               {step === 4 ? (
                 <section className="nostalgia-form-section letter-review-section">
-                  <div className="nostalgia-form-heading"><span>04</span><div><h2>Review and seal</h2><p>Nothing is locked yet. Return to any completed step to edit the format, words, captions, photographs, voice notes or route.</p></div></div>
+                  <div className="nostalgia-form-heading"><span>04</span><div><h2>Review and seal</h2><p>Nothing is locked yet. Return to any completed step to edit the format, words, captions, media or route.</p></div></div>
                   <div className="letter-review-grid">
                     {preview}
                     <div className="letter-review-summary">
@@ -414,10 +575,11 @@ export default function CreatePage() {
                         <div><dt>Occasion</dt><dd>{occasion}</dd></div>
                         <div><dt>Photos</dt><dd>{photos.length}</dd></div>
                         <div><dt>Voice notes</dt><dd>{voices.length}</dd></div>
+                        <div><dt>Videos</dt><dd>{videos.length}</dd></div>
                       </dl>
                       <div className="quick-edit-buttons">
                         <button type="button" onClick={() => setStep(1)}>Edit format & words</button>
-                        <button type="button" onClick={() => setStep(2)}>Edit photos & voice</button>
+                        <button type="button" onClick={() => setStep(2)}>Edit photos, voice & video</button>
                         <button type="button" onClick={() => setStep(3)}>Edit journey</button>
                       </div>
                       <p className="nostalgia-form-note">Prototype only: selected media is previewed locally in this browser and is not yet uploaded or transferred to the recipient link.</p>
@@ -435,7 +597,7 @@ export default function CreatePage() {
               <p className="nostalgia-eyebrow">The private preview is ready</p>
               <h2>Your {formatName(format).toLowerCase()} is prepared for {recipient}.</h2>
               <p>Its format, words and local media preview remain editable from this creator. Secure media storage and recipient transfer will be connected in the production backend.</p>
-              <div className="nostalgia-success-ticket"><span>Intezaar mail · {fromCity} to {toCity}</span><strong>{journeyDays}-day journey · {photos.length} photos · {voices.length} voice notes</strong></div>
+              <div className="nostalgia-success-ticket"><span>Intezaar mail · {fromCity} to {toCity}</span><strong>{journeyDays}-day journey · {photos.length} photos · {voices.length} voice · {videos.length} video</strong></div>
               <div className="nostalgia-success-actions">
                 <Link href={recipientLink} className="nostalgia-button nostalgia-button-primary">Open recipient journey</Link>
                 <Link href={arrivalLink} className="nostalgia-button nostalgia-button-ghost">Preview arrival day</Link>
