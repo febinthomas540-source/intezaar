@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { PostalLetterPrototype, type RecipientLetterFormat } from "@/components/postal-letter-prototype";
+import { RecipientLetterClient } from "@/components/recipient-letter-client";
+import type { RecipientLetterFormat } from "@/components/postal-letter-prototype";
 
 export const metadata: Metadata = {
   title: "Your Private Letter Is Travelling",
@@ -55,7 +56,7 @@ export default async function RecipientPage({ searchParams }: RecipientPageProps
   const openingTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(params.time || "") ? params.time! : "20:00";
 
   return (
-    <PostalLetterPrototype
+    <RecipientLetterClient
       recipient={recipient}
       sender={sender}
       occasion={occasion}
