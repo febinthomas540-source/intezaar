@@ -1,0 +1,213 @@
+/* Mobile-first finishing pass for the six-stage Intezaar creator. */
+.seal-post-flow .creation-stepper {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(16px);
+}
+
+.seal-post-flow .seal-stage,
+.seal-post-flow .post-stage,
+.seal-post-flow .seal-paper,
+.seal-post-flow .seal-envelope,
+.seal-post-flow .posting-envelope,
+.seal-post-flow .intezaar-postbox {
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+@media (max-width: 720px) {
+  .seal-post-flow .nostalgia-create-form-wrap,
+  .seal-post-flow .creation-main {
+    overflow: visible;
+  }
+
+  .seal-post-flow .creation-stepper {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    width: 100%;
+    padding: 8px 6px !important;
+    border-bottom: 1px solid rgba(93, 56, 36, .14);
+    background: rgba(253, 246, 232, .94);
+    box-shadow: 0 8px 22px rgba(70, 42, 26, .1);
+  }
+
+  .seal-post-flow .creation-stepper button {
+    min-width: 0 !important;
+    min-height: 58px !important;
+    padding: 6px 2px !important;
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px !important;
+    overflow: hidden;
+    border-radius: 11px !important;
+  }
+
+  .seal-post-flow .creation-stepper button span {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    display: grid;
+    place-items: center;
+    margin: 0 !important;
+    font-size: 10px !important;
+  }
+
+  .seal-post-flow .creation-stepper button small {
+    display: none;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 7px !important;
+    line-height: 1 !important;
+    letter-spacing: .05em !important;
+    text-align: center;
+  }
+
+  .seal-post-flow .creation-stepper button.active small {
+    display: block;
+  }
+
+  .seal-post-flow .creation-stepper button.active {
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), 0 7px 16px rgba(113, 38, 29, .17);
+  }
+
+  .seal-post-flow .creation-write-panel textarea {
+    min-height: 390px !important;
+    height: min(52vh, 470px) !important;
+    resize: vertical;
+  }
+
+  .seal-post-flow .seal-stage,
+  .seal-post-flow .post-stage {
+    min-height: 440px;
+    border-radius: 18px;
+  }
+
+  .seal-post-flow .seal-paper {
+    top: 42px;
+    width: 78%;
+    min-height: 245px;
+    padding: 28px;
+  }
+
+  .seal-post-flow .seal-paper span {
+    margin-bottom: 20px;
+    font-size: 18px;
+  }
+
+  .seal-post-flow .seal-envelope {
+    bottom: 84px;
+    width: 82%;
+    height: 198px;
+  }
+
+  .seal-post-flow .seal-wax {
+    width: 52px;
+    height: 52px;
+  }
+
+  .seal-post-flow .intezaar-postbox {
+    bottom: 82px;
+    width: 205px;
+    height: 282px;
+    border-radius: 98px 98px 16px 16px;
+  }
+
+  .seal-post-flow .posting-envelope {
+    left: 7%;
+    top: 148px;
+    width: 148px;
+    height: 88px;
+  }
+
+  .seal-post-flow .ceremony-status {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+    padding: 11px 13px;
+  }
+
+  .seal-post-flow .ceremony-status strong {
+    font-size: 15px;
+    text-align: left;
+  }
+
+  .seal-post-flow .ceremony-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .seal-post-flow .ceremony-summary div + div {
+    border-top: 1px solid rgba(83, 53, 36, .12);
+    border-left: 0;
+  }
+
+  .seal-post-flow .ceremony-panel .nostalgia-form-actions {
+    position: sticky;
+    z-index: 35;
+    bottom: 0;
+    margin-right: -14px;
+    margin-left: -14px;
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(91, 55, 36, .13);
+    background: rgba(253, 246, 232, .96);
+    box-shadow: 0 -12px 26px rgba(69, 42, 27, .1);
+    backdrop-filter: blur(16px);
+  }
+
+  .seal-post-flow .ceremony-panel .nostalgia-form-actions button {
+    min-height: 50px;
+  }
+}
+
+@media (max-width: 390px) {
+  .seal-post-flow .creation-stepper {
+    gap: 2px !important;
+    padding-inline: 4px !important;
+  }
+
+  .seal-post-flow .creation-stepper button {
+    min-height: 54px !important;
+  }
+
+  .seal-post-flow .creation-stepper button span {
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+  }
+
+  .seal-post-flow .creation-stepper button small {
+    font-size: 6.5px !important;
+  }
+
+  .seal-post-flow .seal-stage,
+  .seal-post-flow .post-stage {
+    min-height: 420px;
+  }
+
+  .seal-post-flow .intezaar-postbox {
+    width: 190px;
+    height: 264px;
+  }
+
+  .seal-post-flow .posting-envelope {
+    width: 132px;
+    height: 78px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seal-post-flow .seal-stage *,
+  .seal-post-flow .post-stage * {
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
