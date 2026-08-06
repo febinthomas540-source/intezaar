@@ -175,7 +175,11 @@ export function PostboxHome() {
 
       <footer className={styles.footer}>
         <div><span>I</span><strong>Intezaar</strong></div>
-        <p>A private digital letter you write, seal, post and open later.</p>
+        <p>
+          <Link href="/faq" style={{ color: "#d8bea6", textDecoration: "none", marginRight: 18 }}>FAQ</Link>
+          <Link href="/community-guidelines" style={{ color: "#d8bea6", textDecoration: "none", marginRight: 18 }}>Community Guidelines</Link>
+          <Link href="/terms" style={{ color: "#d8bea6", textDecoration: "none" }}>Terms of Use</Link>
+        </p>
         <small>India · 2026</small>
       </footer>
     </main>
