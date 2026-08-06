@@ -5,7 +5,9 @@ import {
   hashPrivateToken,
   insertEncryptedLetter,
   insertLetterEvent,
+  markRecipientNotified,
 } from "@/lib/letter-security";
+import { sendPostedLetterEmail } from "@/lib/resend-mail";
 
 export const runtime = "nodejs";
 
@@ -24,7 +26,9 @@ const formats = new Set([
 
 type CreateLetterBody = {
   senderName?: unknown;
+  senderEmail?: unknown;
   recipientName?: unknown;
+  recipientEmail?: unknown;
   occasion?: unknown;
   format?: unknown;
   fromCity?: unknown;
@@ -40,6 +44,12 @@ function cleanText(value: unknown, maximum: number) {
   return typeof value === "string" ? value.trim().slice(0, maximum) : "";
 }
 
+function cleanEmail(value: unknown) {
+  const email = cleanText(value, 254).toLowerCase();
+  if (!email) return "";
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
+}
+
 function publicSiteUrl(request: Request) {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
   return configured || new URL(request.url).origin;
@@ -53,7 +63,9 @@ export async function POST(request: Request) {
 
     const body = await request.json() as CreateLetterBody;
     const senderName = cleanText(body.senderName, 80);
+    const senderEmail = cleanEmail(body.senderEmail);
     const recipientName = cleanText(body.recipientName, 80);
+    const recipientEmail = cleanEmail(body.recipientEmail);
     const occasion = cleanText(body.occasion, 100) || "Just because";
     const format = cleanText(body.format, 30);
     const fromCity = cleanText(body.fromCity, 80);
@@ -67,6 +79,10 @@ export async function POST(request: Request) {
         { error: "Sender, recipient and letter text are required." },
         { status: 400 },
       );
+    }
+
+    if (senderEmail === null || recipientEmail === null) {
+      return NextResponse.json({ error: "Enter a valid email address or leave it blank." }, { status: 400 });
     }
 
     if (!formats.has(format)) {
@@ -96,12 +112,15 @@ export async function POST(request: Request) {
       closing,
     });
     const expiresAt = new Date(opensAt.getTime() + 90 * 24 * 60 * 60 * 1000);
+    const recipientUrl = `${publicSiteUrl(request)}/receive/${accessToken}`;
 
     const letterId = await insertEncryptedLetter({
       access_token_hash: hashPrivateToken(accessToken),
       manage_token_hash: hashPrivateToken(manageToken),
       sender_name: senderName,
+      sender_email: senderEmail || null,
       recipient_name: recipientName,
+      recipient_email: recipientEmail || null,
       occasion,
       letter_format: format,
       from_city: fromCity || null,
@@ -122,11 +141,42 @@ export async function POST(request: Request) {
     await insertLetterEvent(letterId, "created", { source: "web_creator" });
     await insertLetterEvent(letterId, "posted", { opens_at: opensAt.toISOString() });
 
+    const emailDelivery = recipientEmail
+      ? await sendPostedLetterEmail({
+          letterId,
+          to: recipientEmail,
+          recipientName,
+          senderName,
+          occasion,
+          recipientUrl,
+        })
+      : {
+          attempted: false,
+          sent: false,
+          message: "No recipient email was added. Share the private link manually.",
+        };
+
+    if (emailDelivery.sent) {
+      await markRecipientNotified(letterId);
+      await insertLetterEvent(letterId, "invitation_sent", {
+        recipient_email: recipientEmail,
+        provider: "resend",
+        provider_id: emailDelivery.emailId || null,
+      });
+    } else if (recipientEmail && emailDelivery.attempted) {
+      await insertLetterEvent(letterId, "email_failed", {
+        recipient_email: recipientEmail,
+        provider: "resend",
+        reason: emailDelivery.message,
+      });
+    }
+
     return NextResponse.json(
       {
-        recipientUrl: `${publicSiteUrl(request)}/receive/${accessToken}`,
+        recipientUrl,
         manageToken,
         opensAt: opensAt.toISOString(),
+        emailDelivery,
       },
       {
         status: 201,
