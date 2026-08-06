@@ -11,6 +11,7 @@ import "./clarity-home.css";
 import "./india-post-create.css";
 import "./letter-studio.css";
 import "./letter-studio-formats.css";
+import "./creation-flow-v2.css";
 
 const siteUrl = "https://intezaar.vercel.app";
 
