@@ -3,6 +3,7 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Navigation } from "@/components/navigation";
+import "../photo-adjustment.css";
 
 const occasions = ["Just because", "Birthday", "Anniversary", "Farewell", "Apology", "Wedding", "Celebration"];
 const MAX_LETTER_CHARS = 4000;
@@ -23,7 +24,18 @@ type LetterFormat =
   | "minimal";
 
 type FormatCategory = "Letter papers" | "Cards & photos" | "Heritage";
-type PhotoItem = { id: string; name: string; url: string; caption: string };
+type PhotoFit = "cover" | "contain";
+type PhotoAdjustment = Pick<PhotoItem, "caption" | "fit" | "zoom" | "positionX" | "positionY">;
+type PhotoItem = {
+  id: string;
+  name: string;
+  url: string;
+  caption: string;
+  fit: PhotoFit;
+  zoom: number;
+  positionX: number;
+  positionY: number;
+};
 type VoiceItem = { id: string; name: string; url: string; label: string };
 type VideoItem = { id: string; name: string; url: string; caption: string; size: number };
 type FormatDefinition = { id: LetterFormat; name: string; category: FormatCategory; description: string };
@@ -89,6 +101,121 @@ function formatFileSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function photoStyle(photo: PhotoItem) {
+  return {
+    objectFit: photo.fit,
+    objectPosition: `${photo.positionX}% ${photo.positionY}%`,
+    transform: `scale(${photo.zoom})`,
+    transformOrigin: `${photo.positionX}% ${photo.positionY}%`,
+  };
+}
+
+function PhotoFrame({ photo }: { photo: PhotoItem }) {
+  return (
+    <div className="adjustable-photo-frame">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={photo.url} alt={photo.caption || photo.name} style={photoStyle(photo)} />
+    </div>
+  );
+}
+
+function PhotoEditor({
+  photo,
+  index,
+  update,
+  remove,
+}: {
+  photo: PhotoItem;
+  index: number;
+  update: (id: string, patch: Partial<PhotoAdjustment>) => void;
+  remove: (id: string) => void;
+}) {
+  return (
+    <article className="media-item photo-editor-card">
+      <div className="photo-editor-thumb">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photo.url} alt="" style={photoStyle(photo)} />
+      </div>
+
+      <div className="photo-editor-content">
+        <div className="photo-editor-heading">
+          <strong>Photo {index + 1}</strong>
+          <small>Adjust the recipient view</small>
+        </div>
+
+        <input
+          type="text"
+          value={photo.caption}
+          onChange={(event) => update(photo.id, { caption: event.target.value })}
+          placeholder="Editable caption"
+          aria-label={`Caption for photo ${index + 1}`}
+        />
+
+        <div className="photo-fit-controls" role="group" aria-label={`Photo ${index + 1} display mode`}>
+          <button type="button" className={photo.fit === "cover" ? "active" : ""} onClick={() => update(photo.id, { fit: "cover" })}>
+            Fill the frame
+          </button>
+          <button type="button" className={photo.fit === "contain" ? "active" : ""} onClick={() => update(photo.id, { fit: "contain", zoom: 1 })}>
+            Show whole photo
+          </button>
+        </div>
+
+        <div className="photo-adjustment-grid">
+          <label className="photo-range-control">
+            <span>Zoom</span>
+            <input
+              type="range"
+              min="1"
+              max="2.2"
+              step="0.05"
+              value={photo.zoom}
+              onChange={(event) => update(photo.id, { zoom: Number(event.target.value) })}
+            />
+            <output>{Math.round(photo.zoom * 100)}%</output>
+          </label>
+
+          <label className="photo-range-control">
+            <span>Left / right</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={photo.positionX}
+              onChange={(event) => update(photo.id, { positionX: Number(event.target.value) })}
+            />
+            <output>{photo.positionX}%</output>
+          </label>
+
+          <label className="photo-range-control">
+            <span>Up / down</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={photo.positionY}
+              onChange={(event) => update(photo.id, { positionY: Number(event.target.value) })}
+            />
+            <output>{photo.positionY}%</output>
+          </label>
+        </div>
+
+        <button
+          type="button"
+          className="photo-reset-button"
+          onClick={() => update(photo.id, { fit: "cover", zoom: 1, positionX: 50, positionY: 50 })}
+        >
+          Reset photo
+        </button>
+        <p className="photo-adjustment-note">The live preview changes immediately. These settings will be stored with the photo when the secure upload system is connected.</p>
+      </div>
+
+      <button type="button" className="photo-remove-button" onClick={() => remove(photo.id)}>Remove</button>
+    </article>
+  );
+}
+
 function LiveLetterPreview({
   format,
   sender,
@@ -139,8 +266,7 @@ function LiveLetterPreview({
 
         {format === "postcard" && photos[0] ? (
           <figure className="postcard-main-photo">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photos[0].url} alt={photos[0].caption || photos[0].name} />
+            <PhotoFrame photo={photos[0]} />
             {photos[0].caption ? <figcaption>{photos[0].caption}</figcaption> : null}
           </figure>
         ) : null}
@@ -148,8 +274,7 @@ function LiveLetterPreview({
         {format === "photo" ? (
           photos[0] ? (
             <figure className="photo-letter-cover">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photos[0].url} alt={photos[0].caption || photos[0].name} />
+              <PhotoFrame photo={photos[0]} />
               {photos[0].caption ? <figcaption>{photos[0].caption}</figcaption> : null}
             </figure>
           ) : <div className="photo-letter-placeholder">Your cover photograph will appear here</div>
@@ -166,8 +291,7 @@ function LiveLetterPreview({
           <div className={`letter-preview-photos photo-count-${Math.min(galleryPhotos.length, 3)}`}>
             {galleryPhotos.map((photo) => (
               <figure key={photo.id}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photo.url} alt={photo.caption || photo.name} />
+                <PhotoFrame photo={photo} />
                 {photo.caption ? <figcaption>{photo.caption}</figcaption> : null}
               </figure>
             ))}
@@ -289,7 +413,16 @@ export default function CreatePage() {
     const added = files.slice(0, mediaSlotsLeft).map((file) => {
       const url = URL.createObjectURL(file);
       objectUrls.current.add(url);
-      return { id: crypto.randomUUID(), name: file.name, url, caption: "" };
+      return {
+        id: crypto.randomUUID(),
+        name: file.name,
+        url,
+        caption: "",
+        fit: "cover" as const,
+        zoom: 1,
+        positionX: 50,
+        positionY: 50,
+      };
     });
     setPhotos((current) => [...current, ...added]);
     event.target.value = "";
@@ -321,8 +454,8 @@ export default function CreatePage() {
     setVideos([{ id: crypto.randomUUID(), name: file.name, url, caption: "", size: file.size }]);
   }
 
-  function updatePhoto(id: string, caption: string) {
-    setPhotos((current) => current.map((item) => item.id === id ? { ...item, caption } : item));
+  function updatePhoto(id: string, patch: Partial<PhotoAdjustment>) {
+    setPhotos((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item));
   }
 
   function updateVoice(id: string, label: string) {
@@ -355,7 +488,7 @@ export default function CreatePage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  const linkBase = `name=${encodeURIComponent(recipient)}&duration=${journeyDays}&from=${encodeURIComponent(fromCity)}&to=${encodeURIComponent(toCity)}&format=${format}&time=${encodeURIComponent(arrivalTime)}`;
+  const linkBase = `name=${encodeURIComponent(recipient)}&sender=${encodeURIComponent(sender)}&occasion=${encodeURIComponent(occasion)}&duration=${journeyDays}&from=${encodeURIComponent(fromCity)}&to=${encodeURIComponent(toCity)}&format=${format}&time=${encodeURIComponent(arrivalTime)}`;
   const recipientLink = `/receive/demo?${linkBase}&day=1`;
   const arrivalLink = `/receive/demo?${linkBase}&day=${journeyDays}`;
   const publicShareUrl = `https://intezaar.vercel.app${recipientLink}`;
@@ -412,7 +545,6 @@ export default function CreatePage() {
               {step === 1 ? (
                 <section className="nostalgia-form-section creation-panel creation-write-panel">
                   <header className="creation-section-head"><div><span>Step 1 of 5</span><h2>Write the letter</h2><p>No style decision yet. Begin with the person and what you need to say.</p></div><small>Draft saves on this device</small></header>
-
                   <div className="nostalgia-form-grid">
                     <label>From<input value={sender} onChange={(event) => setSender(event.target.value)} placeholder="Your name" autoComplete="name" /></label>
                     <label>To<input value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="Their name" required /></label>
@@ -421,19 +553,11 @@ export default function CreatePage() {
                     <label>Occasion<select value={occasion} onChange={(event) => setOccasion(event.target.value)}>{occasions.map((item) => <option key={item}>{item}</option>)}</select></label>
                     <label>Opening<input value={heading} onChange={(event) => setHeading(event.target.value)} placeholder={`Dear ${recipient || "you"},`} /></label>
                   </div>
-
-                  <div className="writing-help">
-                    <strong>Need a starting line?</strong>
-                    <div>{writingStarters.map((starter) => <button key={starter.label} type="button" onClick={() => insertStarter(starter.text)}>{starter.label}</button>)}</div>
-                  </div>
-
-                  <label>Your letter
-                    <textarea value={letter} onChange={(event) => setLetter(event.target.value)} rows={15} maxLength={MAX_LETTER_CHARS} placeholder="Write what you want them to receive. It can be simple, imperfect and completely yours…" required />
-                  </label>
+                  <div className="writing-help"><strong>Need a starting line?</strong><div>{writingStarters.map((starter) => <button key={starter.label} type="button" onClick={() => insertStarter(starter.text)}>{starter.label}</button>)}</div></div>
+                  <label>Your letter<textarea value={letter} onChange={(event) => setLetter(event.target.value)} rows={15} maxLength={MAX_LETTER_CHARS} placeholder="Write what you want them to receive. It can be simple, imperfect and completely yours…" required /></label>
                   <div className="writing-counter"><span>{wordCount} words</span><span>{letter.length.toLocaleString()} / {MAX_LETTER_CHARS.toLocaleString()} characters</span></div>
                   <label>Closing<input value={closing} onChange={(event) => setClosing(event.target.value)} placeholder={sender ? `With love, ${sender}` : "With love,"} /></label>
                   <p className="creation-help-copy">There is no perfect length. A specific honest paragraph is stronger than a long generic message.</p>
-
                   <div className="nostalgia-form-actions"><button className="nostalgia-button nostalgia-button-primary" type="button" disabled={!canContinue} onClick={() => setStep(2)}>Continue to personalise</button></div>
                 </section>
               ) : null}
@@ -441,7 +565,6 @@ export default function CreatePage() {
               {step === 2 ? (
                 <section className="nostalgia-form-section creation-panel">
                   <header className="creation-section-head"><div><span>Step 2 of 5</span><h2>Personalise it</h2><p>Your letter is already complete. Style and media are optional.</p></div><small>{mediaCount} of {MAX_MEDIA_ITEMS} media slots used</small></header>
-
                   <section className="recommended-formats">
                     <h3>Suggested for this letter</h3>
                     <div>{recommendedFormats.map((id) => {
@@ -449,7 +572,6 @@ export default function CreatePage() {
                       return <button key={id} type="button" className={format === id ? "active" : ""} onClick={() => setFormat(id)}><span className={`format-miniature format-miniature-${id}`} aria-hidden="true"><i /><i /></span><strong>{item.name}</strong><small>{item.description}</small></button>;
                     })}</div>
                   </section>
-
                   <details className="format-library-disclosure">
                     <summary>Browse all 10 letter formats <span>Optional</span></summary>
                     <div className="letter-format-library">
@@ -479,13 +601,7 @@ export default function CreatePage() {
                       {mediaError ? <p className="media-error" role="alert">{mediaError}</p> : null}
 
                       <div className="media-item-list compact-media-list">
-                        {photos.map((photo, index) => (
-                          <article className="media-item" key={photo.id}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}<img src={photo.url} alt="" />
-                            <div><strong>Photo {index + 1}</strong><input value={photo.caption} onChange={(event) => updatePhoto(photo.id, event.target.value)} placeholder="Editable caption" /></div>
-                            <button type="button" onClick={() => removeMedia("photo", photo.id)}>Remove</button>
-                          </article>
-                        ))}
+                        {photos.map((photo, index) => <PhotoEditor key={photo.id} photo={photo} index={index} update={updatePhoto} remove={(id) => removeMedia("photo", id)} />)}
                         {voices.map((voice, index) => (
                           <article className="media-item media-item-audio" key={voice.id}><span className="media-audio-icon">▶</span><div><strong>Voice note {index + 1}</strong><input value={voice.label} onChange={(event) => updateVoice(voice.id, event.target.value)} placeholder="Editable title" /><audio controls src={voice.url} preload="metadata" /></div><button type="button" onClick={() => removeMedia("voice", voice.id)}>Remove</button></article>
                         ))}
@@ -496,12 +612,8 @@ export default function CreatePage() {
                       <p className="media-privacy-note">Files stay in this browser session in the prototype. Text edits are saved locally; media is not.</p>
                     </div>
 
-                    <details className="creation-preview-disclosure" open>
-                      <summary>Preview what they will open</summary>
-                      {preview}
-                    </details>
+                    <details className="creation-preview-disclosure" open><summary>Preview what they will open</summary>{preview}</details>
                   </div>
-
                   <div className="nostalgia-form-actions"><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => setStep(1)}>Back to writing</button><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={() => setStep(3)}>Choose the journey</button></div>
                 </section>
               ) : null}
@@ -509,7 +621,6 @@ export default function CreatePage() {
               {step === 3 ? (
                 <section className="nostalgia-form-section creation-panel">
                   <header className="creation-section-head"><div><span>Step 3 of 5</span><h2>Choose the postal journey</h2><p>Short enough to understand. Long enough to make the arrival matter.</p></div></header>
-
                   <div className="journey-duration-cards" role="group" aria-label="Journey length">
                     {[3, 5, 7].map((count) => <button key={count} type="button" className={journeyDays === count ? "active" : ""} onClick={() => setJourneyDays(count)}><strong>{count} days</strong><span>{count === 3 ? "A short wait" : count === 5 ? "The balanced journey" : "A slower arrival"}</span></button>)}
                   </div>
@@ -518,7 +629,6 @@ export default function CreatePage() {
                     <label>Arriving in<input value={toCity} onChange={(event) => setToCity(event.target.value)} placeholder="Kochi" /></label>
                   </div>
                   <div className="journey-summary-card"><span>Intezaar Mail</span><strong>{fromCity || "Origin"} → {toCity || "Destination"}</strong><p>The sealed letter will show simple station progress for {journeyDays} days. The route is cinematic—not live railway or postal tracking.</p></div>
-
                   <div className="nostalgia-form-actions"><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => setStep(2)}>Back to personalise</button><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={() => setStep(4)}>Set arrival and payment</button></div>
                 </section>
               ) : null}
@@ -526,7 +636,6 @@ export default function CreatePage() {
               {step === 4 ? (
                 <section className="nostalgia-form-section creation-panel">
                   <header className="creation-section-head"><div><span>Step 4 of 5</span><h2>Arrival and payment</h2><p>Choose when it can be opened, review everything, then continue to the private link.</p></div></header>
-
                   <div className="arrival-payment-grid">
                     <section className="arrival-card">
                       <span>Arrival</span><h3>After {journeyDays} days</h3>
@@ -534,7 +643,6 @@ export default function CreatePage() {
                       <label>Time basis<select value={arrivalZone} onChange={(event) => setArrivalZone(event.target.value)}><option>Recipient local time</option><option>Sender local time</option><option>India Standard Time</option></select></label>
                       <p>The recipient sees the sealed letter and route before this time. They do not need to return every day.</p>
                     </section>
-
                     <section className="prototype-checkout">
                       <div><span>Payment</span><strong>Prototype checkout</strong></div>
                       <p>No card details are requested and no payment is taken in this build. A secure payment provider will be connected before public launch.</p>
@@ -542,9 +650,7 @@ export default function CreatePage() {
                       <label className="prototype-confirm"><input type="checkbox" checked={prototypeConfirmed} onChange={(event) => setPrototypeConfirmed(event.target.checked)} /><span>I understand this creates a demonstration link and does not take payment or securely transfer my uploaded files.</span></label>
                     </section>
                   </div>
-
                   <div className="final-review-strip"><div><small>From</small><strong>{sender}</strong></div><div><small>For</small><strong>{recipient}</strong></div><div><small>Route</small><strong>{fromCity} → {toCity}</strong></div><div><small>Arrival</small><strong>{journeyDays} days · {arrivalTime}</strong></div></div>
-
                   <div className="nostalgia-form-actions"><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => setStep(3)}>Back to journey</button><button className="nostalgia-button nostalgia-button-primary" type="submit" disabled={!prototypeConfirmed}>Create demonstration link</button></div>
                 </section>
               ) : null}
@@ -554,7 +660,6 @@ export default function CreatePage() {
               <p className="nostalgia-eyebrow">Step 5 of 5 · Share</p>
               <h2>Your letter link is ready.</h2>
               <p>Send this link to {recipient}. In the production version it will carry the encrypted letter and uploaded media. This prototype link opens the sample recipient journey.</p>
-
               <div className="share-link-box"><span>Private recipient link</span><code>{publicShareUrl}</code><button type="button" onClick={copyShareLink}>{copied ? "Copied" : "Copy link"}</button></div>
               <div className="share-summary"><span>{formatName(format)}</span><strong>{fromCity} → {toCity} · {journeyDays} days · opens at {arrivalTime}</strong><p>{mediaCount} optional media item{mediaCount === 1 ? "" : "s"}</p></div>
               <div className="nostalgia-success-actions"><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={shareLetter}>Share letter link</button><Link href={recipientLink} className="nostalgia-button nostalgia-button-ghost">Preview recipient journey</Link><Link href={arrivalLink} className="nostalgia-button nostalgia-button-ghost">Preview arrival</Link><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => { setCreated(false); setPrototypeConfirmed(false); setStep(1); }}>Edit the letter</button></div>
