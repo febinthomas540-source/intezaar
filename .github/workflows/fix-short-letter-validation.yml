@@ -1,0 +1,40 @@
+name: Fix short letter validation
+
+on:
+  push:
+    paths:
+      - ".github/workflows/fix-short-letter-validation.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Allow any non-empty letter
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/components/letter-creator.tsx")
+          source = path.read_text(encoding="utf-8")
+          old = 'const canContinue = sender.trim().length > 0 && recipient.trim().length > 0 && letter.trim().length >= 20;'
+          new = 'const canContinue = sender.trim().length > 0 && recipient.trim().length > 0 && letter.trim().length > 0;'
+
+          if old not in source:
+              raise SystemExit("Expected validation rule was not found")
+
+          path.write_text(source.replace(old, new, 1), encoding="utf-8")
+          PY
+
+      - name: Commit validation fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/letter-creator.tsx
+          git commit -m "Allow short letters to continue"
+          git push
