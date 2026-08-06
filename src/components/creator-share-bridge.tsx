@@ -3,11 +3,14 @@
 import { useEffect } from "react";
 
 const DRAFT_KEY = "intezaar:create-draft:v3";
+const CONTACT_KEY = "intezaar:create-contacts:v1";
 const POSTED_KEY = "intezaar:last-secure-letter:v1";
 
 type Draft = {
   sender?: string;
+  senderEmail?: string;
   recipient?: string;
+  recipientEmail?: string;
   occasion?: string;
   heading?: string;
   letter?: string;
@@ -19,28 +22,53 @@ type Draft = {
   arrivalTime?: string;
 };
 
+type EmailDelivery = {
+  attempted: boolean;
+  sent: boolean;
+  recipient?: string;
+  message: string;
+  emailId?: string;
+};
+
 type SecureLetterResult = {
   recipientUrl: string;
   manageToken: string;
   opensAt: string;
+  emailDelivery?: EmailDelivery;
 };
 
 type SavedSecureLetter = SecureLetterResult & {
   fingerprint: string;
 };
 
-function readDraft(): Draft {
+function readJson<T>(key: string, fallback: T): T {
   try {
-    return JSON.parse(window.localStorage.getItem(DRAFT_KEY) || "{}") as Draft;
+    return JSON.parse(window.localStorage.getItem(key) || "") as T;
   } catch {
-    return {};
+    return fallback;
+  }
+}
+
+function readDraft(): Draft {
+  const draft = readJson<Draft>(DRAFT_KEY, {});
+  const contacts = readJson<Pick<Draft, "senderEmail" | "recipientEmail">>(CONTACT_KEY, {});
+  return { ...draft, ...contacts };
+}
+
+function saveContacts(senderEmail: string, recipientEmail: string) {
+  try {
+    window.localStorage.setItem(CONTACT_KEY, JSON.stringify({ senderEmail, recipientEmail }));
+  } catch {
+    // Email fields still work for the current page when local storage is unavailable.
   }
 }
 
 function draftFingerprint(draft: Draft) {
   const source = JSON.stringify([
     draft.sender,
+    draft.senderEmail,
     draft.recipient,
+    draft.recipientEmail,
     draft.occasion,
     draft.heading,
     draft.letter,
@@ -86,6 +114,53 @@ function saveSecureLetter(result: SecureLetterResult, fingerprint: string) {
   }
 }
 
+function createEmailInput(labelText: string, placeholder: string, value: string) {
+  const label = document.createElement("label");
+  label.append(document.createTextNode(labelText));
+
+  const input = document.createElement("input");
+  input.type = "email";
+  input.inputMode = "email";
+  input.autocomplete = "email";
+  input.maxLength = 254;
+  input.placeholder = placeholder;
+  input.value = value;
+  label.append(input);
+
+  return { label, input };
+}
+
+function ensureEmailFields() {
+  const panel = document.querySelector<HTMLElement>(".creation-write-panel");
+  if (!panel || panel.querySelector('[data-intezaar-email-fields="true"]')) return;
+
+  const firstGrid = panel.querySelector<HTMLElement>(".nostalgia-form-grid");
+  if (!firstGrid) return;
+
+  const contacts = readJson<Pick<Draft, "senderEmail" | "recipientEmail">>(CONTACT_KEY, {});
+  const grid = document.createElement("div");
+  grid.className = "nostalgia-form-grid secure-email-grid";
+  grid.dataset.intezaarEmailFields = "true";
+
+  const sender = createEmailInput(
+    "Your email (optional)",
+    "For future delivery updates",
+    contacts.senderEmail || "",
+  );
+  const recipient = createEmailInput(
+    "Recipient email (optional)",
+    "Send the private link automatically",
+    contacts.recipientEmail || "",
+  );
+
+  const sync = () => saveContacts(sender.input.value.trim(), recipient.input.value.trim());
+  sender.input.addEventListener("input", sync);
+  recipient.input.addEventListener("input", sync);
+
+  grid.append(sender.label, recipient.label);
+  firstGrid.after(grid);
+}
+
 function createOpensAt(draft: Draft) {
   const date = typeof draft.arrivalDate === "string" ? draft.arrivalDate : "";
   const time = typeof draft.arrivalTime === "string" ? draft.arrivalTime : "20:00";
@@ -102,7 +177,9 @@ async function createSecureLetter(draft: Draft): Promise<SecureLetterResult> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       senderName: draft.sender,
+      senderEmail: draft.senderEmail,
       recipientName: draft.recipient,
+      recipientEmail: draft.recipientEmail,
       occasion: draft.occasion,
       format: draft.format,
       fromCity: draft.fromCity,
@@ -159,12 +236,14 @@ export function CreatorShareBridge() {
   useEffect(() => {
     let frame = 0;
     let secureUrl = "";
+    let secureResult: SecureLetterResult | null = null;
     let creating = false;
     let allowContinue = false;
 
     const syncShareScreen = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
+        ensureEmailFields();
         if (!secureUrl) return;
 
         const code = document.querySelector<HTMLElement>(".share-link-box code");
@@ -181,7 +260,11 @@ export function CreatorShareBridge() {
 
         const note = document.querySelector<HTMLElement>(".prototype-transfer-note");
         if (note) {
-          note.textContent = "Your letter text is encrypted and stored behind a private token. Photos, voice notes and videos remain browser-only during this beta.";
+          const deliveryMessage = secureResult?.emailDelivery?.message;
+          note.textContent = deliveryMessage
+            ? `${deliveryMessage} Your letter text is encrypted behind a private token. Photos, voice notes and videos remain browser-only during this beta.`
+            : "Your letter text is encrypted behind a private token. Photos, voice notes and videos remain browser-only during this beta.";
+          note.dataset.emailSent = String(Boolean(secureResult?.emailDelivery?.sent));
         }
       });
     };
@@ -218,6 +301,7 @@ export function CreatorShareBridge() {
 
         if (saved) {
           secureUrl = saved.recipientUrl;
+          secureResult = saved;
           openShareStep(button);
           return;
         }
@@ -229,6 +313,7 @@ export function CreatorShareBridge() {
         try {
           const result = await createSecureLetter(draft);
           secureUrl = result.recipientUrl;
+          secureResult = result;
           saveSecureLetter(result, fingerprint);
           openShareStep(button);
         } catch (error) {
@@ -284,6 +369,7 @@ export function CreatorShareBridge() {
     document.addEventListener("click", handleClick, true);
     const observer = new MutationObserver(syncShareScreen);
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    syncShareScreen();
 
     return () => {
       document.removeEventListener("click", handleClick, true);
