@@ -38,3 +38,5 @@ jobs:
           git add src/components/letter-creator.tsx
           git commit -m "Allow short letters to continue"
           git push
+
+# Retried after the workflow existed on the default branch.
