@@ -1,185 +1,105 @@
 import Link from "next/link";
+import { HeroJourney } from "@/components/hero-journey";
+import { LetterOpening } from "@/components/letter-opening";
 import { Navigation } from "@/components/navigation";
-import { RainGlass } from "@/components/rain-glass";
 
-const journeyCards = [
-  {
-    day: "Day 1 · Open now",
-    className: "clarity-day-one",
-    title: "A quiet beginning",
-    copy: "The first photograph and its private caption are ready immediately.",
-    status: "Opened",
-  },
-  {
-    day: "Day 2 · Tomorrow",
-    className: "clarity-day-two clarity-locked",
-    title: "The next memory",
-    copy: "It remains softened behind glass until tomorrow at midnight.",
-    status: "18h 42m 36s",
-  },
-  {
-    day: "Day 3 · In 2 days",
-    className: "clarity-day-three clarity-locked",
-    title: "A voice, just for you",
-    copy: "A short recording arrives in the sender’s own voice.",
-    status: "Voice note",
-  },
-  {
-    day: "Day 4 · In 3 days",
-    className: "clarity-day-four clarity-locked",
-    title: "A moment, captured",
-    copy: "Another photograph, old message or keepsake comes into focus.",
-    status: "Still hidden",
-  },
-  {
-    day: "Final day",
-    className: "clarity-day-final",
-    title: "The final letter",
-    copy: "The complete letter opens only when every earlier memory has arrived.",
-    status: "Sealed",
-  },
-  {
-    day: "Your keepsake",
-    className: "clarity-day-pdf",
-    title: "Yours to keep, forever",
-    copy: "The entire journey becomes a clean A4 memory book and poster.",
-    status: "A4 PDF",
-  },
+const steps = [
+  ["01", "Write and seal the letter", "Write the main letter first. Add up to three photographs, short memories or voice notes only when they belong inside it."],
+  ["02", "Choose how long it travels", "Pick a simple 3, 5 or 7-day postal journey. The recipient sees a sealed envelope and a few meaningful station updates."],
+  ["03", "Let it arrive", "On the final day the letter is delivered. They break the seal, read it and can keep a printable copy afterwards."],
+];
+
+const journeyLengths = [
+  ["3 days", "A short route for birthdays, apologies and words that should not wait too long."],
+  ["5 days", "The balanced Intezaar journey: enough time to feel the distance without becoming a task."],
+  ["7 days", "A slower passage for anniversaries, farewells and letters carrying more weight."],
+];
+
+const routeUpdates = [
+  ["Posted", "Your sealed letter enters the Intezaar mail route."],
+  ["Now at Mathura", "A quiet station update shows that the letter is moving, without asking the recipient to do anything."],
+  ["Crossing the Konkan", "Rain, distance and railway atmosphere make the wait visible."],
+  ["Arriving tomorrow", "The seal remains closed until the chosen arrival day."],
 ];
 
 export default function Home() {
   return (
-    <main className="clarity-site">
+    <main>
       <Navigation />
+      <HeroJourney />
 
-      <section className="clarity-hero">
-        <RainGlass intensity="medium" className="clarity-hero-rain" />
-        <div className="clarity-moon" aria-hidden="true" />
-        <div className="clarity-hero-copy">
-          <p className="clarity-eyebrow">A private memory journey</p>
-          <h1>Some memories should not arrive <em>instantly.</em></h1>
-          <p className="clarity-lead">
-            You upload the photographs, notes, voice messages and final letter. They receive one memory each day—until your full letter arrives.
+      <section id="how-it-works" className="section experience-section">
+        <div className="section-heading">
+          <p className="eyebrow">How Intezaar works</p>
+          <h2>One letter.<br />Three simple steps.</h2>
+          <p>
+            Intezaar is not a memory journal or a daily game. It is a private digital letter that takes a short Indian mail journey before it can be opened.
           </p>
-          <div className="clarity-actions">
-            <Link href="/create" className="clarity-button clarity-button-light">Create a journey <span>→</span></Link>
-            <a href="#how-it-works" className="clarity-button clarity-button-outline"><span className="clarity-play">▶</span> See how it works</a>
-          </div>
-          <div className="clarity-hero-facts" aria-label="Product highlights">
-            <span>One memory each day</span>
-            <span>Private recipient link</span>
-            <span>Final A4 keepsake</span>
-          </div>
         </div>
-        <div className="clarity-hero-object" aria-hidden="true">
-          <div className="clarity-open-letter">
-            <span>July 2019</span>
-            <strong>“That evening the rain kept us there.”</strong>
-          </div>
-          <div className="clarity-photo-print" />
-        </div>
-        <div className="clarity-scroll-cue"><span>Scroll to follow the journey</span><i /></div>
-      </section>
-
-      <section id="how-it-works" className="clarity-how">
-        <header className="clarity-section-heading">
-          <p className="clarity-eyebrow">How it works</p>
-          <h2>A simple three-step journey.</h2>
-          <p>People understand the experience immediately. The emotion comes from what you choose to put inside it.</p>
-        </header>
-
-        <div className="clarity-step-grid">
-          <article className="clarity-step">
-            <span className="clarity-step-number">1</span>
-            <h3>Write and upload memories</h3>
-            <p>Add photographs, notes, voice recordings and meaningful objects in the order you want them delivered.</p>
-            <div className="clarity-step-art clarity-step-upload" aria-hidden="true">
-              <div className="clarity-polaroid" />
-              <div className="clarity-note">
-                <span>The day we got lost in the rain and found our favourite chai place.</span>
-                <i>▶ 〰〰〰 0:28</i>
-              </div>
-            </div>
-          </article>
-
-          <article className="clarity-step">
-            <span className="clarity-step-number">2</span>
-            <h3>One memory unlocks each day</h3>
-            <p>The first opens immediately. Every future memory stays blurred while a live countdown moves towards its day.</p>
-            <div className="clarity-step-art clarity-step-countdown" aria-label="Example locked memory countdown">
-              <span>Day 2</span>
-              <b>⌑</b>
-              <small>A new memory unlocks in</small>
-              <strong>18h 42m 36s</strong>
-              <i>Tomorrow · 12:00 AM</i>
-            </div>
-          </article>
-
-          <article className="clarity-step">
-            <span className="clarity-step-number">3</span>
-            <h3>The final letter arrives</h3>
-            <p>The complete letter opens last. Everything they received becomes an A4 keepsake they can save or print.</p>
-            <div className="clarity-step-art clarity-step-keepsake" aria-hidden="true">
-              <div className="clarity-envelope"><i /></div>
-              <div className="clarity-book-cover"><small>Our</small><strong>Intezaar Story</strong><span>A collection of memories</span></div>
-              <b>PDF ↓</b>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className="clarity-experience">
-        <header className="clarity-section-heading clarity-section-heading-light">
-          <p className="clarity-eyebrow">The journey they experience</p>
-          <h2>One memory a day. A story that unfolds.</h2>
-          <p>The complete sequence is visible, but only today’s chapter is clear enough to enter.</p>
-        </header>
-
-        <div className="clarity-journey-track">
-          {journeyCards.map((card, index) => (
-            <article className={`clarity-journey-card ${card.className}`} key={card.day}>
-              <small>{card.day}</small>
-              <div className="clarity-card-visual">
-                {index === 0 ? <div className="clarity-card-photo" /> : null}
-                {index > 0 && index < 4 ? <span className="clarity-card-lock">⌑</span> : null}
-                {index === 2 ? <span className="clarity-card-wave">▂ ▅ ▃ ▇ ▄ ▆</span> : null}
-                {index === 4 ? <div className="clarity-card-envelope"><i /></div> : null}
-                {index === 5 ? <div className="clarity-card-pdf"><b>Our Journey</b><i /><i /><i /><i /></div> : null}
-                {index === 1 ? <strong className="clarity-card-timer">18h 42m</strong> : null}
-              </div>
-              <h3>{card.title}</h3>
-              <p>{card.copy}</p>
-              <span className="clarity-card-status">{card.status}</span>
+        <div className="moment-grid">
+          {steps.map(([number, title, copy]) => (
+            <article className="moment-card" key={number}>
+              <span>{number}</span>
+              <h3>{title}</h3>
+              <p>{copy}</p>
             </article>
           ))}
         </div>
+      </section>
 
-        <div className="clarity-trust-row">
-          <article><span>01</span><div><strong>Private by design</strong><p>Only someone with the personal journey link can enter.</p></div></article>
-          <article><span>02</span><div><strong>Delivered daily</strong><p>The next memory unlocks automatically at the chosen time.</p></div></article>
-          <article><span>03</span><div><strong>Nothing disappears</strong><p>Every opened chapter remains available throughout the journey.</p></div></article>
-          <article><span>04</span><div><strong>Yours afterwards</strong><p>Save the finished story as a printable A4 keepsake.</p></div></article>
+      <section className="section schedule-section">
+        <div className="section-heading schedule-heading">
+          <p className="eyebrow">Choose the pace</p>
+          <h2>Three journeys.<br />No complicated timeline.</h2>
+          <p>The recipient never has to return every day. They can check the route occasionally, or simply come back when the letter arrives.</p>
+        </div>
+        <div className="route-schedule-card">
+          <div className="route-schedule-head">
+            <div><small>Available postal journeys</small><strong>3 · 5 · 7 days</strong></div>
+            <span>Illustrative route, not live GPS tracking</span>
+          </div>
+          <div className="route-schedule-grid">
+            {journeyLengths.map(([title, copy], index) => (
+              <article className="schedule-stop" key={title}>
+                <span>0{index + 1}</span>
+                <p><strong>{title}</strong><br />{copy}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="clarity-final">
-        <RainGlass intensity="soft" className="clarity-final-rain" />
-        <div className="clarity-final-letter" aria-hidden="true">
-          <span>Dear you,</span>
-          <p>By the time you read this, these memories will already have found you—one day at a time.</p>
+      <section className="section india-section">
+        <div className="india-copy">
+          <p className="eyebrow">The Indian mail atmosphere</p>
+          <h2>Post boxes, sorting marks, night trains and monsoon platforms.</h2>
+          <p>
+            The journey is a cinematic interpretation of Indian post and rail. It gives the waiting a place and rhythm while the letter remains the main object.
+          </p>
+          <Link href="/journey/demo" className="text-link">Follow the demo letter →</Link>
         </div>
-        <div className="clarity-final-copy">
-          <p className="clarity-eyebrow">Some words deserve time</p>
-          <h2>Create a journey that is worth the wait.</h2>
-          <p>Turn a handful of real moments into a private daily experience ending in the letter you actually wanted to send.</p>
-          <Link href="/create" className="clarity-button clarity-button-light">Create a journey <span>→</span></Link>
-          <small>Takes only a few minutes to prepare the first version.</small>
+        <div className="route-list">
+          {routeUpdates.map(([title, copy], index) => (
+            <article key={title} className="route-list-item">
+              <span>0{index + 1}</span>
+              <div><h3>{title}</h3><p>{copy}</p></div>
+            </article>
+          ))}
         </div>
       </section>
 
-      <footer className="clarity-footer">
-        <strong>Intezaar</strong>
-        <span>One memory each day. The final letter arrives last.</span>
+      <LetterOpening />
+
+      <section className="final-cta">
+        <div className="final-cta-stamp">POSTED WITH PATIENCE</div>
+        <p className="eyebrow">Write it today. Let it arrive later.</p>
+        <h2>Some letters should<br />take the long way.</h2>
+        <Link href="/create" className="button button-primary">Write a letter</Link>
+      </section>
+
+      <footer className="site-footer">
+        <div className="brand-mark"><span className="brand-seal">I</span><span>Intezaar</span></div>
+        <p>A private digital letter delivered through a cinematic Indian mail journey.</p>
         <span>India · 2026</span>
       </footer>
     </main>
