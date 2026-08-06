@@ -1,0 +1,689 @@
+/* Mature Indian postal treatment for the letter creator. Scoped to /create. */
+.nostalgia-create {
+  --post-red: #7f2c28;
+  --post-red-deep: #411713;
+  --post-red-bright: #a93b31;
+  --post-paper: #f3e7d1;
+  --post-paper-light: #fbf3e5;
+  --post-ink: #2b201b;
+  --post-muted: #756a60;
+  --post-brass: #c39a5d;
+  --post-line: rgba(74, 52, 38, .2);
+  background: var(--post-paper);
+}
+
+.nostalgia-create > .nostalgia-nav {
+  color: #fff1d7;
+  background:
+    linear-gradient(90deg, rgba(55, 17, 14, .98), rgba(101, 31, 25, .96)),
+    var(--post-red-deep);
+  border-bottom-color: rgba(255, 226, 185, .18);
+  box-shadow: 0 10px 35px rgba(35, 12, 9, .2);
+}
+
+.nostalgia-create > .nostalgia-nav .nostalgia-brand::before {
+  background: #c44638;
+  box-shadow: 0 0 0 6px rgba(196, 70, 56, .16);
+}
+
+.nostalgia-create > .nostalgia-nav .nostalgia-nav-cta {
+  border-color: rgba(255, 231, 198, .45);
+  background: rgba(255, 244, 224, .05);
+}
+
+.nostalgia-create-layout {
+  background: var(--post-paper);
+}
+
+.nostalgia-create-photo {
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 68% 12%, rgba(255, 211, 144, .2), transparent 23%),
+    linear-gradient(160deg, #2b1713 0%, #4c251d 48%, #17100d 100%);
+  background-image: none;
+}
+
+.nostalgia-create-photo::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(19, 10, 8, .84) 0%, rgba(19, 10, 8, .5) 47%, rgba(19, 10, 8, .16) 100%),
+    linear-gradient(180deg, rgba(12, 7, 6, .04), rgba(12, 7, 6, .55));
+}
+
+.nostalgia-create-photo::after {
+  content: "";
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  pointer-events: none;
+  opacity: .17;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170' viewBox='0 0 170 170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.76' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+
+.postal-create-scene {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+}
+
+.postal-create-rain {
+  position: absolute;
+  inset: -10%;
+  opacity: .31;
+  transform: rotate(7deg);
+  background-image: repeating-linear-gradient(90deg, transparent 0 48px, rgba(255,255,255,.26) 49px 50px, transparent 51px 89px);
+  filter: blur(.25px);
+  animation: postalRain 1.2s linear infinite;
+}
+
+.postal-create-platform {
+  position: absolute;
+  left: -8%;
+  right: -8%;
+  bottom: 0;
+  height: 27%;
+  background:
+    linear-gradient(180deg, rgba(43, 25, 18, .18), rgba(21, 13, 10, .8)),
+    repeating-linear-gradient(90deg, #5d4435 0 58px, #3d2b22 59px 61px, #785942 62px 118px);
+  transform: perspective(500px) rotateX(63deg);
+  transform-origin: bottom;
+}
+
+.postal-create-train {
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  top: 21%;
+  height: 190px;
+  opacity: .42;
+  filter: blur(1.3px);
+  background:
+    linear-gradient(180deg, transparent 0 24px, #c9aa79 25px 33px, #5c3c2d 34px 52px, #8a5a3e 53px 145px, #35231c 146px 154px, transparent 155px),
+    repeating-linear-gradient(90deg, transparent 0 22px, rgba(20,15,12,.85) 23px 68px, transparent 69px 97px);
+}
+
+.postal-create-box {
+  position: absolute;
+  z-index: 2;
+  right: clamp(28px, 7vw, 88px);
+  bottom: 12%;
+  width: clamp(210px, 36vw, 330px);
+  height: clamp(410px, 62vw, 610px);
+  border-radius: 52% 52% 24px 24px / 12% 12% 24px 24px;
+  background:
+    radial-gradient(circle at 30% 12%, rgba(255,255,255,.14), transparent 19%),
+    linear-gradient(90deg, #4b1714 0%, #8d2925 22%, #a83b31 52%, #6b211d 82%, #3b1210 100%);
+  border: 1px solid rgba(255, 207, 153, .24);
+  box-shadow: inset 18px 0 25px rgba(255,255,255,.035), inset -20px 0 28px rgba(18,4,3,.34), 0 42px 70px rgba(0,0,0,.42);
+}
+
+.postal-create-box::before {
+  content: "";
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: -5%;
+  height: 13%;
+  border-radius: 50% 50% 20% 20%;
+  background: linear-gradient(180deg, #a63a30, #671d19);
+  border: 1px solid rgba(255, 207, 153, .19);
+  box-shadow: inset 0 8px 16px rgba(255,255,255,.05);
+}
+
+.postal-create-box-title {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 13%;
+  color: #e6c384;
+  text-align: center;
+  font: 700 clamp(14px, 1.6vw, 21px)/1.35 Georgia, serif;
+  letter-spacing: .08em;
+  text-shadow: 0 2px 2px rgba(39,9,7,.55);
+}
+
+.postal-create-box-title small {
+  display: block;
+  margin-bottom: 4px;
+  font: 600 .75em/1.2 system-ui, sans-serif;
+  letter-spacing: .2em;
+}
+
+.postal-create-box-slot {
+  position: absolute;
+  left: 13%;
+  right: 13%;
+  top: 29%;
+  display: grid;
+  place-items: center;
+  height: 13%;
+  color: #e7c98f;
+  border: 1px solid rgba(238, 199, 132, .24);
+  border-radius: 7px;
+  background: linear-gradient(180deg, #3b120f, #1f0b09);
+  box-shadow: inset 0 5px 13px rgba(0,0,0,.65), 0 2px 0 rgba(255,255,255,.04);
+  font: italic 700 clamp(12px, 1.4vw, 18px)/1 Georgia, serif;
+  letter-spacing: .12em;
+}
+
+.postal-create-box-wave {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  top: 50%;
+  height: 52px;
+}
+
+.postal-create-box-wave i {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 16px;
+  border-top: 4px solid #c89b51;
+  border-radius: 50%;
+  transform: rotate(-10deg);
+}
+
+.postal-create-box-wave i:nth-child(2) { top: 10px; }
+.postal-create-box-wave i:nth-child(3) { top: 20px; }
+
+.postal-create-box-time {
+  position: absolute;
+  left: 17%;
+  right: 17%;
+  bottom: 13%;
+  padding: 16px 10px;
+  color: #d5ad70;
+  text-align: center;
+  border: 1px solid rgba(224, 181, 112, .22);
+  background: rgba(34, 9, 7, .46);
+  font: 700 10px/1.5 system-ui, sans-serif;
+  letter-spacing: .13em;
+}
+
+.postal-create-box-time b { display: block; margin-top: 4px; font-size: 18px; }
+
+.postal-create-letters {
+  position: absolute;
+  z-index: 3;
+  right: 4%;
+  bottom: 6%;
+  width: min(52%, 400px);
+  height: 175px;
+  transform: rotate(-4deg);
+}
+
+.postal-create-envelope {
+  position: absolute;
+  width: 76%;
+  height: 100px;
+  border: 1px solid rgba(68, 44, 29, .26);
+  background: linear-gradient(145deg, #d9c4a0, #f1dfbe);
+  box-shadow: 0 18px 30px rgba(0,0,0,.28);
+}
+
+.postal-create-envelope:nth-child(1) { left: 0; top: 52px; transform: rotate(-5deg); }
+.postal-create-envelope:nth-child(2) { left: 11%; top: 29px; transform: rotate(4deg); }
+.postal-create-envelope:nth-child(3) { left: 19%; top: 8px; transform: rotate(-1deg); }
+
+.postal-create-envelope::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0 0, 50% 65%, 100% 0);
+  background: rgba(255, 245, 222, .34);
+}
+
+.postal-create-wax {
+  position: absolute;
+  z-index: 4;
+  left: 53%;
+  top: 54px;
+  display: grid;
+  place-items: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 48% 52% 45% 55%;
+  color: #eac9a0;
+  background: radial-gradient(circle at 36% 28%, #b44a3d, #74231e 70%);
+  box-shadow: inset 0 0 0 4px rgba(70, 15, 12, .25), 0 9px 17px rgba(49, 11, 9, .34);
+  font: italic 700 18px/1 Georgia, serif;
+}
+
+.postal-create-copy {
+  position: relative;
+  z-index: 6;
+  max-width: 620px;
+}
+
+.nostalgia-create-photo .nostalgia-eyebrow {
+  color: #f0d1a2;
+  text-shadow: 0 1px 8px rgba(0,0,0,.35);
+}
+
+.nostalgia-create-photo h1 {
+  max-width: 650px;
+  color: #fff0d8;
+  text-shadow: 0 4px 24px rgba(0,0,0,.4);
+}
+
+.nostalgia-create-photo p {
+  color: rgba(255, 239, 216, .79);
+  text-shadow: 0 2px 15px rgba(0,0,0,.35);
+}
+
+.nostalgia-create-form-wrap {
+  position: relative;
+  isolation: isolate;
+  color: var(--post-ink);
+  background:
+    radial-gradient(circle at 88% 5%, rgba(127, 44, 40, .08), transparent 16%),
+    linear-gradient(rgba(84, 60, 42, .025) 1px, transparent 1px),
+    var(--post-paper);
+  background-size: auto, 100% 5px, auto;
+}
+
+.nostalgia-create-form-wrap::before {
+  content: "INTEZAAR MAIL  •  SORTED BY LETTER  •";
+  position: absolute;
+  z-index: 0;
+  top: 88px;
+  right: clamp(18px, 4vw, 58px);
+  display: grid;
+  place-items: center;
+  width: 154px;
+  height: 154px;
+  border: 2px solid rgba(127, 44, 40, .14);
+  border-radius: 50%;
+  color: rgba(127, 44, 40, .18);
+  text-align: center;
+  font: 800 10px/1.45 system-ui, sans-serif;
+  letter-spacing: .13em;
+  transform: rotate(12deg);
+}
+
+.nostalgia-create-form-wrap::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 9px;
+  opacity: .45;
+  background: repeating-linear-gradient(135deg, #87312b 0 17px, #ead8b8 18px 34px, #4e6470 35px 51px, #ead8b8 52px 68px);
+}
+
+.nostalgia-create-form {
+  position: relative;
+  z-index: 1;
+}
+
+.nostalgia-create .nostalgia-form > .nostalgia-form-note:first-child {
+  margin: 0 0 24px;
+  color: #76695e;
+  font: 500 13px/1.5 Georgia, serif;
+}
+
+.nostalgia-create .nostalgia-form-section {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(34px, 5vw, 58px);
+  border: 1px solid rgba(76, 54, 39, .18);
+  border-radius: 22px;
+  background:
+    linear-gradient(rgba(85, 61, 42, .035) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 249, 237, .96), rgba(246, 232, 208, .97));
+  background-size: 100% 34px, auto;
+  box-shadow: 0 28px 65px rgba(69, 45, 28, .12), inset 0 0 70px rgba(130, 82, 44, .035);
+}
+
+.nostalgia-create .nostalgia-form-section::before {
+  content: "POSTED";
+  position: absolute;
+  z-index: 0;
+  top: 30px;
+  right: 34px;
+  display: grid;
+  place-items: center;
+  width: 108px;
+  height: 108px;
+  border: 2px solid rgba(128, 45, 40, .13);
+  border-radius: 50%;
+  color: rgba(128, 45, 40, .18);
+  font: 800 12px/1 system-ui, sans-serif;
+  letter-spacing: .18em;
+  transform: rotate(-12deg);
+}
+
+.nostalgia-create .nostalgia-form-section::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 7px;
+  background: repeating-linear-gradient(135deg, #8b322d 0 16px, #f1dfbf 17px 32px, #506773 33px 48px, #f1dfbf 49px 64px);
+  opacity: .42;
+}
+
+.nostalgia-create .nostalgia-form-section > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nostalgia-create .nostalgia-form-heading {
+  margin-bottom: 34px;
+}
+
+.nostalgia-create .nostalgia-form-heading > span {
+  color: var(--post-red);
+  font: 800 12px/1 system-ui, sans-serif;
+  letter-spacing: .14em;
+}
+
+.nostalgia-create .nostalgia-form-heading h2 {
+  color: var(--post-ink);
+  font: 400 clamp(42px, 5vw, 68px)/.96 Georgia, serif;
+  letter-spacing: -.04em;
+}
+
+.nostalgia-create .nostalgia-form label {
+  color: #62483d;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.nostalgia-create .nostalgia-form input,
+.nostalgia-create .nostalgia-form select,
+.nostalgia-create .nostalgia-form textarea {
+  color: var(--post-ink);
+  border-color: rgba(70, 50, 37, .28);
+  background-color: rgba(255, 249, 237, .22);
+  border-radius: 0;
+}
+
+.nostalgia-create .nostalgia-form input,
+.nostalgia-create .nostalgia-form select {
+  min-height: 58px;
+  padding: 12px 4px;
+  border-width: 0 0 1px;
+  font: 400 24px/1.25 Georgia, serif;
+}
+
+.nostalgia-create .nostalgia-form textarea {
+  min-height: 330px;
+  padding: 18px 4px;
+  border-width: 0 0 1px;
+  line-height: 42px;
+  font: 400 24px/42px Georgia, serif;
+  resize: vertical;
+  background-image: repeating-linear-gradient(180deg, transparent 0 41px, rgba(92, 67, 49, .13) 41px 42px);
+}
+
+.nostalgia-create .nostalgia-form input::placeholder,
+.nostalgia-create .nostalgia-form textarea::placeholder {
+  color: rgba(60, 47, 39, .47);
+}
+
+.nostalgia-create .nostalgia-form input:focus,
+.nostalgia-create .nostalgia-form select:focus,
+.nostalgia-create .nostalgia-form textarea:focus {
+  outline: 2px solid rgba(127, 44, 40, .35);
+  outline-offset: 4px;
+  border-color: var(--post-red);
+}
+
+.nostalgia-create .nostalgia-form-note {
+  color: var(--post-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.nostalgia-create .nostalgia-form-actions {
+  gap: 12px;
+  margin-top: 38px;
+}
+
+.nostalgia-create .nostalgia-button {
+  min-height: 58px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: .11em;
+}
+
+.nostalgia-create .nostalgia-button-primary {
+  color: #fff0d4;
+  background: linear-gradient(180deg, #91342e, #6f2521);
+  border-color: rgba(73, 18, 14, .35);
+  box-shadow: 0 17px 30px rgba(101, 32, 28, .2), inset 0 1px 0 rgba(255,255,255,.15);
+}
+
+.nostalgia-create .nostalgia-button-primary:hover {
+  background: linear-gradient(180deg, #a23d35, #7d2a25);
+}
+
+.nostalgia-create .nostalgia-button-primary:disabled {
+  cursor: not-allowed;
+  opacity: .43;
+  transform: none;
+}
+
+.nostalgia-create .nostalgia-button-ghost {
+  color: var(--post-red-deep);
+  border-color: rgba(74, 44, 32, .34);
+  background: rgba(255, 249, 237, .4);
+}
+
+.nostalgia-create .nostalgia-length-options button {
+  color: #62483d;
+  border-color: rgba(87, 55, 39, .25);
+  background: rgba(255, 249, 237, .36);
+}
+
+.nostalgia-create .nostalgia-length-options button.active {
+  color: #fff0d4;
+  border-color: var(--post-red);
+  background: var(--post-red);
+}
+
+.nostalgia-create .nostalgia-memory-row {
+  background: rgba(255, 249, 237, .36);
+  border-color: rgba(87, 55, 39, .2);
+}
+
+.nostalgia-create .nostalgia-success-ticket {
+  color: var(--post-ink);
+  border: 1px dashed rgba(127, 44, 40, .37);
+  background: rgba(255, 245, 224, .6);
+}
+
+.nostalgia-create .nostalgia-create-success {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(38px, 6vw, 68px);
+  border: 1px solid rgba(82, 55, 38, .19);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fff8e8, #f0dfc3);
+  box-shadow: 0 28px 65px rgba(69, 45, 28, .12);
+}
+
+@keyframes postalRain {
+  from { transform: translate3d(0, -22px, 0) rotate(7deg); }
+  to { transform: translate3d(-28px, 44px, 0) rotate(7deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .postal-create-rain { animation: none; }
+}
+
+@media (max-width: 980px) {
+  .nostalgia-create-layout { grid-template-columns: 1fr; }
+
+  .nostalgia-create-photo {
+    position: relative;
+    min-height: 76svh;
+    padding: 130px 28px 58px;
+  }
+
+  .postal-create-box {
+    right: 5%;
+    bottom: 8%;
+    width: min(39vw, 300px);
+    height: min(65vw, 550px);
+    opacity: .92;
+  }
+
+  .postal-create-letters { width: min(47%, 350px); }
+  .postal-create-copy { max-width: 650px; }
+
+  .nostalgia-create-form-wrap {
+    padding-top: 74px;
+  }
+}
+
+@media (max-width: 680px) {
+  .nostalgia-create > .nostalgia-nav {
+    min-height: 86px;
+    padding-inline: 20px;
+  }
+
+  .nostalgia-create > .nostalgia-nav .nostalgia-nav-links > a:not(.nostalgia-nav-cta) {
+    display: none;
+  }
+
+  .nostalgia-create-photo {
+    min-height: 690px;
+    padding: 132px 27px 54px;
+    align-content: end;
+  }
+
+  .nostalgia-create-photo::before {
+    background:
+      linear-gradient(90deg, rgba(15, 8, 7, .68), rgba(15, 8, 7, .17)),
+      linear-gradient(180deg, rgba(12, 7, 6, .05) 10%, rgba(12, 7, 6, .72) 74%);
+  }
+
+  .postal-create-train {
+    top: 23%;
+    height: 155px;
+    opacity: .34;
+  }
+
+  .postal-create-box {
+    right: -13px;
+    bottom: 14%;
+    width: 238px;
+    height: 455px;
+  }
+
+  .postal-create-letters {
+    right: -3%;
+    bottom: 7%;
+    width: 55%;
+    transform: rotate(-4deg) scale(.9);
+    transform-origin: bottom right;
+  }
+
+  .postal-create-copy {
+    max-width: 88%;
+  }
+
+  .nostalgia-create-photo h1 {
+    max-width: 540px;
+    font-size: clamp(52px, 13.2vw, 74px);
+    line-height: .96;
+  }
+
+  .nostalgia-create-photo p {
+    max-width: 92%;
+    font-size: 16px;
+    line-height: 1.58;
+  }
+
+  .nostalgia-create-form-wrap {
+    padding: 68px 16px 92px;
+  }
+
+  .nostalgia-create-form-wrap::before {
+    top: 22px;
+    right: 12px;
+    width: 112px;
+    height: 112px;
+    font-size: 8px;
+  }
+
+  .nostalgia-create .nostalgia-form > .nostalgia-form-note:first-child {
+    padding-right: 86px;
+    font-size: 12px;
+  }
+
+  .nostalgia-create .nostalgia-form-section {
+    padding: 30px 18px 58px;
+    border-radius: 15px;
+  }
+
+  .nostalgia-create .nostalgia-form-section::before {
+    top: 18px;
+    right: 14px;
+    width: 82px;
+    height: 82px;
+    font-size: 9px;
+  }
+
+  .nostalgia-create .nostalgia-form-heading {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 8px;
+    margin-bottom: 29px;
+    padding-right: 48px;
+  }
+
+  .nostalgia-create .nostalgia-form-heading h2 {
+    font-size: clamp(39px, 12vw, 54px);
+  }
+
+  .nostalgia-create .nostalgia-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nostalgia-create .nostalgia-form input,
+  .nostalgia-create .nostalgia-form select {
+    min-height: 55px;
+    font-size: 22px;
+  }
+
+  .nostalgia-create .nostalgia-form textarea {
+    min-height: 390px;
+    font-size: 22px;
+    line-height: 40px;
+    background-image: repeating-linear-gradient(180deg, transparent 0 39px, rgba(92, 67, 49, .13) 39px 40px);
+  }
+
+  .nostalgia-create .nostalgia-form-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .nostalgia-create .nostalgia-button {
+    width: 100%;
+    min-height: 62px;
+  }
+
+  .nostalgia-create .nostalgia-memory-row {
+    grid-template-columns: 34px 1fr;
+  }
+
+  .nostalgia-create .nostalgia-memory-row input {
+    grid-column: 1 / -1;
+  }
+}
