@@ -1,0 +1,631 @@
+/* Sender ceremony: choose arrival, seal the envelope and post it. */
+.seal-post-flow .creation-stepper {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.arrival-postal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.postal-route-card {
+  background: linear-gradient(145deg, rgba(126, 44, 35, .08), rgba(255, 249, 237, .82));
+}
+
+.ceremony-panel {
+  overflow: hidden;
+}
+
+.seal-stage,
+.post-stage {
+  position: relative;
+  min-height: 520px;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(93, 58, 38, .18);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(255, 224, 175, .28), transparent 28%),
+    linear-gradient(145deg, #3e231a 0%, #714333 54%, #2d1913 100%);
+  box-shadow: inset 0 1px rgba(255,255,255,.16), 0 22px 52px rgba(59, 34, 21, .16);
+}
+
+.seal-stage::before,
+.post-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: .22;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitchTiles'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.23'/%3E%3C/svg%3E");
+}
+
+.seal-paper {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 62px;
+  width: min(70%, 430px);
+  min-height: 290px;
+  padding: 38px;
+  transform: translateX(-50%);
+  color: #503a30;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 29px, rgba(92, 58, 39, .06) 30px),
+    #fff7e7;
+  border: 1px solid rgba(94, 58, 37, .14);
+  box-shadow: 0 24px 48px rgba(0,0,0,.24);
+  transform-origin: center bottom;
+}
+
+.seal-paper span {
+  display: block;
+  margin-bottom: 26px;
+  font: italic 22px/1.3 Georgia, serif;
+}
+
+.seal-paper i {
+  display: block;
+  height: 2px;
+  margin-top: 17px;
+  background: rgba(93, 66, 53, .25);
+}
+
+.seal-paper i:nth-child(3) { width: 82%; }
+.seal-paper i:nth-child(4) { width: 65%; }
+
+.seal-envelope {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 88px;
+  width: min(72%, 440px);
+  height: 250px;
+  transform: translateX(-50%) translateY(64px) scale(.9);
+  opacity: 0;
+  filter: drop-shadow(0 22px 30px rgba(0,0,0,.28));
+}
+
+.seal-envelope-back {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 7px;
+  background: linear-gradient(145deg, #ead2a9, #f9e8c8);
+  box-shadow: inset 0 0 0 1px rgba(96, 58, 35, .14);
+}
+
+.seal-envelope-back::before,
+.seal-envelope-back::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 70%;
+  height: 72%;
+  background: rgba(219, 190, 148, .62);
+}
+
+.seal-envelope-back::before {
+  left: 0;
+  clip-path: polygon(0 100%, 0 0, 100% 100%);
+}
+
+.seal-envelope-back::after {
+  right: 0;
+  clip-path: polygon(0 100%, 100% 0, 100% 100%);
+}
+
+.seal-envelope-flap {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  transform-origin: 50% 0;
+  clip-path: polygon(0 0, 50% 58%, 100% 0);
+  background: linear-gradient(180deg, #f7e6c4, #dfbd8f);
+}
+
+.seal-wax {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: 47%;
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%;
+  color: #f2d5a7;
+  background: #a33326;
+  box-shadow: inset 0 0 0 5px rgba(94, 24, 17, .25), 0 8px 18px rgba(55, 17, 12, .28);
+  font: italic 23px Georgia, serif;
+}
+
+.seal-envelope > strong {
+  position: absolute;
+  z-index: 3;
+  left: 28px;
+  bottom: 26px;
+  font: italic 21px Georgia, serif;
+}
+
+.ceremony-status {
+  position: absolute;
+  z-index: 9;
+  right: 24px;
+  bottom: 22px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 17px;
+  border: 1px solid rgba(255, 237, 211, .19);
+  border-radius: 14px;
+  color: #fff1dc;
+  background: rgba(33, 19, 14, .72);
+  backdrop-filter: blur(12px);
+}
+
+.ceremony-status span {
+  color: #e6b978;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .17em;
+}
+
+.ceremony-status strong {
+  font: 400 18px/1.25 Georgia, serif;
+  text-align: right;
+}
+
+.seal-sealing .seal-paper {
+  animation: foldLetter 2.15s cubic-bezier(.65,.05,.2,1) forwards;
+}
+
+.seal-sealing .seal-envelope {
+  animation: revealEnvelope .55s ease .65s forwards;
+}
+
+.seal-sealing .seal-envelope-flap {
+  animation: closeFlap .72s ease 1.2s forwards;
+}
+
+.seal-sealing .seal-wax {
+  animation: pressWax .5s cubic-bezier(.2,.8,.2,1.2) 1.78s forwards;
+}
+
+.seal-sealed .seal-paper {
+  opacity: 0;
+  transform: translateX(-50%) translateY(110px) scale(.35);
+}
+
+.seal-sealed .seal-envelope {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.seal-sealed .seal-envelope-flap {
+  transform: rotateX(180deg);
+}
+
+.seal-sealed .seal-wax {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.ceremony-summary {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid rgba(83, 53, 36, .13);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 249, 237, .72);
+}
+
+.ceremony-summary div {
+  min-width: 0;
+  padding: 15px 16px;
+}
+
+.ceremony-summary div + div {
+  border-left: 1px solid rgba(83, 53, 36, .12);
+}
+
+.ceremony-summary small,
+.ceremony-summary strong {
+  display: block;
+}
+
+.ceremony-summary small {
+  margin-bottom: 5px;
+  color: #8c7364;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.ceremony-summary strong {
+  overflow-wrap: anywhere;
+  font: 400 16px/1.35 Georgia, serif;
+}
+
+.post-stage {
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 213, 148, .22), transparent 20%),
+    linear-gradient(155deg, #1d1a18 0%, #49372d 48%, #231713 100%);
+}
+
+.post-atmosphere {
+  position: absolute;
+  inset: 0;
+  opacity: .28;
+  background:
+    repeating-linear-gradient(105deg, transparent 0 36px, rgba(255,255,255,.12) 37px, transparent 38px 78px),
+    linear-gradient(180deg, transparent, rgba(0,0,0,.35));
+  animation: postalRain 14s linear infinite;
+}
+
+.post-atmosphere span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 72px;
+  height: 2px;
+  background: rgba(255,255,255,.12);
+  box-shadow: 0 17px rgba(255,255,255,.06), 0 34px rgba(0,0,0,.28);
+}
+
+.intezaar-postbox {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 90px;
+  width: 250px;
+  height: 330px;
+  transform: translateX(-50%);
+  border-radius: 118px 118px 18px 18px;
+  color: #f7d7b0;
+  background: linear-gradient(100deg, #7d1f1a, #b5382b 46%, #741a17);
+  border: 3px solid rgba(60, 12, 10, .46);
+  box-shadow: inset 18px 0 26px rgba(255,255,255,.06), inset -20px 0 30px rgba(60,10,9,.22), 0 34px 56px rgba(0,0,0,.38);
+}
+
+.intezaar-postbox > strong {
+  position: absolute;
+  top: 44px;
+  left: 0;
+  right: 0;
+  display: grid;
+  justify-items: center;
+  font: 800 15px/1.2 system-ui, sans-serif;
+  letter-spacing: .11em;
+}
+
+.intezaar-postbox > strong small {
+  margin-bottom: 4px;
+  font: 700 19px Georgia, serif;
+}
+
+.postbox-slot {
+  position: absolute;
+  top: 112px;
+  left: 28px;
+  right: 28px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  color: #f5d8b7;
+  background: #32110f;
+  box-shadow: inset 0 4px 10px rgba(0,0,0,.65), 0 0 0 3px rgba(246, 205, 158, .16);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .18em;
+}
+
+.postbox-door {
+  position: absolute;
+  left: 34px;
+  right: 34px;
+  bottom: 46px;
+  height: 124px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(64, 14, 11, .55);
+  border-radius: 15px;
+  background: rgba(109, 23, 19, .52);
+  box-shadow: inset 0 0 0 5px rgba(241, 185, 124, .08);
+}
+
+.postbox-door i {
+  opacity: 0;
+  transform: rotate(-9deg) scale(.8);
+  padding: 9px 12px;
+  border: 3px double rgba(245, 207, 162, .65);
+  color: #f5d7b4;
+  font: normal 800 15px/1 system-ui, sans-serif;
+  letter-spacing: .12em;
+}
+
+.postbox-base {
+  position: absolute;
+  left: 30px;
+  right: 30px;
+  bottom: -22px;
+  height: 28px;
+  border-radius: 0 0 12px 12px;
+  background: #431311;
+}
+
+.posting-envelope {
+  position: absolute;
+  z-index: 7;
+  left: 22%;
+  top: 170px;
+  width: 190px;
+  height: 112px;
+  border-radius: 5px;
+  color: #3c291f;
+  background: linear-gradient(145deg, #f5dfbd, #dfbf91);
+  box-shadow: 0 18px 30px rgba(0,0,0,.27), inset 0 0 0 1px rgba(91, 54, 34, .14);
+  transform: rotate(-7deg);
+}
+
+.posting-envelope::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0 0, 50% 58%, 100% 0);
+  background: linear-gradient(180deg, #f9e8c8, #dcb98a);
+}
+
+.posting-envelope span {
+  position: absolute;
+  z-index: 2;
+  left: 17px;
+  bottom: 15px;
+  font: italic 14px Georgia, serif;
+}
+
+.posting-envelope i {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: 51%;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  color: #efd0a1;
+  background: #9d3025;
+  font: italic 14px Georgia, serif;
+}
+
+.post-posting .posting-envelope {
+  animation: postEnvelope 2.5s cubic-bezier(.55,.02,.32,1) forwards;
+}
+
+.post-posting .intezaar-postbox {
+  animation: boxReceive .3s ease 1.75s;
+}
+
+.post-posting .postbox-door i,
+.post-posted .postbox-door i {
+  animation: postedStamp .42s ease 2.15s forwards;
+}
+
+.post-posted .posting-envelope {
+  opacity: 0;
+  transform: translate(125%, 16px) scale(.25) rotate(2deg);
+}
+
+.post-posted .postbox-door i {
+  opacity: 1;
+  transform: rotate(-9deg) scale(1);
+}
+
+.posted-stamp-card {
+  margin: 30px 0;
+  padding: 28px;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  border: 1px solid rgba(91, 55, 36, .16);
+  border-radius: 18px;
+  background: rgba(255, 248, 234, .72);
+  text-align: center;
+}
+
+.posted-stamp-card > span {
+  padding: 9px 15px;
+  border: 3px double rgba(150, 50, 40, .65);
+  color: #9b382d;
+  transform: rotate(-3deg);
+  font-size: 14px;
+  font-weight: 850;
+  letter-spacing: .16em;
+}
+
+.posted-stamp-card strong {
+  margin-top: 12px;
+  font: 400 26px/1.2 Georgia, serif;
+}
+
+.posted-stamp-card p,
+.prototype-transfer-note {
+  margin: 0;
+  color: #7c6a60;
+  line-height: 1.55;
+}
+
+.prototype-transfer-note {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(82, 53, 37, .12);
+  font-size: 11px;
+}
+
+@keyframes foldLetter {
+  0% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  45% { transform: translateX(-50%) translateY(55px) scaleY(.48) scaleX(.92); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(150px) scale(.35); }
+}
+
+@keyframes revealEnvelope {
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+@keyframes closeFlap {
+  to { transform: rotateX(180deg); }
+}
+
+@keyframes pressWax {
+  0% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+  70% { transform: translate(-50%, -50%) scale(.9); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+@keyframes postEnvelope {
+  0% { left: 22%; top: 170px; opacity: 1; transform: rotate(-7deg) scale(1); }
+  48% { left: 50%; top: 102px; transform: translateX(-50%) rotate(0) scale(.8); }
+  78% { left: 50%; top: 128px; opacity: 1; transform: translateX(-50%) rotate(0) scale(.55); }
+  100% { left: 50%; top: 145px; opacity: 0; transform: translateX(-50%) rotate(0) scale(.2); }
+}
+
+@keyframes boxReceive {
+  50% { transform: translateX(-50%) scale(.985); }
+}
+
+@keyframes postedStamp {
+  from { opacity: 0; transform: rotate(-9deg) scale(1.4); }
+  to { opacity: 1; transform: rotate(-9deg) scale(1); }
+}
+
+@keyframes postalRain {
+  to { background-position: 120px 300px, 0 0; }
+}
+
+@media (max-width: 980px) {
+  .seal-post-flow .creation-stepper {
+    grid-template-columns: repeat(6, 110px);
+  }
+
+  .arrival-postal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .seal-stage,
+  .post-stage {
+    min-height: 470px;
+    border-radius: 19px;
+  }
+
+  .seal-paper {
+    top: 48px;
+    width: 82%;
+    min-height: 250px;
+    padding: 27px;
+  }
+
+  .seal-envelope {
+    width: 84%;
+    height: 210px;
+  }
+
+  .intezaar-postbox {
+    width: 210px;
+    height: 300px;
+  }
+
+  .posting-envelope {
+    left: 8%;
+    top: 155px;
+    width: 150px;
+    height: 90px;
+  }
+
+  .ceremony-status {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .ceremony-status strong {
+    font-size: 16px;
+    text-align: left;
+  }
+
+  .ceremony-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .ceremony-summary div + div {
+    border-left: 0;
+    border-top: 1px solid rgba(83, 53, 36, .12);
+  }
+}
+
+@media (max-width: 430px) {
+  .seal-stage,
+  .post-stage {
+    min-height: 440px;
+  }
+
+  .seal-paper {
+    min-height: 220px;
+  }
+
+  .seal-envelope {
+    bottom: 98px;
+    height: 185px;
+  }
+
+  .seal-wax {
+    width: 50px;
+    height: 50px;
+  }
+
+  .intezaar-postbox {
+    bottom: 100px;
+    width: 184px;
+    height: 268px;
+  }
+
+  .postbox-slot {
+    top: 96px;
+  }
+
+  .postbox-door {
+    bottom: 40px;
+    height: 106px;
+  }
+
+  .posting-envelope {
+    width: 132px;
+    height: 78px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seal-sealing .seal-paper,
+  .seal-sealing .seal-envelope,
+  .seal-sealing .seal-envelope-flap,
+  .seal-sealing .seal-wax,
+  .post-posting .posting-envelope,
+  .post-posting .intezaar-postbox,
+  .post-posting .postbox-door i,
+  .post-atmosphere {
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+  }
+}
