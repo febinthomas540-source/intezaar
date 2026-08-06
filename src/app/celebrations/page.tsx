@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { CelebrationStudio } from "@/components/celebration-studio";
 
 export const metadata: Metadata = {
-  title: "Personalised Celebration Wishes for India",
-  description: "Create a thoughtful, personalised celebration wish from real memories, relationship details and your own voice.",
+  title: "Personalised Celebration Letters for India",
+  description: "Create a thoughtful celebration letter from real details, edit every word, and send it through an Intezaar postal journey.",
 };
 
 export default function CelebrationsPage() {
