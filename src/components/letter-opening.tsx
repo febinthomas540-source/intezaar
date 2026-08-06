@@ -149,7 +149,7 @@ export function LetterOpening() {
               animate={{ opacity: 1, y: 0, rotateX: 0, scaleY: 1 }}
               transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="letter-postmark">DELHI · TEN MEMORIES · KERALA</div>
+              <div className="letter-postmark">DELHI · BY RAIL · KERALA</div>
               <p className="letter-salutation">Dear Ananya,</p>
               <p>
                 Do you remember the evening we missed the bus and laughed beneath that broken shop awning? I did not know then that such an ordinary moment would become one of the places I return to whenever I miss you.
