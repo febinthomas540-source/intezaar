@@ -14,24 +14,24 @@ const siteUrl = "https://intezaar.vercel.app";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Intezaar — One memory arrives each day",
+    default: "Intezaar — A letter that travels by train",
     template: "%s | Intezaar",
   },
   description:
-    "Create a private journey of photographs, notes, voice messages and a final sealed letter. One memory unlocks each day, then the complete story becomes an A4 keepsake.",
+    "Write a private digital letter, choose a 3, 5 or 7-day journey, and let it travel through a cinematic Indian post-and-rail route before it can be opened.",
   applicationName: "Intezaar",
   authors: [{ name: "Intezaar" }],
   creator: "Intezaar",
   publisher: "Intezaar",
   category: "Emotional gifting",
   keywords: [
-    "digital memory journey",
-    "scheduled online letter",
-    "private photo gift",
-    "voice note keepsake",
+    "scheduled digital letter",
+    "Indian mail journey",
+    "private online letter",
     "future message",
     "romantic letter experience",
-    "memory book PDF",
+    "railway letter journey",
+    "printable letter keepsake",
     "slow digital gifting",
     "nostalgic letter website",
   ],
@@ -41,15 +41,15 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: siteUrl,
     siteName: "Intezaar",
-    title: "Intezaar — Some memories should not arrive instantly",
+    title: "Intezaar — A letter that travels by train",
     description:
-      "Upload memories and a final letter. Your recipient receives one memory each day before the full letter arrives.",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Intezaar rainy-night private memory journey" }],
+      "Write something meaningful. Let the sealed letter move through Indian post offices and railway stations, then open it on arrival day.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "A sealed Intezaar letter travelling through a mature Indian mail journey" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Intezaar — One memory arrives each day",
-    description: "A private daily memory journey ending in one sealed letter and an A4 keepsake.",
+    title: "Intezaar — A letter that takes the long way",
+    description: "A private digital letter delivered through a cinematic Indian mail journey.",
     images: ["/opengraph-image"],
   },
   robots: {
@@ -65,7 +65,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0f0d0b",
+  themeColor: "#271711",
   colorScheme: "dark",
 };
 
@@ -82,7 +82,7 @@ const websiteSchema = {
   "@type": "WebSite",
   name: "Intezaar",
   url: siteUrl,
-  description: "A private journey where one memory opens each day before the final letter and A4 keepsake arrive.",
+  description: "A private digital letter that takes a short cinematic Indian mail journey before it arrives and can be opened.",
   inLanguage: "en-IN",
   publisher: { "@type": "Organization", name: "Intezaar" },
 };
