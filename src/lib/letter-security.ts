@@ -1,0 +1,172 @@
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+} from "node:crypto";
+
+export type LetterPayload = {
+  version: 1;
+  heading: string;
+  message: string;
+  closing: string;
+};
+
+export type StoredLetter = {
+  id: string;
+  sender_name: string;
+  recipient_name: string;
+  occasion: string;
+  letter_format: string;
+  from_city: string | null;
+  to_city: string | null;
+  opens_at: string;
+  status: string;
+  payload_ciphertext: string;
+  payload_iv: string;
+  payload_auth_tag: string;
+};
+
+type EncryptedPayload = {
+  ciphertext: string;
+  iv: string;
+  authTag: string;
+};
+
+function requiredEnvironment(name: string) {
+  const value = process.env[name]?.trim();
+  if (!value) throw new Error(`Missing required environment variable: ${name}`);
+  return value;
+}
+
+function encryptionKey() {
+  const encoded = requiredEnvironment("LETTER_ENCRYPTION_KEY");
+  const key = Buffer.from(encoded, "base64");
+  if (key.length !== 32) {
+    throw new Error("LETTER_ENCRYPTION_KEY must be a Base64-encoded 32-byte key.");
+  }
+  return key;
+}
+
+export function createPrivateToken() {
+  return randomBytes(32).toString("base64url");
+}
+
+export function hashPrivateToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+export function encryptLetterPayload(payload: LetterPayload): EncryptedPayload {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", encryptionKey(), iv);
+  const plaintext = Buffer.from(JSON.stringify(payload), "utf8");
+  const encrypted = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+
+  return {
+    ciphertext: encrypted.toString("base64"),
+    iv: iv.toString("base64"),
+    authTag: cipher.getAuthTag().toString("base64"),
+  };
+}
+
+export function decryptLetterPayload(letter: StoredLetter): LetterPayload {
+  const decipher = createDecipheriv(
+    "aes-256-gcm",
+    encryptionKey(),
+    Buffer.from(letter.payload_iv, "base64"),
+  );
+  decipher.setAuthTag(Buffer.from(letter.payload_auth_tag, "base64"));
+
+  const plaintext = Buffer.concat([
+    decipher.update(Buffer.from(letter.payload_ciphertext, "base64")),
+    decipher.final(),
+  ]).toString("utf8");
+
+  const parsed = JSON.parse(plaintext) as Partial<LetterPayload>;
+  if (
+    parsed.version !== 1 ||
+    typeof parsed.heading !== "string" ||
+    typeof parsed.message !== "string" ||
+    typeof parsed.closing !== "string"
+  ) {
+    throw new Error("Stored letter payload is invalid.");
+  }
+
+  return parsed as LetterPayload;
+}
+
+function supabaseHeaders(extra?: HeadersInit) {
+  return {
+    apikey: requiredEnvironment("SUPABASE_SECRET_KEY"),
+    "Content-Type": "application/json",
+    ...extra,
+  } satisfies HeadersInit;
+}
+
+function supabaseUrl(path: string) {
+  return `${requiredEnvironment("NEXT_PUBLIC_SUPABASE_URL").replace(/\/$/, "")}/rest/v1/${path}`;
+}
+
+async function parseSupabaseError(response: Response) {
+  const body = await response.text();
+  return body || `${response.status} ${response.statusText}`;
+}
+
+export async function insertEncryptedLetter(row: Record<string, unknown>) {
+  const response = await fetch(supabaseUrl("letters"), {
+    method: "POST",
+    headers: supabaseHeaders({ Prefer: "return=representation" }),
+    body: JSON.stringify(row),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Supabase insert failed: ${await parseSupabaseError(response)}`);
+  }
+
+  const result = await response.json() as Array<{ id: string }>;
+  if (!result[0]?.id) throw new Error("Supabase did not return the new letter id.");
+  return result[0].id;
+}
+
+export async function insertLetterEvent(
+  letterId: string,
+  eventType: string,
+  eventData: Record<string, unknown> = {},
+) {
+  const response = await fetch(supabaseUrl("letter_events"), {
+    method: "POST",
+    headers: supabaseHeaders({ Prefer: "return=minimal" }),
+    body: JSON.stringify({
+      letter_id: letterId,
+      event_type: eventType,
+      event_data: eventData,
+    }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    console.error("Could not record letter event:", await parseSupabaseError(response));
+  }
+}
+
+export async function findLetterByAccessToken(token: string): Promise<StoredLetter | null> {
+  const hash = hashPrivateToken(token);
+  const query = new URLSearchParams({
+    access_token_hash: `eq.${hash}`,
+    select: "id,sender_name,recipient_name,occasion,letter_format,from_city,to_city,opens_at,status,payload_ciphertext,payload_iv,payload_auth_tag",
+    limit: "1",
+  });
+
+  const response = await fetch(supabaseUrl(`letters?${query.toString()}`), {
+    headers: supabaseHeaders(),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Supabase read failed: ${await parseSupabaseError(response)}`);
+  }
+
+  const result = await response.json() as StoredLetter[];
+  return result[0] ?? null;
+}
