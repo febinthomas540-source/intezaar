@@ -25,21 +25,22 @@ export function HeroJourney() {
           transition={{ duration: 0.8 }}
           className="hero-copy"
         >
-          <p className="eyebrow">A letter carried by post and rail</p>
+          <p className="eyebrow">A private digital letter carried through Indian mail</p>
           <h1>
-            Post a memory.
-            <span> Let it travel home.</span>
+            A letter that
+            <span> travels by train.</span>
           </h1>
           <p className="hero-lede">
-            Seal your words. Choose the arrival day. Let someone feel the journey before they open it.
+            Write something meaningful. Choose 3, 5 or 7 days. Your sealed letter moves through post offices and railway stations, then arrives and can be opened.
           </p>
           <div className="hero-actions">
-            <Link href="/create" className="button button-primary">Post a memory</Link>
-            <Link href="/journey/demo" className="button button-ghost">See the journey</Link>
+            <Link href="/create" className="button button-primary">Write a letter</Link>
+            <Link href="/journey/demo" className="button button-ghost">See the postal journey</Link>
           </div>
           <div className="hero-trust">
-            <span>Private link</span>
-            <span>Opens on time</span>
+            <span>Private recipient link</span>
+            <span>No daily check-in required</span>
+            <span>Opens only on arrival</span>
           </div>
         </motion.div>
 
@@ -51,11 +52,11 @@ export function HeroJourney() {
         >
           <div className="postal-stage">
             <div className="station-board">
-              <small>INTEZAAR MAIL</small>
-              <strong>DELHI JN. → KERALA</strong>
+              <small>INTEZAAR POST &amp; RAIL</small>
+              <strong>DELHI JN. → KOCHI</strong>
             </div>
 
-            <div className="posting-animation" aria-label="A person posts a sealed letter into the red post box">
+            <div className="posting-animation" aria-label="A sealed digital letter is posted into a red post box">
               <motion.div
                 className="posting-arm"
                 animate={{ x: [150, 150, 42, 12, 12, 150], y: [34, 34, 10, 4, 4, 34], rotate: [8, 8, -3, -8, -8, 8] }}
@@ -68,7 +69,7 @@ export function HeroJourney() {
                   animate={{ x: [0, 0, -6, -12, -12, 0], y: [0, 0, 5, 30, 54, 0], rotate: [-5, -5, -2, 1, 4, -5], opacity: [1, 1, 1, 1, 0, 0] }}
                   transition={{ duration: 6.8, times: [0, .13, .42, .56, .72, 1], repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <b>For someone remembered</b>
+                  <b>For Ananya</b>
                   <em />
                 </motion.span>
               </motion.div>
@@ -96,10 +97,10 @@ export function HeroJourney() {
               >
                 <div className="engine-coach"><i /><i /><b /></div>
                 <div className="mail-coach">
-                  <span>भारतीय रेल</span><small>Post &amp; Memories</small><i /><i />
+                  <span>भारतीय रेल</span><small>Mail carriage</small><i /><i />
                 </div>
                 <div className="mail-coach short-coach">
-                  <span>RM</span><small>Rail Mail</small><i /><i />
+                  <span>RM</span><small>Rail mail</small><i /><i />
                 </div>
               </motion.div>
             </div>
@@ -108,14 +109,14 @@ export function HeroJourney() {
               <div className="inland-stamps"><span>DEL 04 AUG</span><span>BY RAIL</span></div>
               <div className="inland-lines">
                 <small>Now travelling</small>
-                <strong>Some memories should arrive slowly.</strong>
+                <strong>Your letter is on its way.</strong>
               </div>
             </div>
           </div>
         </motion.div>
       </div>
 
-      <div className="scroll-whisper">Follow the letter</div>
+      <div className="scroll-whisper">Follow the postal journey</div>
     </section>
   );
 }
