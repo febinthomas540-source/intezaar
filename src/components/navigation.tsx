@@ -8,9 +8,9 @@ export function Navigation() {
       </Link>
       <nav className="nostalgia-nav-links" aria-label="Main navigation">
         <Link href="/#how-it-works">How it works</Link>
-        <Link href="/celebrations">Celebration wishes</Link>
-        <Link href="/journey/demo">Experience</Link>
-        <Link href="/create" className="nostalgia-nav-cta">Create a journey</Link>
+        <Link href="/celebrations">Celebration letters</Link>
+        <Link href="/journey/demo">Follow a letter</Link>
+        <Link href="/create" className="nostalgia-nav-cta">Write a letter</Link>
       </nav>
     </header>
   );
