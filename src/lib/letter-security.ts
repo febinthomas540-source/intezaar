@@ -129,6 +129,20 @@ export async function insertEncryptedLetter(row: Record<string, unknown>) {
   return result[0].id;
 }
 
+export async function markRecipientNotified(letterId: string) {
+  const query = new URLSearchParams({ id: `eq.${letterId}` });
+  const response = await fetch(supabaseUrl(`letters?${query.toString()}`), {
+    method: "PATCH",
+    headers: supabaseHeaders({ Prefer: "return=minimal" }),
+    body: JSON.stringify({ recipient_notified_at: new Date().toISOString() }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    console.error("Could not mark recipient notification:", await parseSupabaseError(response));
+  }
+}
+
 export async function insertLetterEvent(
   letterId: string,
   eventType: string,
