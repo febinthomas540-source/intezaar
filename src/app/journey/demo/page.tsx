@@ -16,6 +16,10 @@ export default function JourneyDemoPage() {
   return (
     <PostalLetterPrototype
       recipient="Ananya"
+      sender="Arjun"
+      occasion="Just because"
+      format="airmail"
+      openingTime="20:00"
       previewDay={2}
       duration={5}
       fromCity="Delhi"
