@@ -39,11 +39,31 @@ export default function CreatePage() {
       <Navigation />
       <section className="nostalgia-create-layout">
         <aside className="nostalgia-create-photo">
-          <p className="nostalgia-eyebrow">Write a private letter</p>
-          <h1>Post words that deserve more than an instant delivery.</h1>
-          <p>
-            The letter is the main thing. Photographs, short memories and voice notes are optional pieces carried inside it.
-          </p>
+          <div className="postal-create-scene" aria-hidden="true">
+            <div className="postal-create-rain" />
+            <div className="postal-create-train" />
+            <div className="postal-create-platform" />
+            <div className="postal-create-box">
+              <span className="postal-create-box-title"><small>डाक</small>INTEZAAR MAIL</span>
+              <span className="postal-create-box-slot">LETTERS</span>
+              <span className="postal-create-box-wave"><i /><i /><i /></span>
+              <span className="postal-create-box-time">NEXT COLLECTION<b>17:00</b></span>
+            </div>
+            <div className="postal-create-letters">
+              <span className="postal-create-envelope" />
+              <span className="postal-create-envelope" />
+              <span className="postal-create-envelope" />
+              <span className="postal-create-wax">I</span>
+            </div>
+          </div>
+
+          <div className="postal-create-copy">
+            <p className="nostalgia-eyebrow">Write a private letter</p>
+            <h1>Post words that deserve more than an instant delivery.</h1>
+            <p>
+              The letter is the main thing. Photographs, short memories and voice notes are optional pieces carried inside it.
+            </p>
+          </div>
         </aside>
 
         <div className="nostalgia-create-form-wrap">
@@ -55,8 +75,8 @@ export default function CreatePage() {
                 <section className="nostalgia-form-section">
                   <div className="nostalgia-form-heading"><span>01</span><h2>Write the letter</h2></div>
                   <div className="nostalgia-form-grid">
-                    <label>Your name<input value={sender} onChange={(event) => setSender(event.target.value)} placeholder="Arjun" autoComplete="name" /></label>
-                    <label>Their name<input value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="Ananya" required /></label>
+                    <label>From<input value={sender} onChange={(event) => setSender(event.target.value)} placeholder="Arjun" autoComplete="name" /></label>
+                    <label>To<input value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="Ananya" required /></label>
                   </div>
                   <label>Occasion
                     <select value={occasion} onChange={(event) => setOccasion(event.target.value)}>
