@@ -10,6 +10,7 @@ import "./cinematic-site.css";
 import "./clarity-home.css";
 import "./india-post-create.css";
 import "./letter-studio.css";
+import "./letter-studio-formats.css";
 
 const siteUrl = "https://intezaar.vercel.app";
 
