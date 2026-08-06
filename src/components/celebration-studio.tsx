@@ -94,20 +94,20 @@ export function CelebrationStudio() {
         <Link href="/" className={styles.brand}>Intezaar</Link>
         <nav aria-label="Celebration navigation">
           <Link href="/">Home</Link>
-          <Link href="/create">Memory journal</Link>
+          <Link href="/create">Write a letter</Link>
         </nav>
       </header>
 
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p>Celebrations across India</p>
+          <p>Celebration letters across India</p>
           <h1>Do not send another wish that could belong to anyone.</h1>
-          <span>Tell us who they are, what you remember and what you genuinely want for them. Intezaar shapes those details into a message that still sounds like you.</span>
+          <span>Tell us who they are, what you remember and what you genuinely want for them. Intezaar shapes those details into a letter that still sounds like you.</span>
         </div>
         <div className={styles.note} aria-hidden="true">
           <small>For Meera · Onam</small>
           <strong>The flowers were never perfectly arranged. That was always the best part.</strong>
-          <em>Written from one real memory</em>
+          <em>Written from one real detail</em>
         </div>
       </section>
 
@@ -116,7 +116,7 @@ export function CelebrationStudio() {
           <div className={styles.formHeading}>
             <div>
               <p>Personalisation interview</p>
-              <h2>Give the wish a real person to belong to.</h2>
+              <h2>Give the letter a real person to belong to.</h2>
             </div>
             <span>{completion}% personal detail added</span>
           </div>
@@ -133,18 +133,18 @@ export function CelebrationStudio() {
           <label>Share one memory only the two of you would understand.<textarea value={form.memory} onChange={(e) => update("memory", e.target.value)} placeholder="The Onam when the pookalam collapsed and we rebuilt it before Amma came back…" /></label>
           <label>What do you truly want for their next chapter?<textarea value={form.future} onChange={(e) => update("future", e.target.value)} placeholder="the courage to choose herself without feeling guilty…" /></label>
 
-          <button type="submit">Create my personalised wish</button>
+          <button type="submit">Create my personalised letter</button>
           <p className={styles.privacy}>Your answers stay in this browser in this prototype. Nothing is published or sent automatically. Review every word before sharing.</p>
         </form>
 
         <aside className={styles.preview} aria-live="polite">
-          <p>Editable wish draft</p>
+          <p>Editable letter draft</p>
           {draft ? (
             <>
               <div className={styles.draft}>{draft.split("\n").map((line, index) => <span key={`${line}-${index}`}>{line || <br />}</span>)}</div>
               <div className={styles.actions}>
-                <button type="button" onClick={() => navigator.clipboard?.writeText(draft)}>Copy wish</button>
-                <Link href="/create">Turn into a timed notebook</Link>
+                <button type="button" onClick={() => navigator.clipboard?.writeText(draft)}>Copy letter</button>
+                <Link href="/create">Send as a travelling letter</Link>
               </div>
             </>
           ) : (
