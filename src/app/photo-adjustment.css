@@ -1,0 +1,244 @@
+/* Photo crop and positioning controls for the letter creator. */
+.adjustable-photo-frame {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  background: #e8dcc9;
+}
+
+.adjustable-photo-frame > img {
+  display: block;
+  width: 100%;
+  transition: transform .16s ease, object-position .16s ease;
+  will-change: transform;
+}
+
+.photo-editor-card.media-item {
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: 14px;
+}
+
+.photo-editor-thumb {
+  width: 112px;
+  height: 112px;
+  overflow: hidden;
+  border-radius: 11px;
+  background: #d9c9b4;
+  box-shadow: inset 0 0 0 1px rgba(77, 50, 34, .12);
+}
+
+.photo-editor-thumb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: transform .16s ease, object-position .16s ease;
+}
+
+.photo-editor-content {
+  min-width: 0;
+  display: grid;
+  gap: 11px;
+}
+
+.photo-editor-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.photo-editor-heading strong {
+  font: 400 18px/1.2 Georgia, serif;
+}
+
+.photo-editor-heading small {
+  color: #8b7566;
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.photo-editor-content > input[type="text"] {
+  width: 100%;
+}
+
+.photo-fit-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.photo-fit-controls button,
+.photo-reset-button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(87, 55, 36, .17);
+  border-radius: 9px;
+  color: #654d41;
+  background: rgba(255, 250, 240, .72);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.photo-fit-controls button.active {
+  color: #fff4e4;
+  border-color: #963629;
+  background: #963629;
+}
+
+.photo-adjustment-grid {
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid rgba(84, 55, 39, .12);
+  border-radius: 12px;
+  background: rgba(239, 225, 204, .42);
+}
+
+.photo-range-control {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr) 42px;
+  align-items: center;
+  gap: 10px;
+  margin: 0 !important;
+  color: #6e584b !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+}
+
+.photo-range-control input[type="range"] {
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  accent-color: #99382b;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.photo-range-control output {
+  color: #7a6558;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.photo-reset-button {
+  width: fit-content;
+  min-height: 34px;
+  color: #7c6254;
+  background: transparent;
+}
+
+.photo-remove-button {
+  align-self: start;
+  white-space: nowrap;
+}
+
+.photo-adjustment-note {
+  margin: 0;
+  color: #887368;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.photo-letter-cover .adjustable-photo-frame {
+  height: 320px;
+}
+
+.photo-letter-cover .adjustable-photo-frame > img {
+  height: 100%;
+}
+
+.postcard-main-photo .adjustable-photo-frame {
+  min-height: 240px;
+}
+
+.postcard-main-photo .adjustable-photo-frame > img {
+  height: 100%;
+  min-height: 240px;
+}
+
+.letter-preview-photos figure .adjustable-photo-frame {
+  height: 170px;
+}
+
+.letter-preview-photos figure .adjustable-photo-frame > img {
+  height: 100%;
+}
+
+@media (max-width: 720px) {
+  .photo-editor-card.media-item {
+    grid-template-columns: 92px minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .photo-editor-thumb {
+    width: 92px;
+    height: 112px;
+  }
+
+  .photo-editor-content {
+    gap: 10px;
+  }
+
+  .photo-editor-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .photo-adjustment-grid,
+  .photo-fit-controls,
+  .photo-reset-button {
+    grid-column: 1 / -1;
+  }
+
+  .photo-range-control {
+    grid-template-columns: 76px minmax(0, 1fr) 38px;
+    gap: 7px;
+  }
+
+  .photo-remove-button {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .photo-letter-cover .adjustable-photo-frame {
+    height: 235px;
+  }
+
+  .letter-preview-photos figure .adjustable-photo-frame {
+    height: 145px;
+  }
+}
+
+@media (max-width: 430px) {
+  .photo-editor-card.media-item {
+    grid-template-columns: 1fr;
+  }
+
+  .photo-editor-thumb {
+    width: 100%;
+    height: 220px;
+  }
+
+  .photo-remove-button {
+    grid-column: 1;
+  }
+
+  .photo-fit-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .photo-range-control {
+    grid-template-columns: 68px minmax(0, 1fr) 36px;
+  }
+}
