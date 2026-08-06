@@ -2,12 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./postal-theme.css";
 import "./postal-interactions.css";
-import "./route-selector.css";
 import "./mobile.css";
-import "./journey-mobile-fix.css";
-import "./raahi-site.css";
 import "./cinematic-site.css";
-import "./clarity-home.css";
 import "./india-post-create.css";
 import "./letter-studio.css";
 import "./letter-studio-formats.css";
@@ -39,11 +35,9 @@ export const metadata: Metadata = {
     "slow digital gifting",
     "nostalgic letter website",
   ],
-  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: siteUrl,
     siteName: "Intezaar",
     title: "Intezaar — A letter that travels by train",
     description:
@@ -62,7 +56,7 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
   },
   verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION },
-  icons: { icon: "/favicon.ico" },
+  icons: { icon: "/icon.svg" },
 };
 
 export const viewport: Viewport = {

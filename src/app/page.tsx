@@ -1,10 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroJourney } from "@/components/hero-journey";
 import { LetterOpening } from "@/components/letter-opening";
 import { Navigation } from "@/components/navigation";
 
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: {
+    url: "/",
+    title: "Intezaar — A letter that travels by train",
+    description: "Write a private letter, let it travel for 3, 5 or 7 days, and open it when it arrives.",
+  },
+};
+
 const steps = [
-  ["01", "Write and seal the letter", "Write the main letter first. Add up to three photographs, short memories or voice notes only when they belong inside it."],
+  ["01", "Write and seal the letter", "Write the main letter first. Add up to three photographs, voice notes or a short video only when they belong inside it."],
   ["02", "Choose how long it travels", "Pick a simple 3, 5 or 7-day postal journey. The recipient sees a sealed envelope and a few meaningful station updates."],
   ["03", "Let it arrive", "On the final day the letter is delivered. They break the seal, read it and can keep a printable copy afterwards."],
 ];

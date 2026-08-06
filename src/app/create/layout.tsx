@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Create a nostalgic letter journey",
+  title: "Write a Private Travelling Letter",
   description:
-    "Write a private letter, choose its Indian postal route, schedule its arrival and turn shared memories into a journey worth waiting for.",
-  alternates: {
-    canonical: "/create",
-  },
+    "Write first, personalise the letter with optional media, choose a 3, 5 or 7-day Indian mail journey, set its arrival time and create a private recipient link.",
+  alternates: { canonical: "/create" },
   openGraph: {
     url: "/create",
-    title: "Create a nostalgic Indian letter journey",
+    title: "Write a private letter that takes the long way",
     description:
-      "Choose a route, seal your memories and schedule a private letter to travel before it arrives.",
+      "Create an editable letter, add up to three optional photos, voice notes or a short video, then choose when it arrives.",
   },
 };
 
