@@ -1,0 +1,51 @@
+.journey-duration-cards {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.journey-duration-cards .speed-post-choice {
+  position: relative;
+  border-color: rgba(139, 49, 38, .34);
+  background: linear-gradient(180deg, #fff8ea, #f3dfc4);
+}
+
+.journey-duration-cards .speed-post-choice::after {
+  content: "SPEED";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 3px 6px;
+  border: 1px solid rgba(139, 49, 38, .28);
+  border-radius: 999px;
+  color: #8d3026;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.speed-post-note {
+  margin: 10px 0 0;
+  color: #7f6253;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.speed-post-note[data-invalid="true"] {
+  color: #9b3429;
+  font-weight: 800;
+}
+
+@media (max-width: 1100px) {
+  .journey-duration-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .journey-duration-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .journey-duration-cards button:last-child {
+    grid-column: 1 / -1;
+  }
+}
