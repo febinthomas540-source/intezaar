@@ -12,6 +12,7 @@ export type RegisteredLetterRecord = {
   recipient_email: string | null;
   status: string;
   opens_at: string;
+  expires_at: string;
   metadata: Record<string, unknown>;
 };
 
@@ -44,7 +45,7 @@ function supabaseUrl(path: string) {
 export async function findRegisteredLetterByAccessToken(token: string): Promise<RegisteredLetterRecord | null> {
   const query = new URLSearchParams({
     access_token_hash: `eq.${hashPrivateToken(token)}`,
-    select: "id,recipient_name,recipient_email,status,opens_at,metadata",
+    select: "id,recipient_name,recipient_email,status,opens_at,expires_at,metadata",
     limit: "1",
   });
   const response = await fetch(supabaseUrl(`letters?${query.toString()}`), {
@@ -69,6 +70,12 @@ export async function updateRegisteredMetadata(letterId: string, metadata: Recor
 
 export function registeredDeliveryEnabled(metadata: Record<string, unknown> | undefined) {
   return metadata?.registered_delivery === true;
+}
+
+export function registeredLetterUnavailable(letter: Pick<RegisteredLetterRecord, "status" | "expires_at">) {
+  if (letter.status === "cancelled" || letter.status === "expired") return true;
+  const expiry = new Date(letter.expires_at).getTime();
+  return Number.isFinite(expiry) && Date.now() >= expiry;
 }
 
 export function createVerificationCode(letterId: string) {
