@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://intezaar.vercel.app";
+  const baseUrl = "https://www.intezaar.in";
 
   return [
     {
@@ -17,7 +17,27 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}/celebrations`,
       changeFrequency: "monthly",
-      priority: 0.8,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/faq`,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/community-guidelines`,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      changeFrequency: "monthly",
+      priority: 0.5,
     },
   ];
 }
