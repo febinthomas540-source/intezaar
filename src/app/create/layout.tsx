@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Write a Private Travelling Letter",
   description:
-    "Write first, personalise the letter with optional media, choose 12-hour Speed Post, next-day delivery or a 3, 5 or 7-day journey, then create a private recipient link.",
+    "Write first, personalise the letter with optional media, choose 12-hour Intezaar Express, next-day delivery or a 3, 5 or 7-day journey, then create a private recipient link.",
   alternates: { canonical: "/create" },
   openGraph: {
     url: "/create",
