@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { RecipientPhotoLayoutBridge } from "@/components/recipient-photo-layout-bridge";
 import { SecureLetterDelivery } from "@/components/secure-letter-delivery";
 import {
   decryptLetterPayload,
@@ -7,6 +8,7 @@ import {
 } from "@/lib/letter-security";
 import { createMediaDownloadUrls } from "@/lib/supabase-storage";
 import "../../secure-recipient-media.css";
+import "../../recipient-positioned-photo.css";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -42,24 +44,30 @@ export default async function SecureRecipientPage({ params }: PageProps) {
   const media = manifest
     .map((item) => ({ ...item, signedUrl: signedUrls.get(item.path) || "" }))
     .filter((item) => Boolean(item.signedUrl));
+  const positionedPhotos = media
+    .filter((item) => item.kind === "photo")
+    .map(({ id, name, caption, photoLayout }) => ({ id, name, caption, photoLayout }));
 
   return (
-    <SecureLetterDelivery
-      recipient={letter.recipient_name}
-      sender={letter.sender_name}
-      occasion={letter.occasion}
-      format={letter.letter_format}
-      fromCity={letter.from_city || ""}
-      toCity={letter.to_city || ""}
-      opensAt={letter.opens_at}
-      status={letter.status}
-      content={payload ? {
-        heading: payload.heading,
-        message: payload.message,
-        closing: payload.closing,
-      } : null}
-      mediaKey={payload?.mediaKey || ""}
-      media={media}
-    />
+    <>
+      <SecureLetterDelivery
+        recipient={letter.recipient_name}
+        sender={letter.sender_name}
+        occasion={letter.occasion}
+        format={letter.letter_format}
+        fromCity={letter.from_city || ""}
+        toCity={letter.to_city || ""}
+        opensAt={letter.opens_at}
+        status={letter.status}
+        content={payload ? {
+          heading: payload.heading,
+          message: payload.message,
+          closing: payload.closing,
+        } : null}
+        mediaKey={payload?.mediaKey || ""}
+        media={media}
+      />
+      <RecipientPhotoLayoutBridge photos={positionedPhotos} />
+    </>
   );
 }
