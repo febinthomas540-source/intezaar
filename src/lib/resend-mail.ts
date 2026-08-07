@@ -16,13 +16,13 @@ export type EmailDeliveryResult = {
 };
 
 function escapeHtml(value: string) {
-  return value.replace(/[&<>'\"]/g, (character) => {
+  return value.replace(/[&<>'"]/g, (character) => {
     const entities: Record<string, string> = {
       "&": "&amp;",
       "<": "&lt;",
       ">": "&gt;",
       "'": "&#39;",
-      '\"': "&quot;",
+      '"': "&quot;",
     };
     return entities[character] || character;
   });
