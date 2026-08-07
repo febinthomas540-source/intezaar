@@ -8,13 +8,11 @@ import {
 } from "@/components/creator-media-bridge";
 
 const DRAFT_KEY = "intezaar:create-draft:v3";
-const CONTACT_KEY = "intezaar:create-contacts:v1";
 const POSTED_KEY = "intezaar:last-secure-letter:v1";
 const MEDIA_BUCKET = "letter-media";
 
 type Draft = {
   sender?: string;
-  senderEmail?: string;
   recipient?: string;
   recipientEmail?: string;
   occasion?: string;
@@ -69,23 +67,12 @@ function readJson<T>(key: string, fallback: T): T {
 }
 
 function readDraft(): Draft {
-  const draft = readJson<Draft>(DRAFT_KEY, {});
-  const contacts = readJson<Pick<Draft, "senderEmail" | "recipientEmail">>(CONTACT_KEY, {});
-  return { ...draft, ...contacts };
-}
-
-function saveContacts(senderEmail: string, recipientEmail: string) {
-  try {
-    window.localStorage.setItem(CONTACT_KEY, JSON.stringify({ senderEmail, recipientEmail }));
-  } catch {
-    // Email fields still work for the current page when local storage is unavailable.
-  }
+  return readJson<Draft>(DRAFT_KEY, {});
 }
 
 function draftFingerprint(draft: Draft, media: CapturedMedia[]) {
   const source = JSON.stringify([
     draft.sender,
-    draft.senderEmail,
     draft.recipient,
     draft.recipientEmail,
     draft.occasion,
@@ -143,53 +130,6 @@ function saveSecureLetter(result: SecureLetterResult, fingerprint: string) {
   }
 }
 
-function createEmailInput(labelText: string, placeholder: string, value: string) {
-  const label = document.createElement("label");
-  label.append(document.createTextNode(labelText));
-
-  const input = document.createElement("input");
-  input.type = "email";
-  input.inputMode = "email";
-  input.autocomplete = "email";
-  input.maxLength = 254;
-  input.placeholder = placeholder;
-  input.value = value;
-  label.append(input);
-
-  return { label, input };
-}
-
-function ensureEmailFields() {
-  const panel = document.querySelector<HTMLElement>(".creation-write-panel");
-  if (!panel || panel.querySelector('[data-intezaar-email-fields="true"]')) return;
-
-  const firstGrid = panel.querySelector<HTMLElement>(".nostalgia-form-grid");
-  if (!firstGrid) return;
-
-  const contacts = readJson<Pick<Draft, "senderEmail" | "recipientEmail">>(CONTACT_KEY, {});
-  const grid = document.createElement("div");
-  grid.className = "nostalgia-form-grid secure-email-grid";
-  grid.dataset.intezaarEmailFields = "true";
-
-  const sender = createEmailInput(
-    "Your email (optional)",
-    "For future delivery updates",
-    contacts.senderEmail || "",
-  );
-  const recipient = createEmailInput(
-    "Recipient email (optional)",
-    "Send the private link automatically",
-    contacts.recipientEmail || "",
-  );
-
-  const sync = () => saveContacts(sender.input.value.trim(), recipient.input.value.trim());
-  sender.input.addEventListener("input", sync);
-  recipient.input.addEventListener("input", sync);
-
-  grid.append(sender.label, recipient.label);
-  firstGrid.after(grid);
-}
-
 function createOpensAt(draft: Draft) {
   const date = typeof draft.arrivalDate === "string" ? draft.arrivalDate : "";
   const time = typeof draft.arrivalTime === "string" ? draft.arrivalTime : "20:00";
@@ -221,7 +161,6 @@ async function createSecureLetter(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       senderName: draft.sender,
-      senderEmail: draft.senderEmail,
       recipientName: draft.recipient,
       recipientEmail: draft.recipientEmail,
       occasion: draft.occasion,
@@ -387,7 +326,6 @@ export function CreatorShareBridge() {
     const syncShareScreen = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
-        ensureEmailFields();
         if (!secureUrl) return;
 
         const code = document.querySelector<HTMLElement>(".share-link-box code");
