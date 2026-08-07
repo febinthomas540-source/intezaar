@@ -7,7 +7,11 @@ import {
   markRecipientNotified,
   updateLetterMetadata,
 } from "@/lib/letter-security";
-import { sendPostedLetterEmail, type EmailDeliveryResult } from "@/lib/resend-mail";
+import {
+  scheduleArrivalLetterEmail,
+  sendPostedLetterEmail,
+  type EmailDeliveryResult,
+} from "@/lib/resend-mail";
 import { verifyMediaObjects } from "@/lib/supabase-storage";
 
 export const runtime = "nodejs";
@@ -130,6 +134,35 @@ export async function POST(request: Request) {
         recipient_email: letter.recipient_email,
         provider: "resend",
         reason: emailDelivery.message,
+        media_count: media.length,
+      });
+    }
+
+    const arrivalDelivery = letter.recipient_email
+      ? await scheduleArrivalLetterEmail({
+          letterId: letter.id,
+          to: letter.recipient_email,
+          recipientName: letter.recipient_name,
+          senderName: letter.sender_name,
+          occasion: letter.occasion,
+          recipientUrl,
+          opensAt: letter.opens_at,
+        })
+      : null;
+
+    if (arrivalDelivery?.sent) {
+      await insertLetterEvent(letter.id, "arrival_email_scheduled", {
+        recipient_email: letter.recipient_email,
+        provider: "resend",
+        provider_id: arrivalDelivery.emailId || null,
+        scheduled_at: letter.opens_at,
+        media_count: media.length,
+      });
+    } else if (arrivalDelivery?.attempted) {
+      await insertLetterEvent(letter.id, "arrival_email_schedule_failed", {
+        recipient_email: letter.recipient_email,
+        provider: "resend",
+        reason: arrivalDelivery.message,
         media_count: media.length,
       });
     }
