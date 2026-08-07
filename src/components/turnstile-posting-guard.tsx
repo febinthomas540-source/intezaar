@@ -39,12 +39,60 @@ function statusCopy(status: Status) {
   return "Preparing secure posting";
 }
 
+function blockedResponse() {
+  return new Response(
+    JSON.stringify({ error: "Complete the secure posting check and try again." }),
+    {
+      status: 403,
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      },
+    },
+  );
+}
+
 export function TurnstilePostingGuard() {
   const [scriptReady, setScriptReady] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [status, setStatus] = useState<Status>("loading");
   const widgetContainer = useRef<HTMLDivElement | null>(null);
   const widgetId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!siteKey) return;
+
+    const originalFetch = window.fetch.bind(window);
+
+    window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      const rawUrl = input instanceof Request ? input.url : input.toString();
+      const method = (init?.method || (input instanceof Request ? input.method : "GET")).toUpperCase();
+      const url = new URL(rawUrl, window.location.origin);
+
+      if (url.origin === window.location.origin && url.pathname === "/api/letters" && method === "POST") {
+        const token = window.__intezaarTurnstileToken;
+        if (!token) return blockedResponse();
+
+        const headers = new Headers(input instanceof Request ? input.headers : undefined);
+        if (init?.headers) {
+          new Headers(init.headers).forEach((value, key) => headers.set(key, value));
+        }
+        headers.set("x-intezaar-turnstile-token", token);
+
+        try {
+          return await originalFetch(input, { ...init, headers });
+        } finally {
+          window.dispatchEvent(new Event("intezaar:turnstile-reset"));
+        }
+      }
+
+      return originalFetch(input, init);
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, []);
 
   useEffect(() => {
     if (!siteKey) return;
