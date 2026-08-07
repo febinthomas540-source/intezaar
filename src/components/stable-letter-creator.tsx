@@ -21,6 +21,17 @@ import {
   MIN_DELIVERY_MS,
   mediaLimitLabel,
 } from "@/lib/letter-rules";
+import {
+  completeMediaUpload,
+  createSecureLetter,
+  draftFingerprint,
+  encryptAndUploadMedia,
+  readSavedLetter,
+  saveSecureLetter,
+  type SecureDraft,
+  type SecureLetterResult,
+  type SecureMediaItem,
+} from "@/lib/secure-letter-client";
 
 const DRAFT_KEY = "intezaar:create-draft:v3";
 const LEGACY_CONTACT_KEY = "intezaar:create-contacts:v1";
@@ -52,8 +63,9 @@ type FormatDefinition = {
 type ArrivalPreset = "express" | "next-day" | "3-days" | "5-days" | "7-days" | "custom";
 type SealState = "idle" | "sealing" | "sealed";
 type PostState = "idle" | "posting" | "posted";
-type StablePhotoItem = PhotoItem & { size: number };
-type StableVoiceItem = VoiceItem & { size: number };
+type StablePhotoItem = PhotoItem & { size: number; file: File; mimeType: string; lastModified: number };
+type StableVoiceItem = VoiceItem & { size: number; file: File; mimeType: string; lastModified: number };
+type StableVideoItem = VideoItem & { file: File; mimeType: string; lastModified: number };
 
 type Draft = {
   sender: string;
@@ -126,14 +138,6 @@ function arrivalErrorFor(dateValue: string, timeValue: string) {
   return "";
 }
 
-function daysUntil(dateValue: string) {
-  if (!dateValue) return 5;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const arrival = new Date(`${dateValue}T12:00:00`);
-  return clamp(Math.ceil((arrival.getTime() - today.getTime()) / 86_400_000), 1, 30);
-}
-
 function readableDate(dateValue: string) {
   if (!dateValue) return "Selected arrival date";
   return new Intl.DateTimeFormat("en-IN", {
@@ -179,17 +183,22 @@ export function StableLetterCreator() {
   const [arrivalError, setArrivalError] = useState("");
   const [photos, setPhotos] = useState<StablePhotoItem[]>([]);
   const [voices, setVoices] = useState<StableVoiceItem[]>([]);
-  const [videos, setVideos] = useState<VideoItem[]>([]);
+  const [videos, setVideos] = useState<StableVideoItem[]>([]);
   const [mediaError, setMediaError] = useState("");
   const [sealState, setSealState] = useState<SealState>("idle");
   const [sealStatus, setSealStatus] = useState("Ready to seal");
   const [postState, setPostState] = useState<PostState>("idle");
   const [postStatus, setPostStatus] = useState("Ready for the post box");
+  const [secureResult, setSecureResult] = useState<SecureLetterResult | null>(null);
+  const [pendingSecureResult, setPendingSecureResult] = useState<SecureLetterResult | null>(null);
+  const [pendingFingerprint, setPendingFingerprint] = useState("");
+  const [secureBusy, setSecureBusy] = useState(false);
+  const [secureStatus, setSecureStatus] = useState("Continue to share");
+  const [secureError, setSecureError] = useState("");
   const [copied, setCopied] = useState(false);
   const timers = useRef<number[]>([]);
   const objectUrls = useRef(new Set<string>());
 
-  const journeyDays = daysUntil(arrivalDate);
   const mediaCount = photos.length + voices.length + videos.length;
   const mediaBytes = photos.reduce((total, item) => total + item.size, 0)
     + voices.reduce((total, item) => total + item.size, 0)
@@ -279,6 +288,7 @@ export function StableLetterCreator() {
       setPostState("idle");
       setPostStatus("Ready for the post box");
     }
+    setSecureError("");
     setStep(targetStep);
   }
 
@@ -325,6 +335,9 @@ export function StableLetterCreator() {
         name: file.name,
         url,
         size: file.size,
+        file,
+        mimeType: file.type,
+        lastModified: file.lastModified,
         caption: "",
         fit: "cover",
         zoom: 1,
@@ -351,7 +364,16 @@ export function StableLetterCreator() {
     const added: StableVoiceItem[] = files.map((file) => {
       const url = URL.createObjectURL(file);
       objectUrls.current.add(url);
-      return { id: crypto.randomUUID(), name: file.name, url, label: "", size: file.size };
+      return {
+        id: crypto.randomUUID(),
+        name: file.name,
+        url,
+        label: "",
+        size: file.size,
+        file,
+        mimeType: file.type,
+        lastModified: file.lastModified,
+      };
     });
     setVoices((current) => [...current, ...added]);
   }
@@ -367,7 +389,16 @@ export function StableLetterCreator() {
     if (error) return setMediaError(error);
     const url = URL.createObjectURL(file);
     objectUrls.current.add(url);
-    setVideos([{ id: crypto.randomUUID(), name: file.name, url, caption: "", size: file.size }]);
+    setVideos([{
+      id: crypto.randomUUID(),
+      name: file.name,
+      url,
+      caption: "",
+      size: file.size,
+      file,
+      mimeType: file.type,
+      lastModified: file.lastModified,
+    }]);
   }
 
   function removeMedia(kind: "photo" | "voice" | "video", id: string) {
@@ -438,21 +469,151 @@ export function StableLetterCreator() {
     setPostStatus("Your letter has been posted");
   }
 
-  const linkBase = `name=${encodeURIComponent(recipient)}&sender=${encodeURIComponent(sender)}&occasion=${encodeURIComponent(occasion)}&duration=${journeyDays}&from=${encodeURIComponent(fromCity)}&to=${encodeURIComponent(toCity)}&format=${format}&date=${encodeURIComponent(arrivalDate)}&time=${encodeURIComponent(arrivalTime)}`;
-  const recipientLink = `/receive/demo?${linkBase}&day=1`;
-  const arrivalLink = `/receive/demo?${linkBase}&day=${journeyDays}`;
-  const publicShareUrl = `https://www.intezaar.in${recipientLink}`;
+  function secureDraft(): SecureDraft {
+    return {
+      sender: sender.trim(),
+      recipient: recipient.trim(),
+      recipientEmail: recipientEmail.trim(),
+      occasion,
+      heading,
+      letter,
+      closing,
+      format,
+      fromCity,
+      toCity,
+      arrivalDate,
+      arrivalTime,
+    };
+  }
+
+  function secureMedia(): SecureMediaItem[] {
+    const photoMedia: SecureMediaItem[] = photos.map((photo) => ({
+      id: photo.id,
+      kind: "photo",
+      file: photo.file,
+      name: photo.name,
+      mimeType: photo.mimeType,
+      size: photo.size,
+      lastModified: photo.lastModified,
+      caption: photo.caption,
+      photoLayout: {
+        fit: photo.fit,
+        zoom: photo.zoom,
+        cropX: photo.cropX,
+        cropY: photo.cropY,
+        x: photo.x,
+        y: photo.y,
+        width: photo.width,
+        aspectRatio: photo.aspectRatio,
+        zIndex: photo.zIndex,
+      },
+    }));
+    const voiceMedia: SecureMediaItem[] = voices.map((voice) => ({
+      id: voice.id,
+      kind: "voice",
+      file: voice.file,
+      name: voice.name,
+      mimeType: voice.mimeType,
+      size: voice.size,
+      lastModified: voice.lastModified,
+      caption: voice.label,
+    }));
+    const videoMedia: SecureMediaItem[] = videos.map((video) => ({
+      id: video.id,
+      kind: "video",
+      file: video.file,
+      name: video.name,
+      mimeType: video.mimeType,
+      size: video.size,
+      lastModified: video.lastModified,
+      caption: video.caption,
+    }));
+    return [...photoMedia, ...voiceMedia, ...videoMedia];
+  }
+
+  async function continueToShare() {
+    if (secureBusy) return;
+    setSecureBusy(true);
+    setSecureError("");
+
+    const draft = secureDraft();
+    const media = secureMedia();
+    const fingerprint = draftFingerprint(draft, media);
+    const saved = readSavedLetter(fingerprint);
+
+    if (saved) {
+      setSecureResult(saved);
+      setSecureBusy(false);
+      setCreated(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    let result = pendingSecureResult && pendingFingerprint === fingerprint
+      ? pendingSecureResult
+      : null;
+
+    try {
+      if (!result) {
+        setSecureStatus("Securing your letter…");
+        result = await createSecureLetter(draft, media);
+        setPendingSecureResult(result);
+        setPendingFingerprint(fingerprint);
+      }
+
+      if (result.mediaUpload?.items.length) {
+        setSecureStatus(`Encrypting media 0 of ${result.mediaUpload.items.length}…`);
+        await encryptAndUploadMedia(result.mediaUpload, media, (completed, total) => {
+          setSecureStatus(`Encrypting media ${completed} of ${total}…`);
+        });
+        setSecureStatus("Confirming private media…");
+        result = await completeMediaUpload(result, result.mediaUpload.items.map((item) => item.id));
+      }
+
+      saveSecureLetter(result, fingerprint);
+      setSecureResult(result);
+      setPendingSecureResult(null);
+      setPendingFingerprint("");
+      setSecureStatus("Continue to share");
+      setCreated(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error) {
+      setSecureError(error instanceof Error ? error.message : "The letter could not be stored securely.");
+      setSecureStatus(result?.mediaUpload?.items.length ? "Retry encrypted media upload" : "Try secure posting again");
+    } finally {
+      setSecureBusy(false);
+    }
+  }
 
   async function copyShareLink() {
-    await navigator.clipboard?.writeText(publicShareUrl);
+    const url = secureResult?.recipientUrl;
+    if (!url) return;
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(url);
+    } else {
+      const field = document.createElement("textarea");
+      field.value = url;
+      field.style.position = "fixed";
+      field.style.opacity = "0";
+      document.body.appendChild(field);
+      field.select();
+      document.execCommand("copy");
+      field.remove();
+    }
     setCopied(true);
     later(1800, () => setCopied(false));
   }
 
   async function shareLetter() {
+    const url = secureResult?.recipientUrl;
+    if (!url) return;
     if (navigator.share) {
-      await navigator.share({ title: `A letter for ${recipient}`, text: "A private Intezaar letter has been posted for you.", url: publicShareUrl });
-      return;
+      try {
+        await navigator.share({ title: `A letter for ${recipient}`, text: "A private Intezaar letter has been posted for you.", url });
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+      }
     }
     await copyShareLink();
   }
@@ -477,6 +638,10 @@ export function StableLetterCreator() {
   const registered = Boolean(recipientEmail.trim());
   const emailOkay = validEmail(recipientEmail);
   const currentArrivalError = step === 3 ? arrivalErrorFor(arrivalDate, arrivalTime) : "";
+  const deliveryMessage = secureResult?.emailDelivery?.message;
+  const mediaMessage = secureResult?.mediaReady
+    ? `${secureResult.mediaCount || 0} media item${secureResult.mediaCount === 1 ? "" : "s"} encrypted and stored privately.`
+    : "Your letter text is encrypted behind a private token.";
 
   return (
     <main className="nostalgia-create creation-flow-v2 seal-post-flow">
@@ -491,7 +656,7 @@ export function StableLetterCreator() {
           <nav className="creation-stepper" aria-label="Letter creation progress">
             {progress.map((label, index) => {
               const number = index + 1;
-              return <button key={label} type="button" className={currentStep === number ? "active" : currentStep > number ? "complete" : ""} disabled={number > currentStep || created || sealState === "sealing" || postState === "posting"} onClick={() => number < currentStep && resetCeremony(number)}><span>{currentStep > number ? "✓" : number}</span><small>{label}</small></button>;
+              return <button key={label} type="button" className={currentStep === number ? "active" : currentStep > number ? "complete" : ""} disabled={number > currentStep || created || sealState === "sealing" || postState === "posting" || secureBusy} onClick={() => number < currentStep && resetCeremony(number)}><span>{currentStep > number ? "✓" : number}</span><small>{label}</small></button>;
             })}
           </nav>
 
@@ -543,10 +708,11 @@ export function StableLetterCreator() {
                 <header className="creation-section-head"><div><span>Step 5 of 6</span><h2>{postState === "posted" ? "Your letter has been posted" : "Post your letter"}</h2><p>{postState === "posted" ? "It will stay sealed until the moment you chose." : "Drop it into the Intezaar box and let the waiting begin."}</p></div><small>{fromCity.toUpperCase()} COLLECTION</small></header>
                 <div className={`post-stage post-${postState}`} aria-live="polite"><div className="post-atmosphere"><span /><span /><span /></div><div className="posting-envelope"><span>For {recipient}</span><i>I</i></div><div className="intezaar-postbox"><strong><small>डाक</small>INTEZAAR MAIL</strong><span className="postbox-slot">LETTERS</span><span className="postbox-door"><i>POSTED</i></span><span className="postbox-base" /></div><div className="ceremony-status post-status"><span>{postState === "posted" ? "POSTED" : "FINAL COLLECTION"}</span><strong>{postStatus}</strong></div></div>
                 <div className="ceremony-summary"><div><small>Posted from</small><strong>{fromCity}</strong></div><div><small>Going to</small><strong>{toCity}</strong></div><div><small>Arrives</small><strong>{readableDate(arrivalDate)} · {arrivalTime}</strong></div></div>
-                <div className="nostalgia-form-actions">{postState === "idle" ? <><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => setStep(4)}>Back to sealed letter</button><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={startPost}>Post the letter</button></> : null}{postState === "posting" ? <button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={finishPost}>Finish animation</button> : null}{postState === "posted" ? <button className="nostalgia-button nostalgia-button-primary" type="button" onClick={() => { setCreated(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Continue to share</button> : null}</div>
+                {secureError ? <p className="secure-letter-error media-error" role="alert">{secureError}</p> : null}
+                <div className="nostalgia-form-actions">{postState === "idle" ? <><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => setStep(4)}>Back to sealed letter</button><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={startPost}>Post the letter</button></> : null}{postState === "posting" ? <button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={finishPost}>Finish animation</button> : null}{postState === "posted" ? <button className="nostalgia-button nostalgia-button-primary" type="button" disabled={secureBusy} onClick={continueToShare}>{secureBusy ? secureStatus : pendingSecureResult ? "Retry encrypted media upload" : secureStatus}</button> : null}</div>
               </section> : null}
             </form>
-          ) : <section className="nostalgia-create-success creation-share-panel posted-share-panel"><p className="nostalgia-eyebrow">Step 6 of 6 · Posted</p><h2>Your letter is on its way.</h2><p>{registered ? `Registered delivery is enabled for ${recipient}. They will verify with the code sent to their email before the letter can be released.` : `Send the private link to ${recipient}. They will see a sealed letter and its arrival date before they can open it.`}</p><div className="posted-stamp-card"><span>POSTED</span><strong>{fromCity} → {toCity}</strong><p>Opens {readableDate(arrivalDate)} at {arrivalTime}</p></div><div className="share-link-box"><span>Private recipient link</span><code>{publicShareUrl}</code><button type="button" onClick={copyShareLink}>{copied ? "Copied" : "Copy link"}</button></div><div className="nostalgia-success-actions"><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={shareLetter}>Share letter link</button><Link href={recipientLink} className="nostalgia-button nostalgia-button-ghost">Preview recipient journey</Link><Link href={arrivalLink} className="nostalgia-button nostalgia-button-ghost">Preview arrival</Link><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => { setCreated(false); setPostState("posted"); setStep(5); }}>Back to posted letter</button></div><p className="prototype-transfer-note">Your private recipient link will appear here after secure posting.</p></section>}
+          ) : <section className="nostalgia-create-success creation-share-panel posted-share-panel"><p className="nostalgia-eyebrow">Step 6 of 6 · Posted</p><h2>Your letter is on its way.</h2><p>{registered ? `Registered delivery is enabled for ${recipient}. They will verify with the code sent to their email before the letter can be released.` : `Send the private link to ${recipient}. They will see a sealed letter and its arrival date before they can open it.`}</p><div className="posted-stamp-card"><span>POSTED</span><strong>{fromCity} → {toCity}</strong><p>Opens {readableDate(arrivalDate)} at {arrivalTime}</p></div><div className="share-link-box"><span>Private recipient link</span><code>{secureResult?.recipientUrl || ""}</code><button type="button" onClick={copyShareLink}>{copied ? "Copied" : "Copy link"}</button></div><div className="nostalgia-success-actions"><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={shareLetter}>Share letter link</button>{secureResult?.recipientUrl ? <Link href={secureResult.recipientUrl} className="nostalgia-button nostalgia-button-ghost">Open recipient link</Link> : null}<button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => { setCreated(false); setPostState("posted"); setStep(5); }}>Back to posted letter</button></div><p className="prototype-transfer-note">{deliveryMessage ? `${deliveryMessage} ${mediaMessage}` : mediaMessage}</p></section>}
         </div>
       </section>
     </main>
