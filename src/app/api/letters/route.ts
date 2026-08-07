@@ -32,6 +32,7 @@ const formats = new Set([
 
 const MAX_MEDIA_ITEMS = 3;
 const MAX_TOTAL_MEDIA_BYTES = 30 * 1024 * 1024;
+const MIN_JOURNEY_MS = 3 * 24 * 60 * 60 * 1000;
 const mediaLimits: Record<LetterMediaKind, number> = {
   photo: 5 * 1024 * 1024,
   voice: 10 * 1024 * 1024,
@@ -203,10 +204,11 @@ export async function POST(request: Request) {
     }
 
     const now = Date.now();
+    const earliest = now + MIN_JOURNEY_MS;
     const latest = now + 31 * 24 * 60 * 60 * 1000;
-    if (opensAt.getTime() <= now || opensAt.getTime() > latest) {
+    if (opensAt.getTime() < earliest || opensAt.getTime() > latest) {
       return NextResponse.json(
-        { error: "The opening time must be in the future and within 30 days." },
+        { error: "The letter needs at least a 3-day journey and must arrive within 30 days." },
         { status: 400 },
       );
     }
