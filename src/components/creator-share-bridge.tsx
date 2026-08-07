@@ -1,10 +1,16 @@
 "use client";
 
+import { createClient } from "@supabase/supabase-js";
 import { useEffect } from "react";
+import {
+  getCapturedMedia,
+  type CapturedMedia,
+} from "@/components/creator-media-bridge";
 
 const DRAFT_KEY = "intezaar:create-draft:v3";
 const CONTACT_KEY = "intezaar:create-contacts:v1";
 const POSTED_KEY = "intezaar:last-secure-letter:v1";
+const MEDIA_BUCKET = "letter-media";
 
 type Draft = {
   sender?: string;
@@ -30,14 +36,27 @@ type EmailDelivery = {
   emailId?: string;
 };
 
+type MediaUploadPlan = {
+  key: string;
+  items: Array<{
+    id: string;
+    path: string;
+    iv: string;
+    token: string;
+  }>;
+};
+
 type SecureLetterResult = {
   recipientUrl: string;
   manageToken: string;
   opensAt: string;
   emailDelivery?: EmailDelivery;
+  mediaUpload?: MediaUploadPlan | null;
+  mediaReady?: boolean;
+  mediaCount?: number;
 };
 
-type SavedSecureLetter = SecureLetterResult & {
+type SavedSecureLetter = Omit<SecureLetterResult, "mediaUpload"> & {
   fingerprint: string;
 };
 
@@ -63,7 +82,7 @@ function saveContacts(senderEmail: string, recipientEmail: string) {
   }
 }
 
-function draftFingerprint(draft: Draft) {
+function draftFingerprint(draft: Draft, media: CapturedMedia[]) {
   const source = JSON.stringify([
     draft.sender,
     draft.senderEmail,
@@ -78,6 +97,15 @@ function draftFingerprint(draft: Draft) {
     draft.toCity,
     draft.arrivalDate,
     draft.arrivalTime,
+    media.map((item) => [
+      item.id,
+      item.kind,
+      item.name,
+      item.size,
+      item.lastModified,
+      item.caption,
+      item.photoLayout,
+    ]),
   ]);
 
   let hash = 2166136261;
@@ -98,7 +126,8 @@ function readSavedLetter(fingerprint: string): SavedSecureLetter | null {
 }
 
 function saveSecureLetter(result: SecureLetterResult, fingerprint: string) {
-  const saved: SavedSecureLetter = { ...result, fingerprint };
+  const { mediaUpload: _mediaUpload, ...safeResult } = result;
+  const saved: SavedSecureLetter = { ...safeResult, fingerprint };
   try {
     window.sessionStorage.setItem(POSTED_KEY, JSON.stringify(saved));
     window.localStorage.setItem(
@@ -171,7 +200,22 @@ function createOpensAt(draft: Draft) {
   return localMoment.toISOString();
 }
 
-async function createSecureLetter(draft: Draft): Promise<SecureLetterResult> {
+function mediaDescriptor(media: CapturedMedia[]) {
+  return media.map((item) => ({
+    id: item.id,
+    kind: item.kind,
+    name: item.name,
+    mimeType: item.mimeType,
+    size: item.size,
+    caption: item.caption,
+    photoLayout: item.photoLayout,
+  }));
+}
+
+async function createSecureLetter(
+  draft: Draft,
+  media: CapturedMedia[],
+): Promise<SecureLetterResult> {
   const response = await fetch("/api/letters", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -189,6 +233,7 @@ async function createSecureLetter(draft: Draft): Promise<SecureLetterResult> {
       closing: draft.closing,
       opensAt: createOpensAt(draft),
       timezoneOffset: new Date().getTimezoneOffset(),
+      media: mediaDescriptor(media),
     }),
   });
 
@@ -198,6 +243,102 @@ async function createSecureLetter(draft: Draft): Promise<SecureLetterResult> {
   }
 
   return result as SecureLetterResult;
+}
+
+function bytesFromBase64(value: string) {
+  const binary = window.atob(value);
+  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+}
+
+function browserStorageClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
+  if (!url || !key) throw new Error("Private media storage is not configured.");
+
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
+}
+
+async function encryptAndUploadMedia(
+  plan: MediaUploadPlan,
+  media: CapturedMedia[],
+  onProgress: (completed: number, total: number) => void,
+) {
+  if (!window.crypto?.subtle) {
+    throw new Error("This browser cannot encrypt private media. Try a current browser.");
+  }
+
+  const rawKey = bytesFromBase64(plan.key);
+  const encryptionKey = await window.crypto.subtle.importKey(
+    "raw",
+    rawKey,
+    { name: "AES-GCM" },
+    false,
+    ["encrypt"],
+  );
+  const storage = browserStorageClient().storage.from(MEDIA_BUCKET);
+  let completed = 0;
+
+  for (const target of plan.items) {
+    const source = media.find((item) => item.id === target.id);
+    if (!source || !target.token) throw new Error("A selected media item is no longer available.");
+
+    const encrypted = await window.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: bytesFromBase64(target.iv) },
+      encryptionKey,
+      await source.file.arrayBuffer(),
+    );
+    const encryptedBlob = new Blob([encrypted], { type: "application/octet-stream" });
+    const { error } = await storage.uploadToSignedUrl(
+      target.path,
+      target.token,
+      encryptedBlob,
+      {
+        contentType: "application/octet-stream",
+        cacheControl: "0",
+      },
+    );
+
+    if (error) throw new Error(`Could not upload ${source.name}: ${error.message}`);
+    completed += 1;
+    onProgress(completed, plan.items.length);
+  }
+}
+
+async function completeMediaUpload(
+  result: SecureLetterResult,
+  itemIds: string[],
+) {
+  const response = await fetch("/api/letters/media/complete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      manageToken: result.manageToken,
+      recipientUrl: result.recipientUrl,
+      itemIds,
+    }),
+  });
+  const completion = await response.json() as {
+    error?: string;
+    mediaReady?: boolean;
+    mediaCount?: number;
+    emailDelivery?: EmailDelivery;
+  };
+
+  if (!response.ok || !completion.mediaReady) {
+    throw new Error(completion.error || "The encrypted media could not be completed.");
+  }
+
+  result.mediaReady = true;
+  result.mediaCount = completion.mediaCount || itemIds.length;
+  result.emailDelivery = completion.emailDelivery;
+  result.mediaUpload = null;
+  return result;
 }
 
 function showCreationError(message: string) {
@@ -239,6 +380,9 @@ export function CreatorShareBridge() {
     let secureResult: SecureLetterResult | null = null;
     let creating = false;
     let allowContinue = false;
+    let pendingResult: SecureLetterResult | null = null;
+    let pendingMedia: CapturedMedia[] = [];
+    let pendingFingerprint = "";
 
     const syncShareScreen = () => {
       window.cancelAnimationFrame(frame);
@@ -261,9 +405,12 @@ export function CreatorShareBridge() {
         const note = document.querySelector<HTMLElement>(".prototype-transfer-note");
         if (note) {
           const deliveryMessage = secureResult?.emailDelivery?.message;
+          const mediaMessage = secureResult?.mediaReady
+            ? `${secureResult.mediaCount || 0} media item${secureResult.mediaCount === 1 ? "" : "s"} encrypted and stored privately.`
+            : "Your letter text is encrypted behind a private token.";
           note.textContent = deliveryMessage
-            ? `${deliveryMessage} Your letter text is encrypted behind a private token. Photos, voice notes and videos remain browser-only during this beta.`
-            : "Your letter text is encrypted behind a private token. Photos, voice notes and videos remain browser-only during this beta.";
+            ? `${deliveryMessage} ${mediaMessage}`
+            : mediaMessage;
           note.dataset.emailSent = String(Boolean(secureResult?.emailDelivery?.sent));
         }
       });
@@ -278,6 +425,34 @@ export function CreatorShareBridge() {
         allowContinue = false;
         syncShareScreen();
       }, 0);
+    };
+
+    const finishMediaAndOpen = async (
+      result: SecureLetterResult,
+      media: CapturedMedia[],
+      fingerprint: string,
+      button: HTMLButtonElement,
+    ) => {
+      if (result.mediaUpload?.items.length) {
+        pendingResult = result;
+        pendingMedia = media;
+        pendingFingerprint = fingerprint;
+        button.textContent = `Encrypting media 0 of ${result.mediaUpload.items.length}…`;
+
+        await encryptAndUploadMedia(result.mediaUpload, media, (completed, total) => {
+          button.textContent = `Encrypting media ${completed} of ${total}…`;
+        });
+        button.textContent = "Confirming private media…";
+        await completeMediaUpload(result, result.mediaUpload.items.map((item) => item.id));
+      }
+
+      pendingResult = null;
+      pendingMedia = [];
+      pendingFingerprint = "";
+      secureUrl = result.recipientUrl;
+      secureResult = result;
+      saveSecureLetter(result, fingerprint);
+      openShareStep(button);
     };
 
     const handleClick = async (event: MouseEvent) => {
@@ -296,7 +471,8 @@ export function CreatorShareBridge() {
 
         clearCreationError();
         const draft = readDraft();
-        const fingerprint = draftFingerprint(draft);
+        const media = getCapturedMedia();
+        const fingerprint = draftFingerprint(draft, media);
         const saved = readSavedLetter(fingerprint);
 
         if (saved) {
@@ -311,16 +487,34 @@ export function CreatorShareBridge() {
         button.textContent = "Securing your letter…";
 
         try {
-          const result = await createSecureLetter(draft);
-          secureUrl = result.recipientUrl;
-          secureResult = result;
-          saveSecureLetter(result, fingerprint);
-          openShareStep(button);
+          const result = await createSecureLetter(draft, media);
+          await finishMediaAndOpen(result, media, fingerprint, button);
         } catch (error) {
           const message = error instanceof Error ? error.message : "The letter could not be stored securely.";
           showCreationError(message);
           button.disabled = false;
-          button.textContent = "Try secure posting again";
+          button.textContent = pendingResult ? "Retry encrypted media upload" : "Try secure posting again";
+        } finally {
+          creating = false;
+        }
+        return;
+      }
+
+      if (label === "Retry encrypted media upload" && pendingResult) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        if (creating) return;
+        creating = true;
+        button.disabled = true;
+        clearCreationError();
+        try {
+          await finishMediaAndOpen(pendingResult, pendingMedia, pendingFingerprint, button);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "The encrypted media could not be uploaded.";
+          showCreationError(message);
+          button.disabled = false;
+          button.textContent = "Retry encrypted media upload";
         } finally {
           creating = false;
         }
