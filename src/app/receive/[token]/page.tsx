@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { RecipientPhotoLayoutBridge } from "@/components/recipient-photo-layout-bridge";
 import { RecipientPostageStamp } from "@/components/recipient-postage-stamp";
+import { RegisteredDeliveryGate } from "@/components/registered-delivery-gate";
 import { SecureLetterDelivery } from "@/components/secure-letter-delivery";
 import {
   decryptLetterPayload,
   findLetterByAccessToken,
 } from "@/lib/letter-security";
+import {
+  registeredCookieName,
+  registeredDeliveryEnabled,
+  registeredSessionIsValid,
+} from "@/lib/registered-delivery";
 import { createMediaDownloadUrls } from "@/lib/supabase-storage";
 import "../../secure-recipient-media.css";
 import "../../recipient-positioned-photo.css";
@@ -30,6 +37,15 @@ export default async function SecureRecipientPage({ params }: PageProps) {
 
   const letter = await findLetterByAccessToken(token);
   if (!letter) notFound();
+
+  const registered = registeredDeliveryEnabled(letter.metadata);
+  if (registered) {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get(registeredCookieName(letter.id))?.value;
+    if (!registeredSessionIsValid(token, letter.id, sessionCookie)) {
+      return <RegisteredDeliveryGate recipient={letter.recipient_name} token={token} />;
+    }
+  }
 
   const unavailable = letter.status === "cancelled" || letter.status === "expired";
   const hasArrived = Date.now() >= new Date(letter.opens_at).getTime();
