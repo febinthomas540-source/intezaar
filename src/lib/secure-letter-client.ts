@@ -4,6 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 import type { LetterFormat, PhotoPatch } from "@/components/letter-preview";
 
 const POSTED_KEY = "intezaar:last-secure-letter:v1";
+const DRAFT_KEY = "intezaar:create-draft:v3";
+const LEGACY_CONTACT_KEY = "intezaar:create-contacts:v1";
 const MEDIA_BUCKET = "letter-media";
 
 export type SecureDraft = {
@@ -130,6 +132,11 @@ export function saveSecureLetter(result: SecureLetterResult, fingerprint: string
         opensAt: result.opensAt,
       }),
     );
+
+    // Once the encrypted letter has been stored successfully, do not leave the
+    // plaintext draft or recipient email sitting in persistent browser storage.
+    window.localStorage.removeItem(DRAFT_KEY);
+    window.localStorage.removeItem(LEGACY_CONTACT_KEY);
   } catch {
     // The private recipient URL still works when browser storage is unavailable.
   }
