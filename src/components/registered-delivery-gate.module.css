@@ -1,0 +1,188 @@
+.page {
+  min-height: 100vh;
+  color: #3f2a21;
+  background: #f3eadc;
+}
+
+.header {
+  min-height: 72px;
+  padding: 0 5vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  color: #ead4b8;
+  background: #2a1812;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.brand {
+  color: #f5d5aa;
+  text-decoration: none;
+  font: 500 28px Georgia, serif;
+}
+
+.header span {
+  color: #b99d87;
+  font-size: 12px;
+  letter-spacing: .08em;
+}
+
+.stage {
+  min-height: calc(100vh - 72px);
+  padding: 64px 20px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 15%, rgba(255,255,255,.85), transparent 28%),
+    linear-gradient(145deg, #f7efe4, #d9b78e);
+}
+
+.card {
+  width: min(100%, 620px);
+  padding: clamp(30px, 6vw, 58px);
+  text-align: center;
+  border: 1px solid rgba(91,52,31,.17);
+  border-radius: 24px;
+  background: rgba(255,250,242,.93);
+  box-shadow: 0 28px 60px rgba(70,39,23,.18);
+}
+
+.registeredMark {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 24px;
+  display: grid;
+  place-items: center;
+  border: 4px double #8f281f;
+  border-radius: 50%;
+  color: #8f281f;
+  font: 700 36px Georgia, serif;
+  transform: rotate(-6deg);
+}
+
+.card > p {
+  margin: 0 0 14px;
+  color: #9b3429;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .18em;
+}
+
+.card h1 {
+  margin: 0;
+  color: #3d251c;
+  font: 500 clamp(40px, 7vw, 62px)/1 Georgia, serif;
+  letter-spacing: -.04em;
+}
+
+.card > span {
+  display: block;
+  margin: 22px auto 0;
+  max-width: 500px;
+  color: #715344;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.card button {
+  min-height: 52px;
+  margin-top: 28px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff8ef;
+  background: #8d281f;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.card button:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+.form {
+  margin-top: 30px;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.form label {
+  color: #806050;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.form input {
+  width: min(100%, 300px);
+  min-height: 64px;
+  padding: 0 18px;
+  text-align: center;
+  border: 1px solid rgba(84,49,31,.2);
+  border-radius: 14px;
+  color: #4a2d22;
+  background: #fffdf8;
+  font: 600 32px Georgia, serif;
+  letter-spacing: .24em;
+}
+
+.form button {
+  margin-top: 4px;
+}
+
+.form .resend {
+  min-height: 40px;
+  margin-top: 0;
+  padding: 0 14px;
+  color: #7e3228;
+  background: transparent;
+}
+
+.notice {
+  margin-top: 20px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #6c4d3e;
+  background: #f2e2ca;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.card > small {
+  display: block;
+  margin-top: 22px;
+  color: #947665;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 620px) {
+  .header {
+    min-height: 64px;
+    padding: 0 20px;
+  }
+
+  .header span {
+    max-width: 50%;
+    text-align: right;
+    font-size: 10px;
+  }
+
+  .stage {
+    min-height: calc(100vh - 64px);
+    padding: 28px 14px;
+  }
+
+  .card {
+    padding: 34px 22px;
+    border-radius: 18px;
+  }
+
+  .card h1 {
+    font-size: 42px;
+  }
+}
