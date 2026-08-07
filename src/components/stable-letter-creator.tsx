@@ -169,7 +169,7 @@ export function StableLetterCreator() {
   const [draftReady, setDraftReady] = useState(false);
   const [format, setFormat] = useState<LetterFormat>("classic");
   const [sender, setSender] = useState("");
-  const [recipient, setRecipient] = useState("Ananya");
+  const [recipient, setRecipient] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [occasion, setOccasion] = useState("Just because");
   const [heading, setHeading] = useState("");
@@ -424,7 +424,9 @@ export function StableLetterCreator() {
   }
 
   function chooseDays(days: number, preset: ArrivalPreset) {
-    setArrivalDate(futureDate(days));
+    const target = safePresetMoment(days * 24);
+    setArrivalDate(toDateInput(target));
+    setArrivalTime(toTimeInput(target));
     setArrivalPreset(preset);
     setArrivalError("");
   }
@@ -656,7 +658,7 @@ export function StableLetterCreator() {
           <nav className="creation-stepper" aria-label="Letter creation progress">
             {progress.map((label, index) => {
               const number = index + 1;
-              return <button key={label} type="button" className={currentStep === number ? "active" : currentStep > number ? "complete" : ""} disabled={number > currentStep || created || sealState === "sealing" || postState === "posting" || secureBusy} onClick={() => number < currentStep && resetCeremony(number)}><span>{currentStep > number ? "✓" : number}</span><small>{label}</small></button>;
+              return <button key={label} type="button" className={currentStep === number ? "active" : currentStep > number ? "complete" : ""} disabled={number > currentStep || created || Boolean(secureResult) || sealState === "sealing" || postState === "posting" || secureBusy} onClick={() => number < currentStep && resetCeremony(number)}><span>{currentStep > number ? "✓" : number}</span><small>{label}</small></button>;
             })}
           </nav>
 
