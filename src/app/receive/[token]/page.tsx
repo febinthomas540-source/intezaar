@@ -38,7 +38,10 @@ export default async function SecureRecipientPage({ params }: PageProps) {
   const letter = await findLetterByAccessToken(token);
   if (!letter) notFound();
 
-  const unavailable = letter.status === "cancelled" || letter.status === "expired";
+  const expiryTime = letter.expires_at ? new Date(letter.expires_at).getTime() : Number.NaN;
+  const expiredByTime = Number.isFinite(expiryTime) && Date.now() >= expiryTime;
+  const unavailable = letter.status === "cancelled" || letter.status === "expired" || expiredByTime;
+  const effectiveStatus = expiredByTime && letter.status !== "cancelled" ? "expired" : letter.status;
 
   // An unavailable registered letter cannot be opened, so do not ask the
   // recipient to verify or trigger an unnecessary OTP flow first.
@@ -77,7 +80,7 @@ export default async function SecureRecipientPage({ params }: PageProps) {
         fromCity={letter.from_city || ""}
         toCity={letter.to_city || ""}
         opensAt={letter.opens_at}
-        status={letter.status}
+        status={effectiveStatus}
         content={payload ? {
           heading: payload.heading,
           message: payload.message,
