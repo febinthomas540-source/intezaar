@@ -132,7 +132,7 @@ export function PostboxHome() {
           <div className={styles.previewMessage}>
             <small>PRIVATE MAIL FOR ANANYA</small>
             <h3>A letter has been posted for you.</h3>
-            <p>Febin chose a moment for these words to arrive.</p>
+            <p>Arjun chose a moment for these words to arrive.</p>
           </div>
           <div className={styles.previewEnvelope}>
             <span className={styles.previewFlap} />
