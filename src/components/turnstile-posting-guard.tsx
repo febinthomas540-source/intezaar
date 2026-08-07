@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 type TurnstileOptions = {
@@ -55,9 +55,14 @@ function blockedResponse() {
 export function TurnstilePostingGuard() {
   const [scriptReady, setScriptReady] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const [widgetNode, setWidgetNode] = useState<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<Status>("loading");
-  const widgetContainer = useRef<HTMLDivElement | null>(null);
+  const [challengeVersion, setChallengeVersion] = useState(0);
   const widgetId = useRef<string | null>(null);
+
+  const captureWidgetNode = useCallback((node: HTMLDivElement | null) => {
+    setWidgetNode(node);
+  }, []);
 
   useEffect(() => {
     if (!siteKey) return;
@@ -126,14 +131,19 @@ export function TurnstilePostingGuard() {
   }, []);
 
   useEffect(() => {
-    if (!siteKey || !scriptReady || !portalTarget || !widgetContainer.current || !window.turnstile) {
+    if (!siteKey || !scriptReady || !portalTarget || !widgetNode || !window.turnstile) {
+      return;
+    }
+
+    // The posting animation can replace the actions area. A completed token is
+    // still valid, so keep it instead of forcing the visitor through a second check.
+    if (window.__intezaarTurnstileToken) {
+      setStatus("ready");
       return;
     }
 
     setStatus("loading");
-    window.__intezaarTurnstileToken = undefined;
-
-    widgetId.current = window.turnstile.render(widgetContainer.current, {
+    const renderedId = window.turnstile.render(widgetNode, {
       sitekey: siteKey,
       action: "post_letter",
       theme: "light",
@@ -152,27 +162,45 @@ export function TurnstilePostingGuard() {
         setStatus("error");
       },
     });
+    widgetId.current = renderedId;
 
     return () => {
-      window.__intezaarTurnstileToken = undefined;
-      if (widgetId.current && window.turnstile) {
-        window.turnstile.remove(widgetId.current);
+      if (window.turnstile) {
+        try {
+          window.turnstile.remove(renderedId);
+        } catch {
+          // The old container may already have been removed by the creator UI.
+        }
       }
-      widgetId.current = null;
+      if (widgetId.current === renderedId) widgetId.current = null;
     };
-  }, [portalTarget, scriptReady]);
+  }, [portalTarget, widgetNode, scriptReady, challengeVersion]);
 
   useEffect(() => {
     const reset = () => {
       window.__intezaarTurnstileToken = undefined;
       setStatus("loading");
+
       if (widgetId.current && window.turnstile) {
-        window.turnstile.reset(widgetId.current);
+        try {
+          window.turnstile.reset(widgetId.current);
+          return;
+        } catch {
+          widgetId.current = null;
+        }
       }
+
+      // When the approved widget was removed during the animation, trigger a
+      // fresh render only after its one-time token has actually been consumed.
+      setChallengeVersion((version) => version + 1);
     };
 
     window.addEventListener("intezaar:turnstile-reset", reset);
     return () => window.removeEventListener("intezaar:turnstile-reset", reset);
+  }, []);
+
+  useEffect(() => () => {
+    window.__intezaarTurnstileToken = undefined;
   }, []);
 
   if (!siteKey) return null;
@@ -184,6 +212,7 @@ export function TurnstilePostingGuard() {
         src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
         strategy="afterInteractive"
         onLoad={() => setScriptReady(true)}
+        onReady={() => setScriptReady(true)}
         onError={() => setStatus("error")}
       />
 
@@ -197,7 +226,7 @@ export function TurnstilePostingGuard() {
               <p>Cloudflare helps stop automated spam before this private letter is stored or emailed.</p>
             </div>
           </div>
-          <div className="secure-turnstile-widget" ref={widgetContainer} />
+          <div className="secure-turnstile-widget" ref={captureWidgetNode} />
         </section>,
         portalTarget,
       ) : null}
