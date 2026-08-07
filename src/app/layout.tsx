@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { MetaPixel } from "@/components/meta-pixel";
 import "./globals.css";
 import "./postal-theme.css";
 import "./postal-interactions.css";
@@ -90,6 +91,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en-IN">
       <body>
         {children}
+        <MetaPixel />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
       </body>
