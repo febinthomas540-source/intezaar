@@ -90,6 +90,22 @@ export function PostboxHome() {
         </div>
       </section>
 
+      <section className={styles.promiseSection}>
+        <div className={styles.promiseSeal}>I</div>
+        <div>
+          <p className={styles.eyebrow}>Simple and private</p>
+          <h2>The envelope stays at the centre.</h2>
+          <p>
+            Intezaar is a digital experience, not physical postage. During beta, the recipient opens the letter through a private link at the selected moment.
+          </p>
+        </div>
+        <div className={styles.promiseFacts}>
+          <div><strong>No account required</strong><span>Write and post without creating a profile.</span></div>
+          <div><strong>No phone number</strong><span>A private recipient link is enough for ordinary letters.</span></div>
+          <div><strong>One chosen moment</strong><span>The sender decides when it opens.</span></div>
+        </div>
+      </section>
+
       <section id="how-it-works" className={styles.howSection}>
         <header className={styles.sectionHeading}>
           <p className={styles.eyebrow}>How Intezaar works</p>
@@ -157,22 +173,6 @@ export function PostboxHome() {
         </div>
         <div className={styles.occasionList}>
           {occasions.map((occasion) => <span key={occasion}>{occasion}</span>)}
-        </div>
-      </section>
-
-      <section className={styles.promiseSection}>
-        <div className={styles.promiseSeal}>I</div>
-        <div>
-          <p className={styles.eyebrow}>Simple and private</p>
-          <h2>The envelope stays at the centre.</h2>
-          <p>
-            Intezaar is a digital experience, not physical postage. During beta, the recipient opens the letter through a private link at the selected moment.
-          </p>
-        </div>
-        <div className={styles.promiseFacts}>
-          <div><strong>No account required</strong><span>Write and post without creating a profile.</span></div>
-          <div><strong>No phone number</strong><span>A private recipient link is enough for ordinary letters.</span></div>
-          <div><strong>One chosen moment</strong><span>The sender decides when it opens.</span></div>
         </div>
       </section>
 
