@@ -22,6 +22,13 @@ const steps = [
 
 const occasions = ["Birthday", "Anniversary", "Apology", "Farewell", "Just because"];
 
+const footerLinks = [
+  { href: "/faq", label: "FAQ" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/community-guidelines", label: "Community Guidelines" },
+  { href: "/terms", label: "User Agreement" },
+];
+
 export function PostboxHome() {
   return (
     <main className={styles.page}>
@@ -176,11 +183,21 @@ export function PostboxHome() {
       <footer className={styles.footer}>
         <div><span>I</span><strong>Intezaar</strong></div>
         <p>
-          <Link href="/faq" style={{ color: "#d8bea6", textDecoration: "none", marginRight: 18 }}>FAQ</Link>
-          <Link href="/community-guidelines" style={{ color: "#d8bea6", textDecoration: "none", marginRight: 18 }}>Community Guidelines</Link>
-          <Link href="/terms" style={{ color: "#d8bea6", textDecoration: "none" }}>Terms of Use</Link>
+          {footerLinks.map((link, index) => (
+            <Link
+              href={link.href}
+              key={link.href}
+              style={{
+                color: "#d8bea6",
+                textDecoration: "none",
+                marginRight: index === footerLinks.length - 1 ? 0 : 18,
+              }}
+            >
+              {link.label}
+            </Link>
+          ))}
         </p>
-        <small>India · 2026</small>
+        <small>India · Public beta · 2026</small>
       </footer>
     </main>
   );
