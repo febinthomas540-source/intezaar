@@ -6,6 +6,7 @@ import {
   findLetterByAccessToken,
 } from "@/lib/letter-security";
 import { createMediaDownloadUrls } from "@/lib/supabase-storage";
+import "../../secure-recipient-media.css";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
