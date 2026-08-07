@@ -42,14 +42,17 @@ export function PostboxHome() {
           <p className={styles.heroText}>
             Create a private letter, choose when it can be opened, and post it through the Intezaar letter box.
           </p>
+          <p className={styles.heroText}>
+            Your letter is not public. The recipient view is reached through its private link, and no account or phone number is required.
+          </p>
           <div className={styles.heroActions}>
             <Link href="/create" className={styles.primaryButton}>Write and post a letter</Link>
             <a href="#how-it-works" className={styles.secondaryButton}>See how it works</a>
           </div>
           <div className={styles.heroTrust}>
-            <span>Private link</span>
-            <span>Chosen opening time</span>
-            <span>Free during beta</span>
+            <span>No account required</span>
+            <span>No phone number</span>
+            <span>Private recipient link</span>
           </div>
         </div>
 
@@ -167,9 +170,9 @@ export function PostboxHome() {
           </p>
         </div>
         <div className={styles.promiseFacts}>
-          <div><strong>One private letter</strong><span>Words first, optional memories second.</span></div>
+          <div><strong>No account required</strong><span>Write and post without creating a profile.</span></div>
+          <div><strong>No phone number</strong><span>A private recipient link is enough for ordinary letters.</span></div>
           <div><strong>One chosen moment</strong><span>The sender decides when it opens.</span></div>
-          <div><strong>One clear ritual</strong><span>Write, seal, post and wait.</span></div>
         </div>
       </section>
 
