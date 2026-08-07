@@ -9,7 +9,7 @@
 }
 
 .journey-duration-cards .speed-post-choice::after {
-  content: "SPEED";
+  content: "EXPRESS";
   position: absolute;
   top: 10px;
   right: 10px;
