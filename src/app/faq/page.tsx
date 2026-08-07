@@ -16,7 +16,11 @@ const questions = [
   },
   {
     question: "Is this physical post or India Post?",
-    answer: <p>No. Intezaar does not send a physical envelope and is not affiliated with India Post, the Government of India or any postal operator. The post office, envelope and post box are part of a nostalgic digital experience.</p>,
+    answer: <p>No. Intezaar does not send a physical envelope and is not affiliated with India Post, the Government of India, Indian Railways or any postal operator. The post office, envelope, stamp-style artwork, post box and journey scenes are part of an independent nostalgic digital experience.</p>,
+  },
+  {
+    question: "Is Registered Intezaar Mail the same as Registered Post?",
+    answer: <p>No. Registered Intezaar Mail is an Intezaar recipient-verification feature that can require a one-time code before the private delivery experience is released. It is not India Post Registered Post, does not create a postal receipt and should not be treated as statutory or legal proof of service.</p>,
   },
   {
     question: "How does the recipient receive the letter?",
@@ -40,7 +44,7 @@ const questions = [
   },
   {
     question: "How far ahead can I schedule a letter?",
-    answer: <p>The current public beta supports opening times in the future and up to 30 days ahead. A longer Future Me experience is planned separately and is not yet available.</p>,
+    answer: <p>The current public beta supports opening times from at least 12 hours ahead and up to 30 days ahead. The 12-hour option is called Intezaar Express; next-day and 3, 5 or 7-day journeys are also available. A longer Future Me experience is planned separately and is not yet available.</p>,
   },
   {
     question: "Can I edit or withdraw a letter after posting?",
@@ -64,7 +68,7 @@ const questions = [
   },
   {
     question: "What happens if the private link is forwarded?",
-    answer: <p>The recipient URL works like a bearer key: anyone who obtains it may be able to access the delivery experience. Share it only through a trusted private channel and do not publish it on social media, public pages or group chats.</p>,
+    answer: <p>For an ordinary letter, the recipient URL works like a bearer key: anyone who obtains it may be able to access the delivery experience. Share it only through a trusted private channel and do not publish it on social media, public pages or group chats. Registered Intezaar Mail adds recipient email verification before access is released.</p>,
   },
   {
     question: "Can I use Intezaar for urgent or legally important messages?",
