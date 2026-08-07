@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 
 const MIN_SPEED_POST_MS = 12 * 60 * 60 * 1000;
+const MINUTE_MS = 60 * 1000;
 
 function pad(value: number) {
   return String(value).padStart(2, "0");
@@ -14,6 +15,14 @@ function localDateValue(date: Date) {
 
 function localTimeValue(date: Date) {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function safePresetMoment(hours: number) {
+  // The native time input stores minute precision. Rounding a true +12h moment
+  // down to HH:MM can accidentally make it a few seconds too early for the
+  // server-side 12-hour minimum. Round up and keep one extra minute of margin.
+  const minimum = Date.now() + hours * 60 * 60 * 1000;
+  return new Date(Math.ceil(minimum / MINUTE_MS) * MINUTE_MS + MINUTE_MS);
 }
 
 function setNativeValue(input: HTMLInputElement, value: string) {
@@ -84,7 +93,7 @@ export function SpeedPostArrivalBridge() {
           button.append(strong, span);
 
           button.addEventListener("click", () => {
-            const target = new Date(Date.now() + hours * 60 * 60 * 1000);
+            const target = safePresetMoment(hours);
             setNativeValue(dateInput, localDateValue(target));
             setNativeValue(timeInput, localTimeValue(target));
             group.querySelectorAll("button").forEach((item) => item.classList.remove("active"));
