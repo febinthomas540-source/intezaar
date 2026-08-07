@@ -241,6 +241,7 @@ export async function POST(request: Request) {
       media_count: media.length,
       source: "web_creator",
       turnstile_validated: !challenge.skipped,
+      registered_delivery: Boolean(recipientEmail),
     };
 
     await insertEncryptedLetter({
