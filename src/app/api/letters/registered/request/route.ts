@@ -3,6 +3,7 @@ import {
   createVerificationCode,
   findRegisteredLetterByAccessToken,
   registeredDeliveryEnabled,
+  registeredLetterUnavailable,
   updateRegisteredMetadata,
 } from "@/lib/registered-delivery";
 import { sendRegisteredVerificationCode } from "@/lib/registered-delivery-mail";
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
     if (!letter || !registeredDeliveryEnabled(letter.metadata) || !letter.recipient_email) {
       return NextResponse.json({ error: "Registered delivery is not available for this letter." }, { status: 404 });
     }
-    if (letter.status === "cancelled" || letter.status === "expired") {
+    if (registeredLetterUnavailable(letter)) {
       return NextResponse.json({ error: "This letter is no longer available." }, { status: 410 });
     }
 
