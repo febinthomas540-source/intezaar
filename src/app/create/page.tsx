@@ -3,6 +3,7 @@
 import { CreatorMediaBridge } from "@/components/creator-media-bridge";
 import { CreatorShareBridge } from "@/components/creator-share-bridge";
 import { LetterCreator } from "@/components/letter-creator";
+import { MediaUploadLimitGuard } from "@/components/media-upload-limit-guard";
 import { ShortLetterUnlock } from "@/components/short-letter-unlock";
 import { TurnstilePostingGuard } from "@/components/turnstile-posting-guard";
 import "../photo-adjustment.css";
@@ -15,6 +16,7 @@ export default function CreatePage() {
     <>
       <LetterCreator />
       <ShortLetterUnlock />
+      <MediaUploadLimitGuard />
       <CreatorMediaBridge />
       <CreatorShareBridge />
       <TurnstilePostingGuard />
