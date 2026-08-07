@@ -18,7 +18,7 @@ import {
   type LetterMediaManifestItem,
   type LetterPhotoLayout,
 } from "@/lib/letter-security";
-import { sendPostedLetterEmail } from "@/lib/resend-mail";
+import { scheduleArrivalLetterEmail, sendPostedLetterEmail } from "@/lib/resend-mail";
 import { createMediaUploadTargets } from "@/lib/supabase-storage";
 import { validateTurnstile } from "@/lib/turnstile";
 
@@ -303,6 +303,33 @@ export async function POST(request: Request) {
         recipient_email: recipientEmail,
         provider: "resend",
         reason: emailDelivery.message,
+      });
+    }
+
+    const arrivalDelivery = !media.length && recipientEmail
+      ? await scheduleArrivalLetterEmail({
+          letterId,
+          to: recipientEmail,
+          recipientName,
+          senderName,
+          occasion,
+          recipientUrl,
+          opensAt: opensAt.toISOString(),
+        })
+      : null;
+
+    if (arrivalDelivery?.sent) {
+      await insertLetterEvent(letterId, "arrival_email_scheduled", {
+        recipient_email: recipientEmail,
+        provider: "resend",
+        provider_id: arrivalDelivery.emailId || null,
+        scheduled_at: opensAt.toISOString(),
+      });
+    } else if (arrivalDelivery?.attempted) {
+      await insertLetterEvent(letterId, "arrival_email_schedule_failed", {
+        recipient_email: recipientEmail,
+        provider: "resend",
+        reason: arrivalDelivery.message,
       });
     }
 
