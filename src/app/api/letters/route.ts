@@ -1,6 +1,13 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import {
+  MAX_DELIVERY_MS,
+  MAX_MEDIA_ITEMS,
+  MAX_TOTAL_MEDIA_BYTES,
+  MEDIA_LIMIT_BYTES,
+  MIN_DELIVERY_MS,
+} from "@/lib/letter-rules";
+import {
   createPrivateToken,
   encryptLetterPayload,
   hashPrivateToken,
@@ -30,14 +37,7 @@ const formats = new Set([
   "telegram",
 ]);
 
-const MAX_MEDIA_ITEMS = 3;
-const MAX_TOTAL_MEDIA_BYTES = 30 * 1024 * 1024;
-const MIN_JOURNEY_MS = 12 * 60 * 60 * 1000;
-const mediaLimits: Record<LetterMediaKind, number> = {
-  photo: 5 * 1024 * 1024,
-  voice: 10 * 1024 * 1024,
-  video: 25 * 1024 * 1024,
-};
+const mediaLimits: Record<LetterMediaKind, number> = MEDIA_LIMIT_BYTES;
 
 type CreateLetterBody = {
   senderName?: unknown;
@@ -204,8 +204,8 @@ export async function POST(request: Request) {
     }
 
     const now = Date.now();
-    const earliest = now + MIN_JOURNEY_MS;
-    const latest = now + 31 * 24 * 60 * 60 * 1000;
+    const earliest = now + MIN_DELIVERY_MS;
+    const latest = now + MAX_DELIVERY_MS;
     if (opensAt.getTime() < earliest || opensAt.getTime() > latest) {
       return NextResponse.json(
         { error: "Choose an arrival at least 12 hours from now and within 30 days." },
