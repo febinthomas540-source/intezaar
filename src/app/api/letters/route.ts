@@ -8,6 +8,7 @@ import {
   markRecipientNotified,
 } from "@/lib/letter-security";
 import { sendPostedLetterEmail } from "@/lib/resend-mail";
+import { validateTurnstile } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
 
@@ -59,6 +60,17 @@ export async function POST(request: Request) {
   try {
     if (!request.headers.get("content-type")?.includes("application/json")) {
       return NextResponse.json({ error: "Expected a JSON request." }, { status: 415 });
+    }
+
+    const challenge = await validateTurnstile(
+      request,
+      request.headers.get("x-intezaar-turnstile-token"),
+    );
+    if (!challenge.success) {
+      return NextResponse.json(
+        { error: "Complete the secure posting check and try again." },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
     }
 
     const body = await request.json() as CreateLetterBody;
@@ -135,6 +147,7 @@ export async function POST(request: Request) {
         timezone_offset: typeof body.timezoneOffset === "number" ? body.timezoneOffset : null,
         media_transferred: false,
         source: "web_creator",
+        turnstile_validated: !challenge.skipped,
       },
     });
 
