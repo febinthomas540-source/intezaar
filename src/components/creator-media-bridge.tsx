@@ -98,6 +98,11 @@ export function CreatorMediaBridge() {
         const personalise = document.querySelector(".creation-personalise-layout");
         if (!personalise) return;
 
+        const privacyNote = personalise.querySelector<HTMLElement>(".media-privacy-note");
+        if (privacyNote) {
+          privacyNote.textContent = "Selected media is encrypted in this browser and uploaded privately only after you post the letter.";
+        }
+
         const photos = uniqueBySource(
           Array.from(document.querySelectorAll<HTMLImageElement>(".free-photo-item img[src^='blob:']")),
         );
