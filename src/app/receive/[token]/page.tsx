@@ -38,8 +38,11 @@ export default async function SecureRecipientPage({ params }: PageProps) {
   const letter = await findLetterByAccessToken(token);
   if (!letter) notFound();
 
-  const registered = registeredDeliveryEnabled(letter.metadata);
-  if (registered) {
+  const unavailable = letter.status === "cancelled" || letter.status === "expired";
+
+  // An unavailable registered letter cannot be opened, so do not ask the
+  // recipient to verify or trigger an unnecessary OTP flow first.
+  if (!unavailable && registeredDeliveryEnabled(letter.metadata)) {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(registeredCookieName(letter.id))?.value;
     if (!registeredSessionIsValid(token, letter.id, sessionCookie)) {
@@ -47,7 +50,6 @@ export default async function SecureRecipientPage({ params }: PageProps) {
     }
   }
 
-  const unavailable = letter.status === "cancelled" || letter.status === "expired";
   const hasArrived = Date.now() >= new Date(letter.opens_at).getTime();
   const payload = hasArrived && !unavailable
     ? decryptLetterPayload(letter)
