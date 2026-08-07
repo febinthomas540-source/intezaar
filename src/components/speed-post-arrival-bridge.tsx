@@ -52,6 +52,12 @@ export function SpeedPostArrivalBridge() {
         }
         const noteElement = note;
 
+        const clearSpeedPostActive = () => {
+          group.querySelectorAll<HTMLButtonElement>("button[data-speed-post]").forEach((button) => {
+            button.classList.remove("active");
+          });
+        };
+
         const validate = () => {
           const timestamp = selectedMoment(dateInput, timeInput);
           const valid = Number.isFinite(timestamp) && timestamp >= Date.now() + MIN_SPEED_POST_MS;
@@ -92,15 +98,32 @@ export function SpeedPostArrivalBridge() {
         addChoice(24, "Next day", "Priority arrival");
         addChoice(12, "12 hours", "Speed Post");
 
+        group.querySelectorAll<HTMLButtonElement>("button:not([data-speed-post])").forEach((button) => {
+          if (button.dataset.speedPostOrdinaryBound) return;
+          button.dataset.speedPostOrdinaryBound = "true";
+          button.addEventListener("click", () => {
+            clearSpeedPostActive();
+            validate();
+          });
+        });
+
         if (!dateInput.dataset.speedPostBound) {
           dateInput.dataset.speedPostBound = "true";
-          dateInput.addEventListener("input", validate);
-          dateInput.addEventListener("change", validate);
+          const handleManualArrivalChange = () => {
+            clearSpeedPostActive();
+            validate();
+          };
+          dateInput.addEventListener("input", handleManualArrivalChange);
+          dateInput.addEventListener("change", handleManualArrivalChange);
         }
         if (!timeInput.dataset.speedPostBound) {
           timeInput.dataset.speedPostBound = "true";
-          timeInput.addEventListener("input", validate);
-          timeInput.addEventListener("change", validate);
+          const handleManualArrivalChange = () => {
+            clearSpeedPostActive();
+            validate();
+          };
+          timeInput.addEventListener("input", handleManualArrivalChange);
+          timeInput.addEventListener("change", handleManualArrivalChange);
         }
 
         validate();
