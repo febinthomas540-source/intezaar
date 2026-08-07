@@ -31,7 +31,10 @@ export async function validateTurnstile(
 ): Promise<TurnstileValidation> {
   // Preview deployments and local development are not registered hostnames for
   // the production widget. Production remains fail-closed.
-  if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production") {
+  if (
+    process.env.NODE_ENV !== "production" ||
+    (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production")
+  ) {
     return { success: true, skipped: true };
   }
 
