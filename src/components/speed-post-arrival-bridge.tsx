@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const MIN_SPEED_POST_MS = 12 * 60 * 60 * 1000;
+const MIN_EXPRESS_MS = 12 * 60 * 60 * 1000;
 const MINUTE_MS = 60 * 1000;
 
 function pad(value: number) {
@@ -69,13 +69,13 @@ export function SpeedPostArrivalBridge() {
 
         const validate = () => {
           const timestamp = selectedMoment(dateInput, timeInput);
-          const valid = Number.isFinite(timestamp) && timestamp >= Date.now() + MIN_SPEED_POST_MS;
+          const valid = Number.isFinite(timestamp) && timestamp >= Date.now() + MIN_EXPRESS_MS;
           const continueButton = Array.from(document.querySelectorAll<HTMLButtonElement>("button"))
             .find((button) => button.textContent?.trim() === "Continue to seal");
           if (continueButton) continueButton.disabled = !valid;
           noteElement.dataset.invalid = String(!valid);
           noteElement.textContent = valid
-            ? "Speed Post can arrive from 12 hours. Ordinary Intezaar journeys can take 3, 5 or 7 days."
+            ? "Intezaar Express can arrive from 12 hours. Standard Intezaar journeys can take 3, 5 or 7 days."
             : "Choose an arrival at least 12 hours from now.";
         };
 
@@ -105,7 +105,7 @@ export function SpeedPostArrivalBridge() {
         };
 
         addChoice(24, "Next day", "Priority arrival");
-        addChoice(12, "12 hours", "Speed Post");
+        addChoice(12, "12 hours", "Intezaar Express");
 
         group.querySelectorAll<HTMLButtonElement>("button:not([data-speed-post])").forEach((button) => {
           if (button.dataset.speedPostOrdinaryBound) return;
