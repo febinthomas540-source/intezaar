@@ -2,6 +2,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import type { LetterFormat, PhotoPatch } from "@/components/letter-preview";
+import { MAX_DELIVERY_MS, MIN_DELIVERY_MS } from "@/lib/letter-rules";
 
 const POSTED_KEY = "intezaar:last-secure-letter:v1";
 const DRAFT_KEY = "intezaar:create-draft:v3";
@@ -147,6 +148,15 @@ function createOpensAt(draft: SecureDraft) {
   if (!draft.arrivalDate || !Number.isFinite(localMoment.getTime())) {
     throw new Error("Choose a valid arrival date and time before posting.");
   }
+
+  const now = Date.now();
+  if (localMoment.getTime() < now + MIN_DELIVERY_MS) {
+    throw new Error("The arrival time is now too close. Go back to Arrival and choose a time at least 12 hours from now.");
+  }
+  if (localMoment.getTime() > now + MAX_DELIVERY_MS) {
+    throw new Error("The arrival time is now outside the 30-day window. Go back to Arrival and choose a nearer date.");
+  }
+
   return localMoment.toISOString();
 }
 
@@ -166,6 +176,7 @@ export async function createSecureLetter(
   draft: SecureDraft,
   media: SecureMediaItem[],
 ): Promise<SecureLetterResult> {
+  const opensAt = createOpensAt(draft);
   const response = await fetch("/api/letters", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -180,7 +191,7 @@ export async function createSecureLetter(
       heading: draft.heading,
       message: draft.letter,
       closing: draft.closing,
-      opensAt: createOpensAt(draft),
+      opensAt,
       timezoneOffset: new Date().getTimezoneOffset(),
       media: mediaDescriptor(media),
     }),
