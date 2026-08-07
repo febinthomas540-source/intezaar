@@ -10,6 +10,35 @@ type LetterContent = {
   closing: string;
 };
 
+type PhotoLayout = {
+  fit: "cover" | "contain";
+  zoom: number;
+  cropX: number;
+  cropY: number;
+  x: number;
+  y: number;
+  width: number;
+  aspectRatio: number;
+  zIndex: number;
+};
+
+type DeliveredMedia = {
+  id: string;
+  kind: "photo" | "voice" | "video";
+  path: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  caption: string;
+  iv: string;
+  photoLayout?: PhotoLayout;
+  signedUrl: string;
+};
+
+type OpenedMedia = DeliveredMedia & {
+  objectUrl: string;
+};
+
 type Props = {
   recipient: string;
   sender: string;
@@ -20,6 +49,8 @@ type Props = {
   opensAt: string;
   status: string;
   content: LetterContent | null;
+  mediaKey: string;
+  media: DeliveredMedia[];
 };
 
 type Countdown = {
@@ -54,6 +85,16 @@ function formatLabel(value: string) {
     .replace(/(^|\s)\S/g, (letter) => letter.toUpperCase());
 }
 
+function bytesFromBase64(value: string) {
+  const binary = window.atob(value);
+  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+}
+
+function mediaSize(bytes: number) {
+  if (bytes < 1_048_576) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / 1_048_576).toFixed(1)} MB`;
+}
+
 export function SecureLetterDelivery({
   recipient,
   sender,
@@ -64,6 +105,8 @@ export function SecureLetterDelivery({
   opensAt,
   status,
   content,
+  mediaKey,
+  media,
 }: Props) {
   const storageKey = useMemo(
     () => `intezaar:received:${recipient}:${opensAt}`,
@@ -72,6 +115,8 @@ export function SecureLetterDelivery({
   const [received, setReceived] = useState(false);
   const [opened, setOpened] = useState(false);
   const [countdown, setCountdown] = useState(() => countdownTo(opensAt));
+  const [openedMedia, setOpenedMedia] = useState<OpenedMedia[]>([]);
+  const [mediaStatus, setMediaStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
   useEffect(() => {
     try {
@@ -93,6 +138,60 @@ export function SecureLetterDelivery({
     }, 1000);
     return () => window.clearInterval(timer);
   }, [content, opensAt, status]);
+
+  useEffect(() => {
+    if (!content || !mediaKey || !media.length) {
+      setOpenedMedia([]);
+      setMediaStatus("idle");
+      return;
+    }
+
+    let cancelled = false;
+    const objectUrls: string[] = [];
+    setMediaStatus("loading");
+
+    const decrypt = async () => {
+      try {
+        const key = await window.crypto.subtle.importKey(
+          "raw",
+          bytesFromBase64(mediaKey),
+          { name: "AES-GCM" },
+          false,
+          ["decrypt"],
+        );
+        const decrypted: OpenedMedia[] = [];
+
+        for (const item of media) {
+          const response = await fetch(item.signedUrl, { cache: "no-store" });
+          if (!response.ok) throw new Error(`Could not retrieve ${item.name}.`);
+          const plaintext = await window.crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: bytesFromBase64(item.iv) },
+            key,
+            await response.arrayBuffer(),
+          );
+          const objectUrl = URL.createObjectURL(new Blob([plaintext], { type: item.mimeType }));
+          objectUrls.push(objectUrl);
+          decrypted.push({ ...item, objectUrl });
+        }
+
+        if (cancelled) {
+          objectUrls.forEach((url) => URL.revokeObjectURL(url));
+          return;
+        }
+        setOpenedMedia(decrypted);
+        setMediaStatus("ready");
+      } catch (error) {
+        console.error("Private media decryption failed:", error);
+        if (!cancelled) setMediaStatus("error");
+      }
+    };
+
+    void decrypt();
+    return () => {
+      cancelled = true;
+      objectUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [content, media, mediaKey]);
 
   function receiveLetter() {
     setReceived(true);
@@ -179,7 +278,7 @@ export function SecureLetterDelivery({
             <p>Your letter is safely sealed</p>
             <h1>It will open when the chosen moment arrives.</h1>
             <span>
-              {sender} posted this letter for {recipient}. The message itself has not been sent to this browser yet.
+              {sender} posted this letter for {recipient}. The message and private media have not been sent to this browser yet.
             </span>
 
             <div className={styles.countdown} aria-label="Time remaining until the letter opens">
@@ -255,6 +354,45 @@ export function SecureLetterDelivery({
             ))}
             <p className={styles.closing}>{content.closing || `With care,\n${sender}`}</p>
           </div>
+
+          {media.length ? (
+            <section className={styles.privateMedia} aria-label="Private media inside this letter">
+              <header>
+                <small>SEALED WITH THE LETTER</small>
+                <strong>{media.length} private media item{media.length === 1 ? "" : "s"}</strong>
+              </header>
+
+              {mediaStatus === "loading" ? <p className={styles.mediaNotice}>Decrypting the private media on this device…</p> : null}
+              {mediaStatus === "error" ? <p className={styles.mediaError}>The private media could not be opened. Refresh the page and try again.</p> : null}
+
+              {mediaStatus === "ready" ? (
+                <div className={styles.mediaGrid}>
+                  {openedMedia.map((item) => (
+                    <figure key={item.id} className={`${styles.mediaCard} ${styles[`media_${item.kind}`] || ""}`}>
+                      {item.kind === "photo" ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={item.objectUrl}
+                          alt={item.caption || item.name}
+                          style={{
+                            objectFit: item.photoLayout?.fit || "cover",
+                            objectPosition: `${item.photoLayout?.cropX || 50}% ${item.photoLayout?.cropY || 50}%`,
+                          }}
+                        />
+                      ) : null}
+                      {item.kind === "voice" ? <audio controls preload="metadata" src={item.objectUrl} /> : null}
+                      {item.kind === "video" ? <video controls playsInline preload="metadata" src={item.objectUrl} /> : null}
+                      <figcaption>
+                        <strong>{item.caption || (item.kind === "voice" ? "A voice note" : item.kind === "video" ? "A private video" : "A photograph")}</strong>
+                        <small>{mediaSize(item.size)}</small>
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
           <footer>
             <span>{fromCity || "Intezaar"} → {toCity || recipient}</span>
             <span>Posted with patience</span>
