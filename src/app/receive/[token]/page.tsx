@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { RecipientPhotoLayoutBridge } from "@/components/recipient-photo-layout-bridge";
+import { RecipientPostageStamp } from "@/components/recipient-postage-stamp";
 import { SecureLetterDelivery } from "@/components/secure-letter-delivery";
 import {
   decryptLetterPayload,
@@ -67,6 +68,7 @@ export default async function SecureRecipientPage({ params }: PageProps) {
         mediaKey={payload?.mediaKey || ""}
         media={media}
       />
+      <RecipientPostageStamp />
       <RecipientPhotoLayoutBridge photos={positionedPhotos} />
     </>
   );
