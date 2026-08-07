@@ -16,6 +16,8 @@ const policyLinks = [
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/community-guidelines", label: "Community Guidelines" },
   { href: "/terms", label: "User Agreement" },
+  { href: "mailto:support@intezaar.in", label: "Support" },
+  { href: "mailto:safety@intezaar.in", label: "Safety" },
 ];
 
 export function PolicyShell({
