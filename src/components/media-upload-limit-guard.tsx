@@ -2,14 +2,12 @@
 
 import { useEffect } from "react";
 import { getCapturedMedia, type CapturedMediaKind } from "@/components/creator-media-bridge";
-
-const MAX_MEDIA_ITEMS = 3;
-const MAX_TOTAL_MEDIA_BYTES = 30 * 1024 * 1024;
-const MEDIA_LIMITS: Record<CapturedMediaKind, number> = {
-  photo: 5 * 1024 * 1024,
-  voice: 10 * 1024 * 1024,
-  video: 25 * 1024 * 1024,
-};
+import {
+  MAX_MEDIA_ITEMS,
+  MAX_TOTAL_MEDIA_BYTES,
+  MEDIA_LIMIT_BYTES,
+  mediaLimitLabel,
+} from "@/lib/letter-rules";
 
 function mediaKind(input: HTMLInputElement): CapturedMediaKind | null {
   if (input.accept.includes("image")) return "photo";
@@ -22,10 +20,6 @@ function kindLabel(kind: CapturedMediaKind) {
   if (kind === "photo") return "photo";
   if (kind === "voice") return "voice note";
   return "video";
-}
-
-function sizeLabel(bytes: number) {
-  return `${Math.round(bytes / (1024 * 1024))} MB`;
 }
 
 function validMime(kind: CapturedMediaKind, type: string) {
@@ -84,13 +78,13 @@ export function MediaUploadLimitGuard() {
         return;
       }
 
-      const limit = MEDIA_LIMITS[kind];
+      const limit = MEDIA_LIMIT_BYTES[kind];
       const oversized = selected.find((file) => file.size > limit);
       if (oversized) {
         rejectSelection(
           event,
           input,
-          `The ${kindLabel(kind)} must be ${sizeLabel(limit)} or smaller.`,
+          `The ${kindLabel(kind)} must be ${mediaLimitLabel(kind)} or smaller.`,
         );
         return;
       }
