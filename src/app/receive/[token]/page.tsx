@@ -5,6 +5,7 @@ import {
   decryptLetterPayload,
   findLetterByAccessToken,
 } from "@/lib/letter-security";
+import { createMediaDownloadUrls } from "@/lib/supabase-storage";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -28,9 +29,18 @@ export default async function SecureRecipientPage({ params }: PageProps) {
 
   const unavailable = letter.status === "cancelled" || letter.status === "expired";
   const hasArrived = Date.now() >= new Date(letter.opens_at).getTime();
-  const content = hasArrived && !unavailable
+  const payload = hasArrived && !unavailable
     ? decryptLetterPayload(letter)
     : null;
+
+  const mediaReady = letter.metadata?.media_ready === true;
+  const manifest = payload?.mediaKey && mediaReady ? payload.media || [] : [];
+  const signedUrls = manifest.length
+    ? await createMediaDownloadUrls(manifest.map((item) => item.path))
+    : new Map<string, string>();
+  const media = manifest
+    .map((item) => ({ ...item, signedUrl: signedUrls.get(item.path) || "" }))
+    .filter((item) => Boolean(item.signedUrl));
 
   return (
     <SecureLetterDelivery
@@ -42,7 +52,13 @@ export default async function SecureRecipientPage({ params }: PageProps) {
       toCity={letter.to_city || ""}
       opensAt={letter.opens_at}
       status={letter.status}
-      content={content}
+      content={payload ? {
+        heading: payload.heading,
+        message: payload.message,
+        closing: payload.closing,
+      } : null}
+      mediaKey={payload?.mediaKey || ""}
+      media={media}
     />
   );
 }
