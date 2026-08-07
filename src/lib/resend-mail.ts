@@ -16,13 +16,13 @@ export type EmailDeliveryResult = {
 };
 
 function escapeHtml(value: string) {
-  return value.replace(/[&<>'"]/g, (character) => {
+  return value.replace(/[&<>'\"]/g, (character) => {
     const entities: Record<string, string> = {
       "&": "&amp;",
       "<": "&lt;",
       ">": "&gt;",
       "'": "&#39;",
-      '"': "&quot;",
+      '\"': "&quot;",
     };
     return entities[character] || character;
   });
@@ -44,8 +44,6 @@ export async function sendPostedLetterEmail(
   }
 
   const recipientName = escapeHtml(input.recipientName);
-  const senderName = escapeHtml(input.senderName);
-  const occasion = escapeHtml(input.occasion);
   const recipientUrl = escapeHtml(input.recipientUrl);
 
   const html = `<!doctype html>
@@ -57,20 +55,20 @@ export async function sendPostedLetterEmail(
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fffaf2;border:1px solid #dfcfba;border-radius:20px;overflow:hidden;">
             <tr>
               <td style="padding:20px 28px;background:#78251e;color:#fff2dc;font-size:13px;font-weight:700;letter-spacing:.14em;">
-                INTEZAAR · PRIVATE DIGITAL MAIL
+                INTEZAAR · REGISTERED DIGITAL MAIL
               </td>
             </tr>
             <tr>
               <td style="padding:38px 30px;">
-                <p style="margin:0 0 12px;color:#9a392e;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Private mail for ${recipientName}</p>
-                <h1 style="margin:0;color:#40281f;font-family:Georgia,serif;font-size:38px;line-height:1.08;font-weight:500;">A letter has been posted for you.</h1>
-                <p style="margin:22px 0 0;color:#6d5143;font-size:17px;line-height:1.65;">${senderName} chose not to send these words instantly. The letter is sealed and will open only at the chosen moment.</p>
+                <p style="margin:0 0 12px;color:#9a392e;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Private registered mail for ${recipientName}</p>
+                <h1 style="margin:0;color:#40281f;font-family:Georgia,serif;font-size:38px;line-height:1.08;font-weight:500;">A private letter has been posted for you.</h1>
+                <p style="margin:22px 0 0;color:#6d5143;font-size:17px;line-height:1.65;">The sender asked Intezaar to verify that this letter reaches the intended recipient. Open the private link and complete the one-time-code check before the sender details or letter are revealed.</p>
                 <div style="margin:26px 0;padding:18px 20px;background:#f3e3cb;border-radius:14px;">
-                  <span style="display:block;color:#9a392e;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Occasion</span>
-                  <strong style="display:block;margin-top:6px;color:#493126;font-family:Georgia,serif;font-size:20px;">${occasion}</strong>
+                  <span style="display:block;color:#9a392e;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Registered delivery</span>
+                  <strong style="display:block;margin-top:6px;color:#493126;font-family:Georgia,serif;font-size:20px;">Identity stays sealed until verification</strong>
                 </div>
-                <a href="${recipientUrl}" style="display:inline-block;padding:15px 24px;border-radius:999px;background:#8f281f;color:#fff8ef;text-decoration:none;font-weight:700;">Receive the sealed letter</a>
-                <p style="margin:24px 0 0;color:#8a7162;font-size:13px;line-height:1.55;">Keep this private link safe. Anyone who has it may access the delivery experience. The letter body is not included in this email.</p>
+                <a href="${recipientUrl}" style="display:inline-block;padding:15px 24px;border-radius:999px;background:#8f281f;color:#fff8ef;text-decoration:none;font-weight:700;">Continue to registered delivery</a>
+                <p style="margin:24px 0 0;color:#8a7162;font-size:13px;line-height:1.55;">Keep this private link safe. The link alone does not reveal the sender or letter; recipient verification is still required.</p>
               </td>
             </tr>
             <tr>
@@ -86,15 +84,15 @@ export async function sendPostedLetterEmail(
 </html>`;
 
   const text = [
-    `Private mail for ${input.recipientName}`,
+    `Private registered mail for ${input.recipientName}`,
     "",
-    "A letter has been posted for you.",
-    `${input.senderName} chose not to send these words instantly.`,
-    `Occasion: ${input.occasion}`,
+    "A private letter has been posted for you.",
+    "The sender asked Intezaar to verify that this letter reaches the intended recipient.",
+    "Complete recipient verification before the sender details or letter are revealed.",
     "",
-    `Receive the sealed letter: ${input.recipientUrl}`,
+    `Continue to registered delivery: ${input.recipientUrl}`,
     "",
-    "Keep this private link safe. The letter body is not included in this email.",
+    "Keep this private link safe. Recipient verification is still required.",
   ].join("\n");
 
   try {
@@ -108,7 +106,7 @@ export async function sendPostedLetterEmail(
       body: JSON.stringify({
         from,
         to: [input.to],
-        subject: `${input.senderName} posted a private letter for you`,
+        subject: "A private Intezaar letter is waiting for you",
         html,
         text,
       }),
