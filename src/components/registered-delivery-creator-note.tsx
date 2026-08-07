@@ -15,19 +15,26 @@ export function RegisteredDeliveryCreatorNote() {
         const labels = grid.querySelectorAll<HTMLLabelElement>("label");
         const recipientLabel = labels[1];
         const recipientInput = recipientLabel?.querySelector<HTMLInputElement>('input[type="email"]');
-        if (recipientLabel && recipientInput && !grid.querySelector('[data-registered-delivery-note="true"]')) {
-          const firstText = recipientLabel.firstChild;
-          if (firstText?.nodeType === Node.TEXT_NODE) {
-            firstText.textContent = "Recipient email (optional — registered delivery)";
-          }
-          recipientInput.placeholder = "Verifies the intended recipient";
+        if (!recipientLabel || !recipientInput) return;
 
-          const note = document.createElement("p");
-          note.dataset.registeredDeliveryNote = "true";
-          note.className = "registered-delivery-creator-note";
-          note.textContent = "Add the recipient’s email to make this a Registered Letter. They will need a one-time code before the sender details, letter or private media can be released. Leave it blank for ordinary private-link delivery.";
-          grid.after(note);
+        const firstText = recipientLabel.firstChild;
+        if (firstText?.nodeType === Node.TEXT_NODE) {
+          firstText.textContent = "Recipient email (optional — registered delivery)";
         }
+        recipientInput.placeholder = "Verifies the intended recipient";
+
+        const existingNotes = Array.from(
+          document.querySelectorAll<HTMLElement>('[data-registered-delivery-note="true"]'),
+        );
+        const existingNote = existingNotes[0];
+        existingNotes.slice(1).forEach((note) => note.remove());
+        if (existingNote) return;
+
+        const note = document.createElement("p");
+        note.dataset.registeredDeliveryNote = "true";
+        note.className = "registered-delivery-creator-note";
+        note.textContent = "Add the recipient’s email to make this a Registered Letter. They will need a one-time code before the sender details, letter or private media can be released. Leave it blank for ordinary private-link delivery.";
+        grid.after(note);
       });
     };
 
