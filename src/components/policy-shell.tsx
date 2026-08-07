@@ -13,15 +13,16 @@ type PolicyShellProps = {
 
 const policyLinks = [
   { href: "/faq", label: "FAQ" },
+  { href: "/privacy", label: "Privacy Policy" },
   { href: "/community-guidelines", label: "Community Guidelines" },
-  { href: "/terms", label: "Terms of Use" },
+  { href: "/terms", label: "User Agreement" },
 ];
 
 export function PolicyShell({
   eyebrow,
   title,
   intro,
-  lastUpdated = "6 August 2026",
+  lastUpdated = "7 August 2026",
   children,
 }: PolicyShellProps) {
   return (
