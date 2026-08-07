@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { FirstPartyAnalytics } from "@/components/first-party-analytics";
 import { MetaPixel } from "@/components/meta-pixel";
 import "./globals.css";
 import "./postal-theme.css";
@@ -91,6 +92,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en-IN">
       <body>
         {children}
+        <FirstPartyAnalytics />
         <MetaPixel />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
