@@ -53,6 +53,7 @@ export type StoredLetter = {
   from_city: string | null;
   to_city: string | null;
   opens_at: string;
+  expires_at?: string;
   status: string;
   payload_ciphertext: string;
   payload_iv: string;
@@ -237,8 +238,8 @@ export async function insertLetterEvent(
   }
 }
 
-const accessSelect = "id,sender_name,recipient_name,occasion,letter_format,from_city,to_city,opens_at,status,payload_ciphertext,payload_iv,payload_auth_tag,metadata";
-const manageSelect = "id,access_token_hash,manage_token_hash,sender_name,sender_email,recipient_name,recipient_email,occasion,letter_format,from_city,to_city,opens_at,status,payload_ciphertext,payload_iv,payload_auth_tag,metadata";
+const accessSelect = "id,sender_name,recipient_name,occasion,letter_format,from_city,to_city,opens_at,expires_at,status,payload_ciphertext,payload_iv,payload_auth_tag,metadata";
+const manageSelect = "id,access_token_hash,manage_token_hash,sender_name,sender_email,recipient_name,recipient_email,occasion,letter_format,from_city,to_city,opens_at,expires_at,status,payload_ciphertext,payload_iv,payload_auth_tag,metadata";
 
 export async function findLetterByAccessToken(token: string): Promise<StoredLetter | null> {
   const hash = hashPrivateToken(token);
