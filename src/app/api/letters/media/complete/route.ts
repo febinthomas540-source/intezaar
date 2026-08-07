@@ -16,13 +16,17 @@ function cleanText(value: unknown, maximum: number) {
   return typeof value === "string" ? value.trim().slice(0, maximum) : "";
 }
 
-function validatedRecipientUrl(raw: unknown, accessTokenHash: string | undefined) {
+function expectedSiteOrigin(request: Request) {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
+  return configured ? new URL(configured).origin : new URL(request.url).origin;
+}
+
+function validatedRecipientUrl(raw: unknown, accessTokenHash: string | undefined, expectedOrigin: string) {
   if (typeof raw !== "string" || !accessTokenHash) return null;
 
   try {
     const url = new URL(raw);
-    const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
-    if (configured && url.origin !== new URL(configured).origin) return null;
+    if (url.origin !== expectedOrigin) return null;
 
     const match = url.pathname.match(/^\/receive\/([A-Za-z0-9_-]{40,60})$/);
     if (!match || hashPrivateToken(match[1]) !== accessTokenHash) return null;
@@ -71,6 +75,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Not every selected media item was uploaded." }, { status: 400 });
     }
 
+    const recipientUrl = validatedRecipientUrl(
+      body.recipientUrl,
+      letter.access_token_hash,
+      expectedSiteOrigin(request),
+    );
+    if (!recipientUrl) {
+      return NextResponse.json({ error: "The private recipient link could not be verified." }, { status: 400 });
+    }
+
     const objectsExist = await verifyMediaObjects(media.map((item) => item.path));
     if (!objectsExist) {
       return NextResponse.json(
@@ -86,11 +99,6 @@ export async function POST(request: Request) {
       media_count: media.length,
       media_uploaded_at: new Date().toISOString(),
     });
-
-    const recipientUrl = validatedRecipientUrl(body.recipientUrl, letter.access_token_hash);
-    if (!recipientUrl) {
-      return NextResponse.json({ error: "The private recipient link could not be verified." }, { status: 400 });
-    }
 
     let emailDelivery: EmailDeliveryResult = {
       attempted: false,
