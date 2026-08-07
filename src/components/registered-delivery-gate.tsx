@@ -101,7 +101,9 @@ export function RegisteredDeliveryGate({ recipient, token }: Props) {
           )}
 
           {message ? <div className={styles.notice} role="status">{message}</div> : null}
-          <small>Verification is tied to this browser. If browser data is cleared, the recipient may need to verify again.</small>
+          <small>
+            Registered Intezaar Mail is an Intezaar recipient-verification feature, not India Post Registered Post and not proof of postal service. Verification is tied to this browser; if browser data is cleared, the recipient may need to verify again.
+          </small>
         </article>
       </section>
     </main>
