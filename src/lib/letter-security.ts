@@ -5,17 +5,49 @@ import {
   randomBytes,
 } from "node:crypto";
 
+export type LetterMediaKind = "photo" | "voice" | "video";
+
+export type LetterPhotoLayout = {
+  fit: "cover" | "contain";
+  zoom: number;
+  cropX: number;
+  cropY: number;
+  x: number;
+  y: number;
+  width: number;
+  aspectRatio: number;
+  zIndex: number;
+};
+
+export type LetterMediaManifestItem = {
+  id: string;
+  kind: LetterMediaKind;
+  path: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  caption: string;
+  iv: string;
+  photoLayout?: LetterPhotoLayout;
+};
+
 export type LetterPayload = {
-  version: 1;
+  version: 1 | 2;
   heading: string;
   message: string;
   closing: string;
+  mediaKey?: string;
+  media?: LetterMediaManifestItem[];
 };
 
 export type StoredLetter = {
   id: string;
+  access_token_hash?: string;
+  manage_token_hash?: string;
   sender_name: string;
+  sender_email?: string | null;
   recipient_name: string;
+  recipient_email?: string | null;
   occasion: string;
   letter_format: string;
   from_city: string | null;
@@ -25,6 +57,7 @@ export type StoredLetter = {
   payload_ciphertext: string;
   payload_iv: string;
   payload_auth_tag: string;
+  metadata: Record<string, unknown>;
 };
 
 type EncryptedPayload = {
@@ -69,6 +102,21 @@ export function encryptLetterPayload(payload: LetterPayload): EncryptedPayload {
   };
 }
 
+function validMediaItem(value: unknown): value is LetterMediaManifestItem {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Partial<LetterMediaManifestItem>;
+  return (
+    typeof item.id === "string" &&
+    (item.kind === "photo" || item.kind === "voice" || item.kind === "video") &&
+    typeof item.path === "string" &&
+    typeof item.name === "string" &&
+    typeof item.mimeType === "string" &&
+    typeof item.size === "number" &&
+    typeof item.caption === "string" &&
+    typeof item.iv === "string"
+  );
+}
+
 export function decryptLetterPayload(letter: StoredLetter): LetterPayload {
   const decipher = createDecipheriv(
     "aes-256-gcm",
@@ -84,7 +132,7 @@ export function decryptLetterPayload(letter: StoredLetter): LetterPayload {
 
   const parsed = JSON.parse(plaintext) as Partial<LetterPayload>;
   if (
-    parsed.version !== 1 ||
+    (parsed.version !== 1 && parsed.version !== 2) ||
     typeof parsed.heading !== "string" ||
     typeof parsed.message !== "string" ||
     typeof parsed.closing !== "string"
@@ -92,12 +140,23 @@ export function decryptLetterPayload(letter: StoredLetter): LetterPayload {
     throw new Error("Stored letter payload is invalid.");
   }
 
+  if (parsed.version === 2) {
+    if (parsed.mediaKey !== undefined && typeof parsed.mediaKey !== "string") {
+      throw new Error("Stored media key is invalid.");
+    }
+    if (parsed.media !== undefined && (!Array.isArray(parsed.media) || !parsed.media.every(validMediaItem))) {
+      throw new Error("Stored media manifest is invalid.");
+    }
+  }
+
   return parsed as LetterPayload;
 }
 
 function supabaseHeaders(extra?: HeadersInit) {
+  const secret = requiredEnvironment("SUPABASE_SECRET_KEY");
   return {
-    apikey: requiredEnvironment("SUPABASE_SECRET_KEY"),
+    apikey: secret,
+    Authorization: `Bearer ${secret}`,
     "Content-Type": "application/json",
     ...extra,
   } satisfies HeadersInit;
@@ -127,6 +186,20 @@ export async function insertEncryptedLetter(row: Record<string, unknown>) {
   const result = await response.json() as Array<{ id: string }>;
   if (!result[0]?.id) throw new Error("Supabase did not return the new letter id.");
   return result[0].id;
+}
+
+export async function updateLetterMetadata(letterId: string, metadata: Record<string, unknown>) {
+  const query = new URLSearchParams({ id: `eq.${letterId}` });
+  const response = await fetch(supabaseUrl(`letters?${query.toString()}`), {
+    method: "PATCH",
+    headers: supabaseHeaders({ Prefer: "return=minimal" }),
+    body: JSON.stringify({ metadata, updated_at: new Date().toISOString() }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Could not update letter metadata: ${await parseSupabaseError(response)}`);
+  }
 }
 
 export async function markRecipientNotified(letterId: string) {
@@ -164,11 +237,14 @@ export async function insertLetterEvent(
   }
 }
 
+const accessSelect = "id,sender_name,recipient_name,occasion,letter_format,from_city,to_city,opens_at,status,payload_ciphertext,payload_iv,payload_auth_tag,metadata";
+const manageSelect = "id,access_token_hash,manage_token_hash,sender_name,sender_email,recipient_name,recipient_email,occasion,letter_format,from_city,to_city,opens_at,status,payload_ciphertext,payload_iv,payload_auth_tag,metadata";
+
 export async function findLetterByAccessToken(token: string): Promise<StoredLetter | null> {
   const hash = hashPrivateToken(token);
   const query = new URLSearchParams({
     access_token_hash: `eq.${hash}`,
-    select: "id,sender_name,recipient_name,occasion,letter_format,from_city,to_city,opens_at,status,payload_ciphertext,payload_iv,payload_auth_tag",
+    select: accessSelect,
     limit: "1",
   });
 
@@ -179,6 +255,27 @@ export async function findLetterByAccessToken(token: string): Promise<StoredLett
 
   if (!response.ok) {
     throw new Error(`Supabase read failed: ${await parseSupabaseError(response)}`);
+  }
+
+  const result = await response.json() as StoredLetter[];
+  return result[0] ?? null;
+}
+
+export async function findLetterByManageToken(token: string): Promise<StoredLetter | null> {
+  const hash = hashPrivateToken(token);
+  const query = new URLSearchParams({
+    manage_token_hash: `eq.${hash}`,
+    select: manageSelect,
+    limit: "1",
+  });
+
+  const response = await fetch(supabaseUrl(`letters?${query.toString()}`), {
+    headers: supabaseHeaders(),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Supabase management read failed: ${await parseSupabaseError(response)}`);
   }
 
   const result = await response.json() as StoredLetter[];
