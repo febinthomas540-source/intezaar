@@ -1,18 +1,14 @@
 "use client";
 
-import Script from "next/script";
+import { Analytics, type BeforeSendEvent } from "@vercel/analytics/next";
+import { track } from "@vercel/analytics";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-declare global {
-  interface Window {
-    va?: (...args: unknown[]) => void;
-    vaq?: unknown[][];
-  }
-}
+type FunnelEvent = "StartWriting" | "ReachedArrival" | "LetterPosted";
 
-function trackFirstPartyEvent(name: "StartWriting" | "ReachedArrival" | "LetterPosted") {
-  window.va?.("event", { name });
+function trackFirstPartyEvent(name: FunnelEvent) {
+  track(name);
 }
 
 export function FirstPartyAnalytics() {
@@ -21,8 +17,8 @@ export function FirstPartyAnalytics() {
   useEffect(() => {
     if (pathname !== "/create") return;
 
-    const sent = new Set<string>();
-    const fireOnce = (name: "StartWriting" | "ReachedArrival" | "LetterPosted") => {
+    const sent = new Set<FunnelEvent>();
+    const fireOnce = (name: FunnelEvent) => {
       if (sent.has(name)) return;
       sent.add(name);
       trackFirstPartyEvent(name);
@@ -36,7 +32,9 @@ export function FirstPartyAnalytics() {
     const inspect = () => {
       const text = document.body.innerText.toLowerCase();
       if (text.includes("choose when it should arrive")) fireOnce("ReachedArrival");
-      if (text.includes("your letter is on its way") || text.includes("private recipient link")) fireOnce("LetterPosted");
+      if (text.includes("your letter is on its way") || text.includes("private recipient link")) {
+        fireOnce("LetterPosted");
+      }
     };
 
     document.addEventListener("focusin", onFocus);
@@ -51,11 +49,18 @@ export function FirstPartyAnalytics() {
   }, [pathname]);
 
   return (
-    <>
-      <Script id="vercel-analytics-queue" strategy="afterInteractive">
-        {`window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};`}
-      </Script>
-      <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
-    </>
+    <Analytics
+      beforeSend={(event: BeforeSendEvent) => {
+        try {
+          const url = new URL(event.url);
+          if (url.pathname.startsWith("/receive/")) return null;
+          url.search = "";
+          url.hash = "";
+          return { ...event, url: url.toString() };
+        } catch {
+          return null;
+        }
+      }}
+    />
   );
 }
