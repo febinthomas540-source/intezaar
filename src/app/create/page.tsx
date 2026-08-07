@@ -1,5 +1,6 @@
 "use client";
 
+import { CreatorMediaBridge } from "@/components/creator-media-bridge";
 import { CreatorShareBridge } from "@/components/creator-share-bridge";
 import { LetterCreator } from "@/components/letter-creator";
 import { ShortLetterUnlock } from "@/components/short-letter-unlock";
@@ -14,6 +15,7 @@ export default function CreatePage() {
     <>
       <LetterCreator />
       <ShortLetterUnlock />
+      <CreatorMediaBridge />
       <CreatorShareBridge />
       <TurnstilePostingGuard />
     </>
