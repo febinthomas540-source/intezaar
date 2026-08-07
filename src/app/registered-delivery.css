@@ -1,0 +1,17 @@
+.registered-delivery-creator-note {
+  margin: 12px 0 0;
+  padding: 13px 15px;
+  border: 1px solid rgba(125, 63, 48, .16);
+  border-radius: 12px;
+  color: #6f5144;
+  background: rgba(248, 236, 217, .78);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.registered-delivery-creator-note::before {
+  content: "REGISTERED MAIL · ";
+  color: #8f2f20;
+  font-weight: 900;
+  letter-spacing: .09em;
+}
