@@ -35,12 +35,10 @@ export const metadata: Metadata = {
     "private delayed message",
     "nostalgic letter website",
   ],
-  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "en_IN",
     siteName: "Intezaar",
-    url: "/",
     title: "Intezaar — Write it. Seal it. Post it.",
     description:
       "Create a private digital letter, choose the opening moment and post it through the Intezaar letter box.",
