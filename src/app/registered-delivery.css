@@ -1,17 +1,56 @@
-.registered-delivery-creator-note {
-  margin: 12px 0 0;
-  padding: 13px 15px;
+.registered-delivery-option {
+  margin: 18px 0 0;
+  padding: 18px;
   border: 1px solid rgba(125, 63, 48, .16);
-  border-radius: 12px;
-  color: #6f5144;
-  background: rgba(248, 236, 217, .78);
+  border-radius: 16px;
+  background: rgba(248, 236, 217, .62);
+}
+
+.registered-delivery-option > div > span {
+  display: block;
+  margin-bottom: 5px;
+  color: #8f2f20;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.registered-delivery-option h3 {
+  margin: 0;
+  color: #4a2d22;
+  font-family: Georgia, serif;
+  font-size: 19px;
+  font-weight: 500;
+}
+
+.registered-delivery-option > div > p {
+  margin: 7px 0 14px;
+  color: #765849;
   font-size: 12px;
   line-height: 1.55;
 }
 
-.registered-delivery-creator-note::before {
-  content: "REGISTERED MAIL · ";
-  color: #8f2f20;
-  font-weight: 900;
-  letter-spacing: .09em;
+.registered-delivery-option label {
+  display: block;
+}
+
+.registered-delivery-option small {
+  display: block;
+  margin-top: 9px;
+  color: #7b6255;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.registered-delivery-option small[data-active="true"] {
+  color: #7d2f25;
+  font-weight: 800;
+}
+
+.registered-delivery-error {
+  margin: 8px 0 0;
+  color: #9b3429;
+  font-size: 12px;
+  font-weight: 800;
 }
