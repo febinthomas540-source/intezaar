@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { FirstPartyAnalytics } from "@/components/first-party-analytics";
+import { InstalledAppShell } from "@/components/installed-app-shell";
 import { MetaPixel } from "@/components/meta-pixel";
 import "./globals.css";
 import "./postal-theme.css";
@@ -10,6 +11,7 @@ import "./india-post-create.css";
 import "./letter-studio.css";
 import "./letter-studio-formats.css";
 import "./creation-flow-v2.css";
+import "./installed-app-shell.css";
 
 const siteUrl = "https://www.intezaar.in";
 
@@ -26,6 +28,11 @@ export const metadata: Metadata = {
   creator: "Intezaar",
   publisher: "Intezaar",
   category: "Private digital letters",
+  appleWebApp: {
+    capable: true,
+    title: "Intezaar",
+    statusBarStyle: "black-translucent",
+  },
   keywords: [
     "scheduled digital letter",
     "private online letter",
@@ -91,6 +98,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en-IN">
       <body>
+        <InstalledAppShell />
         {children}
         <FirstPartyAnalytics />
         <MetaPixel />
