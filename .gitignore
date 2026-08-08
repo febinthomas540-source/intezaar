@@ -1,5 +1,6 @@
 # dependencies
 /node_modules
+/mobile/node_modules
 /.pnp
 .pnp.*
 
@@ -9,6 +10,11 @@
 # next.js
 /.next/
 /out/
+
+# expo / react native
+/mobile/.expo/
+/mobile/dist/
+/mobile/.eas/
 
 # production
 /build
