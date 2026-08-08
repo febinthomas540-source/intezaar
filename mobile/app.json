@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Intezaar",
+    "slug": "intezaar-native",
+    "version": "0.1.0",
+    "scheme": "intezaar",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": ["expo-router"],
+    "android": {
+      "package": "in.intezaar.app",
+      "edgeToEdgeEnabled": true
+    },
+    "ios": {
+      "bundleIdentifier": "in.intezaar.app",
+      "supportsTablet": false
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
