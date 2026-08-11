@@ -243,6 +243,28 @@ export async function updateLetterMetadata(letterId: string, metadata: Record<st
   }
 }
 
+export async function updateSenderNotificationPreferences(
+  letterId: string,
+  senderEmail: string | null,
+  metadata: Record<string, unknown>,
+) {
+  const query = new URLSearchParams({ id: `eq.${letterId}` });
+  const response = await fetch(supabaseUrl(`letters?${query.toString()}`), {
+    method: "PATCH",
+    headers: supabaseHeaders({ Prefer: "return=minimal" }),
+    body: JSON.stringify({
+      sender_email: senderEmail,
+      metadata,
+      updated_at: new Date().toISOString(),
+    }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Could not update sender notification preferences: ${await parseSupabaseError(response)}`);
+  }
+}
+
 export async function markRecipientNotified(letterId: string) {
   const query = new URLSearchParams({ id: `eq.${letterId}` });
   const response = await fetch(supabaseUrl(`letters?${query.toString()}`), {
@@ -278,7 +300,7 @@ export async function insertLetterEvent(
   }
 }
 
-const accessSelect = "id,sender_name,recipient_name,occasion,letter_format,from_city,to_city,opens_at,expires_at,status,payload_ciphertext,payload_iv,payload_auth_tag,metadata";
+const accessSelect = "id,sender_name,sender_email,recipient_name,occasion,letter_format,from_city,to_city,opens_at,expires_at,status,payload_ciphertext,payload_iv,payload_auth_tag,metadata";
 const manageSelect = "id,access_token_hash,manage_token_hash,sender_name,sender_email,recipient_name,recipient_email,occasion,letter_format,from_city,to_city,opens_at,expires_at,status,payload_ciphertext,payload_iv,payload_auth_tag,metadata";
 
 export async function findLetterByAccessToken(token: string): Promise<StoredLetter | null> {
