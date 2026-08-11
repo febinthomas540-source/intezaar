@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Navigation } from "@/components/navigation";
+import { PublicLetterCounter } from "@/components/public-letter-counter";
 import { ReflectionUseCases } from "@/components/reflection-use-cases";
 import styles from "./postbox-home-refresh.module.css";
 import refined from "./postbox-home-refinement.module.css";
@@ -139,6 +140,8 @@ export function PostboxHome() {
         <div><strong>Not public</strong><span>Your letter is not listed or published as public content.</span></div>
         <div><strong>Your timing</strong><span>You choose the opening date and time.</span></div>
       </section>
+
+      <PublicLetterCounter />
 
       <section className={trust.trustSection} aria-labelledby="trust-heading">
         <div>
