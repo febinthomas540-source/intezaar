@@ -40,6 +40,12 @@
   line-height: 1.65;
 }
 
+.heading > span a {
+  color: #8f281f;
+  font-weight: 750;
+  text-underline-offset: 4px;
+}
+
 .grid {
   display: block;
   margin-top: 54px;
