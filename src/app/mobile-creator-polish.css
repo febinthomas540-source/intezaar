@@ -149,6 +149,111 @@
     border-left: 0;
   }
 
+  /* Once posting is complete, stop making the user scroll through the whole ceremony again. */
+  .seal-post-flow .post-panel .post-posted {
+    min-height: 205px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .seal-post-flow .post-panel .post-posted .post-atmosphere,
+  .seal-post-flow .post-panel .post-posted .posting-envelope {
+    display: none;
+  }
+
+  .seal-post-flow .post-panel .post-posted .intezaar-postbox {
+    left: 50%;
+    bottom: 50px;
+    width: 122px;
+    height: 150px;
+    border-radius: 58px 58px 10px 10px;
+    transform: translateX(-50%);
+  }
+
+  .seal-post-flow .post-panel .post-posted .intezaar-postbox strong {
+    font-size: 10px;
+  }
+
+  .seal-post-flow .post-panel .post-posted .postbox-slot {
+    top: 49px;
+    font-size: 7px;
+  }
+
+  .seal-post-flow .post-panel .post-posted .postbox-door {
+    right: 13px;
+    bottom: 19px;
+    left: 13px;
+  }
+
+  .seal-post-flow .post-panel .post-posted .post-status {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    min-height: 48px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 12px;
+  }
+
+  .seal-post-flow .post-panel .post-posted .post-status strong {
+    font-size: 13px;
+  }
+
+  .seal-post-flow .post-panel .post-posted + .ceremony-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 0;
+    border-radius: 13px;
+  }
+
+  .seal-post-flow .post-panel .post-posted + .ceremony-summary > div {
+    min-width: 0;
+    padding: 12px 9px;
+    border-top: 0;
+  }
+
+  .seal-post-flow .post-panel .post-posted + .ceremony-summary > div + div {
+    border-top: 0;
+    border-left: 1px solid rgba(83, 53, 36, .12);
+  }
+
+  .seal-post-flow .post-panel .post-posted + .ceremony-summary small,
+  .seal-post-flow .post-panel .post-posted + .ceremony-summary strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .seal-post-flow .post-panel .post-posted + .ceremony-summary small {
+    font-size: 7px;
+    letter-spacing: .08em;
+  }
+
+  .seal-post-flow .post-panel .post-posted + .ceremony-summary strong {
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  .seal-post-flow .post-panel:has(.post-posted) .creation-section-head {
+    margin-bottom: 14px;
+  }
+
+  .seal-post-flow .post-panel:has(.post-posted) .creation-section-head h2 {
+    margin-top: 5px;
+    font-size: 31px;
+    line-height: 1.02;
+  }
+
+  .seal-post-flow .post-panel:has(.post-posted) .creation-section-head p {
+    margin-top: 7px;
+    font-size: 12px;
+  }
+
+  .seal-post-flow .post-panel:has(.post-posted) .creation-section-head > small {
+    display: none;
+  }
+
   .seal-post-flow .ceremony-panel .nostalgia-form-actions {
     position: sticky;
     z-index: 35;
@@ -164,6 +269,10 @@
 
   .seal-post-flow .ceremony-panel .nostalgia-form-actions button {
     min-height: 50px;
+  }
+
+  .seal-post-flow .post-panel:has(.post-posted) .nostalgia-form-actions {
+    margin-top: 10px;
   }
 }
 
@@ -190,6 +299,19 @@
   .seal-post-flow .seal-stage,
   .seal-post-flow .post-stage {
     min-height: 420px;
+  }
+
+  .seal-post-flow .post-panel .post-posted {
+    min-height: 195px;
+  }
+
+  .seal-post-flow .post-panel .post-posted .intezaar-postbox {
+    width: 112px;
+    height: 142px;
+  }
+
+  .seal-post-flow .post-panel .post-posted + .ceremony-summary strong {
+    font-size: 11px;
   }
 
   .seal-post-flow .intezaar-postbox {
