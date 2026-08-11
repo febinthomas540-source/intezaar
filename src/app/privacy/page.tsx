@@ -5,7 +5,7 @@ import styles from "@/components/policy-shell.module.css";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — Intezaar",
-  description: "How the Intezaar public beta handles private letters, media, email addresses, security data and browser storage.",
+  description: "How the Intezaar public beta handles private letters, media, email addresses, security data, analytics and browser storage.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -87,6 +87,7 @@ export default function PrivacyPage() {
           <li>preserve the selected recipient experience;</li>
           <li>prevent bots, abuse, fraud and unauthorised access;</li>
           <li>diagnose errors and improve reliability;</li>
+          <li>measure general product usage and creation steps where permitted;</li>
           <li>enforce the <Link href="/terms">User Agreement</Link> and <Link href="/community-guidelines">Community Guidelines</Link>; and</li>
           <li>respond to valid safety, legal or regulatory requirements.</li>
         </ul>
@@ -94,15 +95,17 @@ export default function PrivacyPage() {
       </section>
 
       <section>
-        <h2>8. Service providers</h2>
+        <h2>8. Service providers and measurement</h2>
         <p>Intezaar currently relies on specialist providers to operate the beta:</p>
         <ul>
-          <li><strong>Vercel</strong> for website hosting, server functions, deployment and operational logs;</li>
+          <li><strong>Vercel</strong> for website hosting, server functions, deployment, operational logs and first-party web analytics;</li>
           <li><strong>Supabase</strong> for the database and private encrypted-media storage;</li>
-          <li><strong>Resend</strong> for optional invitation and arrival-notice email delivery; and</li>
-          <li><strong>Cloudflare Turnstile</strong> for automated-abuse and bot protection.</li>
+          <li><strong>Resend</strong> for optional invitation and arrival-notice email delivery;</li>
+          <li><strong>Cloudflare Turnstile</strong> for automated-abuse and bot protection; and</li>
+          <li><strong>Meta</strong> for optional advertising measurement only after the visitor chooses to allow it.</li>
         </ul>
-        <p>Analytics and advertising-measurement scripts are not rendered on private <code>/receive/</code> delivery pages, where an end-to-end decryption key may be present in the browser URL fragment.</p>
+        <p>The Meta measurement prompt is delayed so it does not need to interrupt a visitor&apos;s first view of the product. If declined, the Meta Pixel is not loaded. Our configured Meta events are intended to measure page visits and creation steps, not the contents typed into a private letter.</p>
+        <p>Advertising measurement and web-analytics components are not rendered on private <code>/receive/</code> delivery pages, where an end-to-end decryption key may be present in the browser URL fragment.</p>
         <p>These providers process limited information according to their own infrastructure, security and privacy terms. Data may be processed in countries outside the sender&apos;s or recipient&apos;s location.</p>
       </section>
 
@@ -127,11 +130,18 @@ export default function PrivacyPage() {
       </section>
 
       <section>
-        <h2>11. Your choices</h2>
+        <h2>11. Service continuity and export</h2>
+        <p>Intezaar is an early-stage beta and does not promise permanent archival storage. The recipient can currently save or print an opened letter as a keepsake, but there is no guaranteed bulk export or shutdown-export system.</p>
+        <p>If Intezaar plans a material service closure or migration, we intend to give advance notice where reasonably possible so users can preserve important content. This is an operational intention, not a guarantee of uninterrupted access, notice in every circumstance or recoverability after a technical failure.</p>
+      </section>
+
+      <section>
+        <h2>12. Your choices</h2>
         <ul>
           <li>Recipient and sender email addresses are optional.</li>
           <li>Media attachments are optional.</li>
           <li>You may copy and share the complete private link manually.</li>
+          <li>You may allow or decline optional Meta advertising measurement.</li>
           <li>You can clear local browser data to remove saved drafts and local session information.</li>
           <li>Do not share a private link you no longer want used.</li>
         </ul>
@@ -139,23 +149,23 @@ export default function PrivacyPage() {
       </section>
 
       <section>
-        <h2>12. Children</h2>
+        <h2>13. Children</h2>
         <p>The public beta is intended for adults aged 18 or over. Intezaar is not designed for children, and users must not send sexual, exploitative or otherwise inappropriate content involving anyone under 18.</p>
       </section>
 
       <section>
-        <h2>13. Security limits</h2>
+        <h2>14. Security limits</h2>
         <p>Intezaar uses end-to-end encryption for new message content and private media, private token links, short-lived media URLs, server-side time checks, restricted storage and Cloudflare bot protection. However, a recipient can forward a complete private link, a device can be compromised, software can contain defects and third-party infrastructure can fail.</p>
         <p>End-to-end encryption does not prevent an intended recipient from copying, photographing, saving or forwarding content after they decrypt it. Keep the recipient link private and retain your own copy of anything important.</p>
       </section>
 
       <section>
-        <h2>14. Changes to this policy</h2>
+        <h2>15. Changes to this policy</h2>
         <p>This policy will change as the beta adds accounts, reporting, longer scheduling, payment or new storage controls. The last-updated date will identify the latest published version.</p>
       </section>
 
       <section>
-        <h2>15. Privacy requests and formal contact</h2>
+        <h2>16. Privacy requests and formal contact</h2>
         <div className={styles.note}>
           <p>A verified privacy and safety contact address will be published before wider public or paid launch. During the limited beta, do not upload information that requires a formal confidentiality arrangement, guaranteed deletion deadline or regulated record-retention service.</p>
         </div>
