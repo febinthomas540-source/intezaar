@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Lora, Source_Sans_3 } from "next/font/google";
 import { FirstPartyAnalytics } from "@/components/first-party-analytics";
 import { InstalledAppShell } from "@/components/installed-app-shell";
 import { MetaPixel } from "@/components/meta-pixel";
@@ -12,6 +13,19 @@ import "./letter-studio.css";
 import "./letter-studio-formats.css";
 import "./creation-flow-v2.css";
 import "./installed-app-shell.css";
+import "./typography-refresh.css";
+
+const sourceSans = Source_Sans_3({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-source-sans",
+});
+
+const lora = Lora({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-lora",
+});
 
 const siteUrl = "https://www.intezaar.in";
 
@@ -101,7 +115,7 @@ const websiteSchema = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-IN">
+    <html lang="en-IN" className={`${sourceSans.variable} ${lora.variable}`}>
       <body>
         <InstalledAppShell />
         {children}
