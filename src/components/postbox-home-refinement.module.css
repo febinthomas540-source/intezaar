@@ -33,13 +33,8 @@
   box-shadow: none;
 }
 
-.primaryButton {
-  background: #832b24;
-}
-
-.secondaryButton {
-  background: transparent;
-}
+.primaryButton { background: #832b24; }
+.secondaryButton { background: transparent; }
 
 .heroTrust {
   gap: 0;
@@ -70,6 +65,7 @@
 }
 
 .trustBand div {
+  min-width: 0;
   min-height: 100px;
   padding: 23px 26px;
 }
@@ -133,9 +129,7 @@
   line-height: 1.65;
 }
 
-.recipientSection {
-  gap: 7vw;
-}
+.recipientSection { gap: 7vw; }
 
 .recipientPreview {
   border-radius: 8px;
@@ -154,9 +148,7 @@
   font-size: 34px;
 }
 
-.occasionsSection {
-  background: #eee0ca;
-}
+.occasionsSection { background: #eee0ca; }
 
 .occasionList span {
   font-size: 16px;
@@ -193,10 +185,7 @@
 }
 
 @media (max-width: 1050px) {
-  .finalCta {
-    grid-template-columns: 92px 1fr;
-  }
-
+  .finalCta { grid-template-columns: 92px 1fr; }
   .finalCta .primaryButton {
     grid-column: 2;
     grid-row: auto;
@@ -205,19 +194,20 @@
 }
 
 @media (max-width: 720px) {
+  .hero { min-height: 0; }
+
   .heroCopy {
-    padding-top: 76px;
-    padding-bottom: 44px;
+    padding-top: 72px;
+    padding-bottom: 40px;
   }
 
   .heroCopy h1 {
-    font-size: clamp(46px, 13.5vw, 64px);
+    font-size: clamp(42px, 12vw, 54px);
+    line-height: 1.04;
   }
 
   .primaryButton,
-  .secondaryButton {
-    border-radius: 5px;
-  }
+  .secondaryButton { border-radius: 5px; }
 
   .heroTrust {
     display: grid;
@@ -232,42 +222,84 @@
     font-size: 11px;
   }
 
-  .letterDesk {
-    border-radius: 7px;
+  .letterDesk { border-radius: 7px; }
+
+  /* The desktop four-column trust strip was winning the cascade on phones. */
+  .trustBand {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .trustBand div {
+    min-width: 0;
+    min-height: 0;
+    padding: 20px 18px;
+  }
+
+  .trustBand strong {
+    font-size: 15px;
+    line-height: 1.2;
+  }
+
+  .trustBand span {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .howSection,
+  .recipientSection,
+  .occasionsSection,
+  .finalCta {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .sectionHeading h2,
+  .recipientCopy h2,
+  .occasionsSection h2,
+  .finalCta h2 {
+    font-size: clamp(32px, 9.5vw, 42px);
+    line-height: 1.08;
   }
 
   .stepCard,
   .stepCard + .stepCard {
-    grid-template-columns: 42px 1fr;
-    gap: 10px 18px;
-    padding: 24px 0;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 10px 14px;
+    padding: 22px 0;
   }
 
-  .stepCard p {
-    grid-column: 2;
-  }
+  .stepCard p { grid-column: 2; }
 
-  .recipientPreview {
-    border-radius: 6px;
+  .recipientPreview { border-radius: 6px; }
+
+  .occasionsSection { gap: 34px; }
+
+  .occasionList span {
+    padding-top: 14px;
+    padding-bottom: 14px;
   }
 
   .finalCta {
     display: block;
+    min-height: 0;
   }
 
   .finalStamp {
-    margin: 0 0 28px;
+    width: 76px;
+    height: 76px;
+    margin: 0 0 24px;
   }
 
-  .finalCta .eyebrow {
-    margin-bottom: 14px;
-  }
+  .finalCta .eyebrow { margin-bottom: 12px; }
+  .finalCta h2 { margin-bottom: 24px; }
+  .finalCta .primaryButton { width: auto; }
+}
 
-  .finalCta h2 {
-    margin-bottom: 28px;
-  }
-
-  .finalCta .primaryButton {
-    width: auto;
-  }
+@media (max-width: 420px) {
+  .trustBand { grid-template-columns: 1fr 1fr; }
+  .trustBand div { padding: 18px 14px; }
+  .heroCopy h1 { font-size: 42px; }
 }
