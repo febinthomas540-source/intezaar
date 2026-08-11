@@ -13,9 +13,10 @@ export function trackFirstPartyEvent(name: FunnelEvent) {
 
 export function FirstPartyAnalytics() {
   const pathname = usePathname();
+  const privateRecipient = pathname.startsWith("/receive/");
 
   useEffect(() => {
-    if (pathname !== "/create") return;
+    if (privateRecipient || pathname !== "/create") return;
 
     const sent = new Set<FunnelEvent>();
     const fireOnce = (name: FunnelEvent) => {
@@ -46,14 +47,15 @@ export function FirstPartyAnalytics() {
       document.removeEventListener("focusin", onFocus);
       observer.disconnect();
     };
-  }, [pathname]);
+  }, [pathname, privateRecipient]);
+
+  if (privateRecipient) return null;
 
   return (
     <Analytics
       beforeSend={(event: BeforeSendEvent) => {
         try {
           const url = new URL(event.url);
-          if (url.pathname.startsWith("/receive/")) return null;
           url.search = "";
           url.hash = "";
           return { ...event, url: url.toString() };
