@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Navigation } from "@/components/navigation";
+import { ReflectionUseCases } from "@/components/reflection-use-cases";
 import styles from "./postbox-home-refresh.module.css";
 
 const steps = [
@@ -39,11 +40,11 @@ export function PostboxHome() {
           <p className={styles.eyebrow}>Private digital letters, posted for later</p>
           <h1>Some words shouldn&apos;t arrive instantly.</h1>
           <p className={styles.heroText}>
-            Write a private letter. Choose when it arrives. Until that moment, it stays sealed.
+            Write to someone you love, or leave something for your future self. Choose when the letter arrives. Until that moment, it stays sealed.
           </p>
           <div className={styles.heroActions}>
             <Link href="/create" className={styles.primaryButton}>Write a letter</Link>
-            <a href="#how-it-works" className={styles.secondaryButton}>See how it works</a>
+            <Link href="/future-self" className={styles.secondaryButton}>Write to future me</Link>
           </div>
           <div className={styles.heroTrust} aria-label="Intezaar privacy and access highlights">
             <span>No account required</span>
@@ -80,6 +81,8 @@ export function PostboxHome() {
         <div><strong>Not public</strong><span>Your letter is not listed or published as public content.</span></div>
         <div><strong>Your timing</strong><span>The sender chooses the opening date and time.</span></div>
       </section>
+
+      <ReflectionUseCases />
 
       <section id="how-it-works" className={styles.howSection}>
         <header className={styles.sectionHeading}>
