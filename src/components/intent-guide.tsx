@@ -1,0 +1,51 @@
+import Link from "next/link";
+import { Navigation } from "@/components/navigation";
+import styles from "./intent-guide.module.css";
+
+type Section = { title: string; paragraphs: string[]; bullets?: string[] };
+
+type IntentGuideProps = {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  sections: Section[];
+  ctaLabel: string;
+};
+
+export function IntentGuide({ eyebrow, title, intro, sections, ctaLabel }: IntentGuideProps) {
+  return (
+    <main className={styles.page}>
+      <Navigation />
+      <article>
+        <header className={styles.hero}>
+          <p>{eyebrow}</p>
+          <h1>{title}</h1>
+          <span>{intro}</span>
+          <Link href="/create">{ctaLabel}</Link>
+        </header>
+
+        <div className={styles.body}>
+          {sections.map((section) => (
+            <section key={section.title}>
+              <h2>{section.title}</h2>
+              {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              {section.bullets ? (
+                <ul>{section.bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul>
+              ) : null}
+            </section>
+          ))}
+
+          <aside>
+            <strong>Keep it personal, not perfect.</strong>
+            <p>Intezaar is a reflective writing and private-letter experience, not therapy, diagnosis, medical advice or a clinical mental-health service.</p>
+          </aside>
+
+          <div className={styles.finalCta}>
+            <p>Ready to turn one of these ideas into a letter?</p>
+            <Link href="/create">{ctaLabel}</Link>
+          </div>
+        </div>
+      </article>
+    </main>
+  );
+}
