@@ -2,6 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { RecipientPhotoLayoutBridge } from "@/components/recipient-photo-layout-bridge";
+import {
+  decryptE2EEPayload,
+  keyBase64FromUrlKey,
+  readE2EEKeyFromHash,
+  type E2EEEnvelope,
+} from "@/lib/letter-e2ee";
 import styles from "./secure-letter-delivery.module.css";
 
 type LetterContent = {
@@ -26,10 +33,10 @@ type DeliveredMedia = {
   id: string;
   kind: "photo" | "voice" | "video";
   path: string;
-  name: string;
+  name?: string;
   mimeType: string;
   size: number;
-  caption: string;
+  caption?: string;
   iv: string;
   photoLayout?: PhotoLayout;
   signedUrl: string;
@@ -49,6 +56,7 @@ type Props = {
   opensAt: string;
   status: string;
   content: LetterContent | null;
+  e2eePayload: E2EEEnvelope | null;
   mediaKey: string;
   media: DeliveredMedia[];
 };
@@ -60,6 +68,8 @@ type Countdown = {
   minutes: number;
   seconds: number;
 };
+
+type E2EEStatus = "idle" | "decrypting" | "ready" | "missing-key" | "error";
 
 function countdownTo(value: string): Countdown {
   const total = Math.max(0, new Date(value).getTime() - Date.now());
@@ -105,6 +115,7 @@ export function SecureLetterDelivery({
   opensAt,
   status,
   content,
+  e2eePayload,
   mediaKey,
   media,
 }: Props) {
@@ -115,8 +126,25 @@ export function SecureLetterDelivery({
   const [received, setReceived] = useState(false);
   const [opened, setOpened] = useState(false);
   const [countdown, setCountdown] = useState(() => countdownTo(opensAt));
+  const [e2eeContent, setE2eeContent] = useState<LetterContent | null>(null);
+  const [e2eeMedia, setE2eeMedia] = useState<DeliveredMedia[]>([]);
+  const [e2eeMediaKey, setE2eeMediaKey] = useState("");
+  const [e2eeStatus, setE2eeStatus] = useState<E2EEStatus>(e2eePayload ? "decrypting" : "idle");
   const [openedMedia, setOpenedMedia] = useState<OpenedMedia[]>([]);
   const [mediaStatus, setMediaStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+
+  const activeContent = content || e2eeContent;
+  const activeMedia = e2eePayload ? e2eeMedia : media;
+  const activeMediaKey = e2eePayload ? e2eeMediaKey : mediaKey;
+  const hasArrivedPayload = Boolean(content || e2eePayload);
+  const positionedPhotos = openedMedia
+    .filter((item) => item.kind === "photo")
+    .map((item) => ({
+      id: item.id,
+      name: item.name || "Photograph",
+      caption: item.caption || "",
+      photoLayout: item.photoLayout,
+    }));
 
   useEffect(() => {
     try {
@@ -127,7 +155,63 @@ export function SecureLetterDelivery({
   }, [storageKey]);
 
   useEffect(() => {
-    if (content || status !== "posted") return;
+    if (!e2eePayload) {
+      setE2eeContent(null);
+      setE2eeMedia([]);
+      setE2eeMediaKey("");
+      setE2eeStatus("idle");
+      return;
+    }
+
+    let cancelled = false;
+    setE2eeStatus("decrypting");
+    setE2eeContent(null);
+    setE2eeMedia([]);
+    setE2eeMediaKey("");
+
+    const decrypt = async () => {
+      const urlKey = readE2EEKeyFromHash();
+      if (!urlKey) {
+        if (!cancelled) setE2eeStatus("missing-key");
+        return;
+      }
+
+      try {
+        const payload = await decryptE2EEPayload(e2eePayload, urlKey);
+        if (cancelled) return;
+        const privateById = new Map(payload.media.map((item) => [item.id, item]));
+        const mergedMedia = media.map((item) => {
+          const privateItem = privateById.get(item.id);
+          return {
+            ...item,
+            name: privateItem?.name || "Private attachment",
+            caption: privateItem?.caption || "",
+            photoLayout: privateItem?.photoLayout,
+          };
+        });
+
+        setE2eeContent({
+          heading: payload.heading,
+          message: payload.message,
+          closing: payload.closing,
+        });
+        setE2eeMedia(mergedMedia);
+        setE2eeMediaKey(keyBase64FromUrlKey(urlKey));
+        setE2eeStatus("ready");
+      } catch (error) {
+        console.error("End-to-end letter decryption failed:", error);
+        if (!cancelled) setE2eeStatus("error");
+      }
+    };
+
+    void decrypt();
+    return () => {
+      cancelled = true;
+    };
+  }, [e2eePayload, media]);
+
+  useEffect(() => {
+    if (hasArrivedPayload || status !== "posted") return;
     const timer = window.setInterval(() => {
       const next = countdownTo(opensAt);
       setCountdown(next);
@@ -137,10 +221,10 @@ export function SecureLetterDelivery({
       }
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [content, opensAt, status]);
+  }, [hasArrivedPayload, opensAt, status]);
 
   useEffect(() => {
-    if (!content || !mediaKey || !media.length) {
+    if (!activeContent || !activeMediaKey || !activeMedia.length) {
       setOpenedMedia([]);
       setMediaStatus("idle");
       return;
@@ -154,16 +238,17 @@ export function SecureLetterDelivery({
       try {
         const key = await window.crypto.subtle.importKey(
           "raw",
-          bytesFromBase64(mediaKey),
+          bytesFromBase64(activeMediaKey),
           { name: "AES-GCM" },
           false,
           ["decrypt"],
         );
         const decrypted: OpenedMedia[] = [];
 
-        for (const item of media) {
+        for (const item of activeMedia) {
+          const displayName = item.name || "private attachment";
           const response = await fetch(item.signedUrl, { cache: "no-store" });
-          if (!response.ok) throw new Error(`Could not retrieve ${item.name}.`);
+          if (!response.ok) throw new Error(`Could not retrieve ${displayName}.`);
           const plaintext = await window.crypto.subtle.decrypt(
             { name: "AES-GCM", iv: bytesFromBase64(item.iv) },
             key,
@@ -191,7 +276,7 @@ export function SecureLetterDelivery({
       cancelled = true;
       objectUrls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [content, media, mediaKey]);
+  }, [activeContent, activeMedia, activeMediaKey]);
 
   function receiveLetter() {
     setReceived(true);
@@ -255,7 +340,7 @@ export function SecureLetterDelivery({
     );
   }
 
-  if (!content) {
+  if (!activeContent && !e2eePayload) {
     return (
       <main className={styles.page}>
         <header className={styles.header}>
@@ -301,6 +386,38 @@ export function SecureLetterDelivery({
     );
   }
 
+  if (e2eePayload && !activeContent) {
+    const missingKey = e2eeStatus === "missing-key";
+    const failed = e2eeStatus === "error";
+    return (
+      <main className={styles.page}>
+        <header className={styles.header}>
+          <Link href="/" className={styles.brand}>Intezaar</Link>
+          <span>End-to-end encrypted delivery</span>
+        </header>
+        <section className={styles.arrived}>
+          <p>End-to-end encrypted</p>
+          <h1>
+            {missingKey
+              ? "This link is missing the private decryption key."
+              : failed
+                ? "This encrypted letter could not be opened on this device."
+                : "Decrypting your letter on this device…"}
+          </h1>
+          <span>
+            {missingKey
+              ? "Open the complete private link shared by the sender. An Intezaar email notice does not contain the decryption key."
+              : failed
+                ? "Check that you opened the complete private link exactly as it was shared, then try again."
+                : "The ciphertext has arrived. Your browser is using the private key from this link; Intezaar does not receive that key."}
+          </span>
+        </section>
+      </main>
+    );
+  }
+
+  if (!activeContent) return null;
+
   if (!opened) {
     return (
       <main className={styles.page}>
@@ -310,7 +427,7 @@ export function SecureLetterDelivery({
         </header>
 
         <section className={styles.arrived}>
-          <p>Delivered by Intezaar Mail</p>
+          <p>{e2eePayload ? "End-to-end encrypted · decrypted on this device" : "Delivered by Intezaar Mail"}</p>
           <h1>{recipient}, your letter has arrived.</h1>
           <span>The chosen moment is here. The wax seal can now be broken.</span>
           <div className={styles.arrivedEnvelope} aria-hidden="true">
@@ -325,18 +442,18 @@ export function SecureLetterDelivery({
     );
   }
 
-  const paragraphs = content.message.split(/\n\s*\n/).filter(Boolean);
+  const paragraphs = activeContent.message.split(/\n\s*\n/).filter(Boolean);
 
   return (
     <main className={styles.page}>
       <header className={styles.header}>
         <Link href="/" className={styles.brand}>Intezaar</Link>
-        <span>Opened private letter</span>
+        <span>{e2eePayload ? "Opened end-to-end encrypted letter" : "Opened private letter"}</span>
       </header>
 
       <section className={styles.reader}>
         <div className={styles.readerToolbar}>
-          <div><small>Delivered by Intezaar Mail</small><strong>{formatLabel(format)} letter</strong></div>
+          <div><small>{e2eePayload ? "Decrypted on this device" : "Delivered by Intezaar Mail"}</small><strong>{formatLabel(format)} letter</strong></div>
           <button type="button" onClick={() => setOpened(false)}>Fold letter</button>
         </div>
 
@@ -348,18 +465,18 @@ export function SecureLetterDelivery({
           </header>
           <div className={styles.letterCopy}>
             <small>{occasion}</small>
-            <h1>{content.heading || `Dear ${recipient},`}</h1>
+            <h1>{activeContent.heading || `Dear ${recipient},`}</h1>
             {paragraphs.map((paragraph, index) => (
               <p key={`${paragraph.slice(0, 24)}-${index}`}>{paragraph}</p>
             ))}
-            <p className={styles.closing}>{content.closing || `With care,\n${sender}`}</p>
+            <p className={styles.closing}>{activeContent.closing || `With care,\n${sender}`}</p>
           </div>
 
-          {media.length ? (
+          {activeMedia.length ? (
             <section className={styles.privateMedia} aria-label="Private media inside this letter">
               <header>
                 <small>SEALED WITH THE LETTER</small>
-                <strong>{media.length} private media item{media.length === 1 ? "" : "s"}</strong>
+                <strong>{activeMedia.length} private media item{activeMedia.length === 1 ? "" : "s"}</strong>
               </header>
 
               {mediaStatus === "loading" ? <p className={styles.mediaNotice}>Decrypting the private media on this device…</p> : null}
@@ -373,7 +490,7 @@ export function SecureLetterDelivery({
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={item.objectUrl}
-                          alt={item.caption || item.name}
+                          alt={item.caption || item.name || "Private photograph"}
                           style={{
                             objectFit: item.photoLayout?.fit || "cover",
                             objectPosition: `${item.photoLayout?.cropX || 50}% ${item.photoLayout?.cropY || 50}%`,
@@ -395,9 +512,11 @@ export function SecureLetterDelivery({
 
           <footer>
             <span>{fromCity || "Intezaar"} → {toCity || recipient}</span>
-            <span>Posted with patience</span>
+            <span>{e2eePayload ? "End-to-end encrypted" : "Posted with patience"}</span>
           </footer>
         </article>
+
+        <RecipientPhotoLayoutBridge photos={positionedPhotos} />
 
         <div className={styles.keepsakeActions}>
           <button type="button" onClick={() => window.print()}>Save or print keepsake</button>
