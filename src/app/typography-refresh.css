@@ -1,0 +1,100 @@
+/* Typography system: product UI first, letter craft second.
+   Keep the interface contemporary and human; reserve serif character for the brand
+   and the actual pieces of correspondence. */
+
+:root {
+  --intezaar-ui: var(--font-source-sans), "Segoe UI", Arial, sans-serif;
+  --intezaar-editorial: var(--font-lora), Georgia, "Times New Roman", serif;
+}
+
+html,
+body {
+  font-family: var(--intezaar-ui);
+}
+
+button,
+input,
+textarea,
+select,
+label {
+  font-family: var(--intezaar-ui);
+}
+
+/* The old large Georgia headings were starting to read like a generated landing-page
+   template. Product headings now use the interface face with calmer spacing. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--intezaar-ui) !important;
+  font-style: normal;
+  letter-spacing: -0.025em !important;
+}
+
+h1 { font-weight: 650 !important; }
+h2 { font-weight: 650 !important; }
+h3,
+h4,
+h5,
+h6 { font-weight: 650 !important; }
+
+/* Brand and postal artefacts retain a warmer editorial voice. */
+.nostalgia-brand,
+.brand-mark,
+.previewTop span,
+.envelope strong,
+.previewEnvelope strong,
+.seal,
+.previewEnvelope i,
+.arrivalTicket strong,
+.route-scene-name strong {
+  font-family: var(--intezaar-editorial) !important;
+}
+
+/* The letter itself is allowed to remain typographic and personal. */
+.letter-live-preview,
+.letter-live-preview input,
+.letter-live-preview textarea,
+.letter-sheet,
+.letter-paper,
+.letter-content,
+.opened-letter,
+.typewriter-letter,
+.inland-letter,
+.postcard-letter,
+.telegram-letter {
+  --intezaar-letter-serif: var(--intezaar-editorial);
+}
+
+/* Slightly less "template" treatment for UI microcopy. */
+.eyebrow,
+.nostalgia-eyebrow,
+.creation-stepper small,
+.creation-section-head > div > span,
+.creation-section-head > small {
+  font-family: var(--intezaar-ui) !important;
+  letter-spacing: 0.11em !important;
+}
+
+.creation-section-head h2,
+.writing-help strong,
+.recommended-formats h3,
+.compact-media-studio h3,
+.recommended-formats strong,
+.journey-duration-cards strong,
+.journey-summary-card strong,
+.arrival-card h3,
+.prototype-checkout > div > strong,
+.prototype-checkout dd,
+.final-review-strip strong,
+.creation-share-panel h2 {
+  font-family: var(--intezaar-ui) !important;
+  font-style: normal !important;
+}
+
+/* Keep deliberate letter-writing moments warm rather than turning everything sans. */
+.creation-help-copy {
+  font-family: var(--intezaar-editorial) !important;
+}
