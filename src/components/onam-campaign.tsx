@@ -13,7 +13,7 @@ const PENDING_LEAD_KEY = "intezaar:meta-pending-lead:v1";
 // before rendering it here. We intentionally do not guess the translation.
 const MALAYALAM_LINE_REQUIRES_PROOF = "";
 
-const CREATE_HREF = `/create?occasion=${encodeURIComponent("Onam")}&opensAt=${encodeURIComponent(THIRUVONAM_OPEN_UTC)}&campaign=onam2026`;
+const CREATE_HREF = `/create?occasion=${encodeURIComponent("Celebration")}&opensAt=${encodeURIComponent(THIRUVONAM_OPEN_UTC)}&campaign=onam2026`;
 
 function deadlineCopy(now: number) {
   if (now < ATHAM_START_UTC) {
