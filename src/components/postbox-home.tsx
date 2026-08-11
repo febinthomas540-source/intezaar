@@ -21,6 +21,11 @@ const steps = [
     title: "Seal and share",
     copy: "When you post, the letter content and private media are end-to-end encrypted in your browser. Share the complete private link with the recipient.",
   },
+  {
+    number: "04",
+    title: "Let the letter continue",
+    copy: "After opening, the recipient can write one back or start a Future Me letter. Senders can optionally ask for one email when the seal is opened.",
+  },
 ];
 
 const trustSteps = [
@@ -197,6 +202,7 @@ export function PostboxHome() {
             <li><span>1</span><div><strong>A sealed letter is waiting</strong><p>The opening date and time are visible.</p></div></li>
             <li><span>2</span><div><strong>The message remains encrypted</strong><p>The recipient cannot read the letter early.</p></div></li>
             <li><span>3</span><div><strong>The seal becomes available</strong><p>At the chosen time, the recipient&apos;s browser can decrypt and open the letter.</p></div></li>
+            <li><span>4</span><div><strong>The recipient can keep it moving</strong><p>After reading, they can write a new letter back or start one for their future self.</p></div></li>
           </ol>
         </div>
 
@@ -254,28 +260,28 @@ export function PostboxHome() {
 
       <section className={trust.reliabilitySection} aria-labelledby="reliability-heading">
         <div>
-          <p className={trust.eyebrow}>Long-term reliability</p>
-          <h2 id="reliability-heading">Intezaar is a beta, not permanent archival storage.</h2>
+          <p className={trust.eyebrow}>What happens to your letter</p>
+          <h2 id="reliability-heading">Built for letters that wait, with clear retention.</h2>
           <p className={trust.lead}>
-            The waiting experience should never hide the practical limits of an early-stage service. Keep your own copy of anything irreplaceable.
+            Current beta letters remain available through their chosen opening period and for 90 days afterwards. For anything irreplaceable, keep your own copy too.
           </p>
         </div>
         <div className={trust.reliabilityFacts}>
           <div className={trust.reliabilityFact}>
             <strong>While it waits</strong>
-            <p>The encrypted letter remains stored until its opening time, subject to the availability limits described in our <Link href="/terms">User Agreement</Link>.</p>
+            <p>The encrypted letter remains stored and sealed until its selected opening time.</p>
           </div>
           <div className={trust.reliabilityFact}>
             <strong>After opening</strong>
-            <p>Current beta letters are assigned an expiry 90 days after the selected opening time. The opened-letter screen also lets the recipient save or print a keepsake.</p>
+            <p>The letter remains available until its current beta expiry, 90 days after the selected opening time.</p>
           </div>
           <div className={trust.reliabilityFact}>
-            <strong>After expiry</strong>
-            <p>The cleanup process removes encrypted private media and marks the letter expired. Some encrypted database fields, logs or backups may remain for a reasonable operational period as described in the <Link href="/privacy">Privacy Policy</Link>.</p>
+            <strong>Keep a copy</strong>
+            <p>The opened-letter screen includes a save-or-print keepsake option so an important letter does not have to depend on the website forever.</p>
           </div>
           <div className={trust.reliabilityFact}>
-            <strong>If the service changes or closes</strong>
-            <p>We do not promise permanent storage or a guaranteed shutdown export. Where reasonably possible, we intend to give advance notice of material service closure or migration so users can preserve important content.</p>
+            <strong>Full service limits</strong>
+            <p>Detailed expiry, storage, migration and beta-availability limits remain available in the <Link href="/terms">User Agreement</Link> and <Link href="/privacy">Privacy Policy</Link>.</p>
           </div>
         </div>
       </section>
