@@ -7,7 +7,7 @@ import { useEffect } from "react";
 
 type FunnelEvent = "StartWriting" | "ReachedArrival" | "LetterPosted";
 
-function trackFirstPartyEvent(name: FunnelEvent) {
+export function trackFirstPartyEvent(name: FunnelEvent) {
   track(name);
 }
 
