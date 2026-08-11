@@ -23,10 +23,16 @@ const guides = [
     copy: "Ideas for letters meant for a specific feeling, milestone or difficult day.",
   },
   {
-    href: "/unsent-letter",
-    label: "Private reflection",
-    title: "Write an unsent letter",
-    copy: "Put the words somewhere private without deciding immediately whether another person should receive them.",
+    href: "/guides/how-to-write-an-unsent-letter",
+    label: "Unsent letter",
+    title: "How to write a letter you do not have to send",
+    copy: "A practical way to put difficult words somewhere before deciding whether anyone else should receive them.",
+  },
+  {
+    href: "/guides/letter-to-yourself-for-a-hard-day",
+    label: "For yourself",
+    title: "Write a letter to yourself for a hard day",
+    copy: "Gentle prompts for preserving your own perspective and voice for a more difficult future moment.",
   },
   {
     href: "/write-after-argument",
