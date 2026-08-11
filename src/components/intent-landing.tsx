@@ -10,6 +10,7 @@ type IntentLandingProps = {
   title: string;
   intro: string;
   primaryLabel: string;
+  primaryHref?: string;
   examplesTitle: string;
   examples: string[];
   steps: Item[];
@@ -23,6 +24,7 @@ export function IntentLanding({
   title,
   intro,
   primaryLabel,
+  primaryHref = "/create",
   examplesTitle,
   examples,
   steps,
@@ -40,7 +42,7 @@ export function IntentLanding({
           <h1>{title}</h1>
           <p className={styles.intro}>{intro}</p>
           <div className={styles.actions}>
-            <Link href="/create" className={styles.primary}>{primaryLabel}</Link>
+            <Link href={primaryHref} className={styles.primary}>{primaryLabel}</Link>
             <Link href="/#how-it-works" className={styles.secondary}>How Intezaar works</Link>
           </div>
           <p className={styles.trust}>Private by design · No account required · Nothing is posted until you choose to seal and post it</p>
@@ -109,7 +111,7 @@ export function IntentLanding({
       <section className={styles.cta}>
         <p className={styles.eyebrow}>When the words are ready</p>
         <h2>Write them now. Let the moment come later.</h2>
-        <Link href="/create" className={styles.primary}>{primaryLabel}</Link>
+        <Link href={primaryHref} className={styles.primary}>{primaryLabel}</Link>
       </section>
     </main>
   );
