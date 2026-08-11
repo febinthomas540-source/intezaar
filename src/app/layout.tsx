@@ -18,11 +18,11 @@ const siteUrl = "https://www.intezaar.in";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Intezaar — Write it. Seal it. Post it.",
+    default: "Intezaar — Letters That Are Meant to Wait",
     template: "%s | Intezaar",
   },
   description:
-    "Write a private digital letter, choose when it can be opened, seal it and post it through the Intezaar post box.",
+    "Write a private digital letter for someone you love or your future self, choose when it can be opened, seal it and let the moment arrive later.",
   applicationName: "Intezaar",
   authors: [{ name: "Intezaar" }],
   creator: "Intezaar",
@@ -36,6 +36,11 @@ export const metadata: Metadata = {
   keywords: [
     "scheduled digital letter",
     "private online letter",
+    "write a letter to my future self",
+    "future self letter",
+    "open when letters",
+    "private unsent letter",
+    "write now send later",
     "future message",
     "romantic letter experience",
     "digital post box",
@@ -48,15 +53,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_IN",
     siteName: "Intezaar",
-    title: "Intezaar — Write it. Seal it. Post it.",
+    title: "Intezaar — Letters That Are Meant to Wait",
     description:
-      "Create a private digital letter, choose the opening moment and post it through the Intezaar letter box.",
+      "Write a private letter for someone you love or your future self. Choose when it opens. Until then, it stays sealed.",
     images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "A sealed private letter beside the red Intezaar digital post box" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Intezaar — Write it. Seal it. Post it.",
-    description: "A private digital letter posted now and opened at the chosen moment.",
+    title: "Intezaar — Letters That Are Meant to Wait",
+    description: "A private digital letter written now and opened at the chosen moment.",
     images: ["/opengraph-image"],
   },
   robots: {
@@ -89,7 +94,7 @@ const websiteSchema = {
   "@type": "WebSite",
   name: "Intezaar",
   url: siteUrl,
-  description: "A private digital letter you write, seal, post and open later.",
+  description: "Private digital letters for someone you love, your future self and moments worth waiting for.",
   inLanguage: "en-IN",
   publisher: { "@type": "Organization", name: "Intezaar" },
 };
