@@ -15,6 +15,7 @@ export default function OpenWhenIdeasGuide() {
       title="Open-when letter ideas that feel personal, not generic."
       intro="The best open-when letters are written for a specific emotional moment. The more clearly you picture that moment, the more personal the letter becomes."
       ctaLabel="Write an open-when letter"
+      ctaHref="/open-when"
       sections={[
         {
           title: "For difficult days",
