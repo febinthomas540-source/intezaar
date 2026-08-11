@@ -71,12 +71,12 @@ export function RecipientGrowthPrompt({ token, enabled }: Props) {
 
   async function shareIdea() {
     record("share_idea");
-    const url = `${window.location.origin}/`;
-    const text = "Someone sent me an Intezaar letter I had to wait to open. The letter stayed private; the idea doesn’t have to.";
+    const url = `${window.location.origin}/received-a-letter`;
+    const text = "Someone sent me an Intezaar letter I had to wait to open. The private letter stayed private.";
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Intezaar — letters that wait", text, url });
+        await navigator.share({ title: "Someone sent me a letter I had to wait to open", text, url });
         return;
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
@@ -85,9 +85,9 @@ export function RecipientGrowthPrompt({ token, enabled }: Props) {
 
     try {
       await navigator.clipboard.writeText(`${text} ${url}`);
-      setShareStatus("Share text copied. Your private letter link was not included.");
+      setShareStatus("Public share copied. Your private letter link was not included.");
     } catch {
-      setShareStatus("Share intezaar.in if you want to share the idea. Your private letter stays private.");
+      setShareStatus("Share the public Intezaar page if you want to share the idea. Your private letter stays private.");
     }
   }
 
