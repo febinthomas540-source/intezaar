@@ -33,7 +33,8 @@ export default function PrivacyPage() {
         <p>Depending on how you use Intezaar, you may provide:</p>
         <ul>
           <li>sender and recipient names;</li>
-          <li>sender and recipient email addresses when entered;</li>
+          <li>recipient email addresses for optional registered delivery or delivery notices;</li>
+          <li>a sender email address when you explicitly ask for a one-time notification that a particular letter has been opened;</li>
           <li>occasion, opening date and time, and optional origin or destination city;</li>
           <li>the written letter, heading and closing;</li>
           <li>photographs, voice notes, videos, captions and photo-layout choices; and</li>
@@ -48,6 +49,8 @@ export default function PrivacyPage() {
         <ul>
           <li>random private access and management tokens, which are stored as one-way hashes;</li>
           <li>letter status, creation time, opening time, expiry time and delivery events;</li>
+          <li>the first recorded time a recipient breaks the seal after arrival, when that event is available;</li>
+          <li>whether a sender enabled a one-time opened-letter notification and whether that notification was sent;</li>
           <li>security-check results from Cloudflare Turnstile;</li>
           <li>basic request, error, device, browser, network and hosting logs;</li>
           <li>email-delivery status and provider message identifiers; and</li>
@@ -74,7 +77,8 @@ export default function PrivacyPage() {
       <section>
         <h2>6. Private links, email and recipient verification</h2>
         <p>Anyone who obtains the complete private recipient link, including its decryption-key fragment, may be able to decrypt a new letter after the selected opening time. Keep the complete link private and share it only with the intended recipient.</p>
-        <p>For end-to-end encrypted letters, an automated Intezaar email notice does not contain the decryption key. The sender must still share the complete private link with the recipient. This separation prevents Intezaar&apos;s email system from receiving or storing the key.</p>
+        <p>For end-to-end encrypted letters, an automated Intezaar recipient email notice does not contain the decryption key. The sender must still share the complete private link with the recipient. This separation prevents Intezaar&apos;s email system from receiving or storing the key.</p>
+        <p>A sender can separately choose to provide their own email address after posting in order to receive one notification when that letter is first recorded as opened. This sender notification contains no letter text, private media, complete recipient link or decryption key. The sender email is stored as delivery metadata for that letter and is sent to Resend only when needed to provide the requested email service.</p>
         <p>If Registered Intezaar Mail is enabled, the recipient must also complete the email one-time-code check before the encrypted payload and private-media download URLs are released. Registered Intezaar Mail is an Intezaar verification feature, not a postal service or proof of legal delivery.</p>
       </section>
 
@@ -84,6 +88,8 @@ export default function PrivacyPage() {
         <ul>
           <li>create, secure, schedule and deliver a private letter;</li>
           <li>send an invitation or arrival-notice email when requested;</li>
+          <li>send a one-time opened-letter notification when the sender explicitly opts in;</li>
+          <li>record privacy-limited product events such as a seal being opened or a recipient choosing to start a new letter, without recording the private letter contents;</li>
           <li>preserve the selected recipient experience;</li>
           <li>prevent bots, abuse, fraud and unauthorised access;</li>
           <li>diagnose errors and improve reliability;</li>
@@ -100,12 +106,13 @@ export default function PrivacyPage() {
         <ul>
           <li><strong>Vercel</strong> for website hosting, server functions, deployment, operational logs and first-party web analytics;</li>
           <li><strong>Supabase</strong> for the database and private encrypted-media storage;</li>
-          <li><strong>Resend</strong> for optional invitation and arrival-notice email delivery;</li>
+          <li><strong>Resend</strong> for optional invitation, arrival-notice and sender opened-letter email delivery;</li>
           <li><strong>Cloudflare Turnstile</strong> for automated-abuse and bot protection; and</li>
           <li><strong>Meta</strong> for optional advertising measurement only after the visitor chooses to allow it.</li>
         </ul>
         <p>The Meta measurement prompt is delayed so it does not need to interrupt a visitor&apos;s first view of the product. If declined, the Meta Pixel is not loaded. Our configured Meta events are intended to measure page visits and creation steps, not the contents typed into a private letter.</p>
         <p>Advertising measurement and web-analytics components are not rendered on private <code>/receive/</code> delivery pages, where an end-to-end decryption key may be present in the browser URL fragment.</p>
+        <p>Private recipient pages can still send narrowly scoped first-party service events to Intezaar, such as “seal opened” or “write a letter back clicked”, so the delivery service can provide requested notifications and measure the recipient-to-creator loop. These events do not include the private message, media or URL decryption fragment.</p>
         <p>These providers process limited information according to their own infrastructure, security and privacy terms. Data may be processed in countries outside the sender&apos;s or recipient&apos;s location.</p>
       </section>
 
@@ -125,7 +132,7 @@ export default function PrivacyPage() {
       <section>
         <h2>10. Retention and deletion</h2>
         <p>A posted letter is assigned an expiry time 90 days after its selected opening time. A protected daily cleanup process deletes encrypted media from storage and marks the letter expired.</p>
-        <p>The current beta cleanup does not immediately erase every encrypted database field or operational event. Encrypted records, email-delivery data, security logs and backups may remain for a reasonable period for reliability, abuse prevention, debugging or legal compliance.</p>
+        <p>The current beta cleanup does not immediately erase every encrypted database field or operational event. Encrypted records, sender or recipient email-delivery data, security logs and backups may remain for a reasonable period for reliability, abuse prevention, debugging or legal compliance.</p>
         <p>Browser-local drafts and session data remain under the user&apos;s browser controls. Clearing site data removes them from that device.</p>
       </section>
 
@@ -138,7 +145,8 @@ export default function PrivacyPage() {
       <section>
         <h2>12. Your choices</h2>
         <ul>
-          <li>Recipient and sender email addresses are optional.</li>
+          <li>Recipient email addresses are optional.</li>
+          <li>A sender email address for a one-time opened-letter notification is optional and is collected only after an explicit opt-in.</li>
           <li>Media attachments are optional.</li>
           <li>You may copy and share the complete private link manually.</li>
           <li>You may allow or decline optional Meta advertising measurement.</li>
