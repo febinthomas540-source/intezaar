@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import {
   decryptLetterPayload,
+  e2eeTransportMedia,
   findLetterByManageToken,
   hashPrivateToken,
   insertLetterEvent,
+  letterUsesE2EE,
   markRecipientNotified,
   updateLetterMetadata,
 } from "@/lib/letter-security";
@@ -30,11 +32,11 @@ function validatedRecipientUrl(raw: unknown, accessTokenHash: string | undefined
 
   try {
     const url = new URL(raw);
-    if (url.origin !== expectedOrigin) return null;
+    if (url.origin !== expectedOrigin || url.search || url.hash) return null;
 
     const match = url.pathname.match(/^\/receive\/([A-Za-z0-9_-]{40,60})$/);
     if (!match || hashPrivateToken(match[1]) !== accessTokenHash) return null;
-    return url.toString();
+    return `${url.origin}${url.pathname}`;
   } catch {
     return null;
   }
@@ -61,9 +63,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "This letter cannot accept media uploads." }, { status: 404 });
     }
 
-    const payload = decryptLetterPayload(letter);
-    const media = payload.media || [];
-    if (!payload.mediaKey || !media.length) {
+    const isE2EE = letterUsesE2EE(letter);
+    const legacyPayload = isE2EE ? null : decryptLetterPayload(letter);
+    const media = isE2EE ? e2eeTransportMedia(letter) : legacyPayload?.media || [];
+    if ((!isE2EE && !legacyPayload?.mediaKey) || !media.length) {
       return NextResponse.json({ error: "This letter has no private media to complete." }, { status: 400 });
     }
 
@@ -118,6 +121,7 @@ export async function POST(request: Request) {
         senderName: letter.sender_name,
         occasion: letter.occasion,
         recipientUrl,
+        e2ee: isE2EE,
       });
     }
 
@@ -128,6 +132,7 @@ export async function POST(request: Request) {
         provider: "resend",
         provider_id: emailDelivery.emailId || null,
         media_count: media.length,
+        e2ee: isE2EE,
       });
     } else if (letter.recipient_email && emailDelivery.attempted) {
       await insertLetterEvent(letter.id, "email_failed", {
@@ -135,6 +140,7 @@ export async function POST(request: Request) {
         provider: "resend",
         reason: emailDelivery.message,
         media_count: media.length,
+        e2ee: isE2EE,
       });
     }
 
@@ -147,6 +153,7 @@ export async function POST(request: Request) {
           occasion: letter.occasion,
           recipientUrl,
           opensAt: letter.opens_at,
+          e2ee: isE2EE,
         })
       : null;
 
@@ -157,6 +164,7 @@ export async function POST(request: Request) {
         provider_id: arrivalDelivery.emailId || null,
         scheduled_at: letter.opens_at,
         media_count: media.length,
+        e2ee: isE2EE,
       });
     } else if (arrivalDelivery?.attempted) {
       await insertLetterEvent(letter.id, "arrival_email_schedule_failed", {
@@ -164,6 +172,7 @@ export async function POST(request: Request) {
         provider: "resend",
         reason: arrivalDelivery.message,
         media_count: media.length,
+        e2ee: isE2EE,
       });
     }
 
