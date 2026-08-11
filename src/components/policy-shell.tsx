@@ -12,6 +12,8 @@ type PolicyShellProps = {
 };
 
 const policyLinks = [
+  { href: "/about", label: "About Intezaar" },
+  { href: "/how-encryption-works", label: "How encryption works" },
   { href: "/faq", label: "FAQ" },
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/community-guidelines", label: "Community Guidelines" },
@@ -24,7 +26,7 @@ export function PolicyShell({
   eyebrow,
   title,
   intro,
-  lastUpdated = "7 August 2026",
+  lastUpdated = "11 August 2026",
   children,
 }: PolicyShellProps) {
   return (
@@ -45,8 +47,8 @@ export function PolicyShell({
       </header>
 
       <div className={styles.layout}>
-        <aside className={styles.sideNav} aria-label="Help and policy pages">
-          <strong>Intezaar help</strong>
+        <aside className={styles.sideNav} aria-label="Help and trust pages">
+          <strong>About & trust</strong>
           {policyLinks.map((link) => (
             <Link href={link.href} key={link.href}>{link.label}</Link>
           ))}
@@ -58,7 +60,7 @@ export function PolicyShell({
 
       <footer className={styles.footer}>
         <div><span>I</span><strong>Intezaar</strong></div>
-        <nav aria-label="Footer policies">
+        <nav aria-label="Footer trust and policy links">
           {policyLinks.map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}
         </nav>
         <p>A private digital letter you write, seal, post and open later.</p>
