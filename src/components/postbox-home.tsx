@@ -18,7 +18,7 @@ const steps = [
   {
     number: "03",
     title: "Seal and share",
-    copy: "Post the letter into Intezaar and send the private recipient link to the person it is meant for.",
+    copy: "When you post, the letter content and private media are end-to-end encrypted in your browser. Share the complete private link with the recipient.",
   },
 ];
 
@@ -38,18 +38,18 @@ export function PostboxHome() {
 
       <section className={`${styles.hero} ${refined.hero}`}>
         <div className={`${styles.heroCopy} ${refined.heroCopy}`}>
-          <p className={styles.eyebrow}>Private letters with a chosen opening time</p>
+          <p className={styles.eyebrow}>End-to-end encrypted letters with a chosen opening time</p>
           <h1>Write it now. Let it arrive later.</h1>
           <p className={`${styles.heroText} ${refined.heroText}`}>
-            Intezaar lets you write a private digital letter, seal it, and choose when it can be opened — for someone else or for your future self.
+            Intezaar lets you write a private digital letter, seal it, and choose when it can be opened — for someone else or for your future self. Your letter content and private media are end-to-end encrypted before they leave your browser.
           </p>
           <div className={styles.heroActions}>
             <Link href="/create" className={`${styles.primaryButton} ${refined.primaryButton}`}>Write a letter</Link>
             <Link href="/future-self" className={`${styles.secondaryButton} ${refined.secondaryButton}`}>Write to future me</Link>
           </div>
           <div className={`${styles.heroTrust} ${refined.heroTrust}`} aria-label="Intezaar privacy and access highlights">
+            <span>End-to-end encrypted</span>
             <span>No account</span>
-            <span>No phone number</span>
             <span>Private link</span>
             <span>Opens when chosen</span>
           </div>
@@ -77,8 +77,8 @@ export function PostboxHome() {
       </section>
 
       <section className={`${styles.trustBand} ${refined.trustBand}`} aria-label="Simple and private">
-        <div><strong>No account</strong><span>Start writing without creating a profile.</span></div>
-        <div><strong>No phone number</strong><span>Ordinary letters only need a private recipient link.</span></div>
+        <div><strong>End-to-end encrypted</strong><span>Letter content and private media are encrypted in the sender&apos;s browser. Intezaar does not store the decryption key.</span></div>
+        <div><strong>No account</strong><span>Start writing without creating a profile or adding a phone number.</span></div>
         <div><strong>Not public</strong><span>Your letter is not listed or published as public content.</span></div>
         <div><strong>Your timing</strong><span>You choose the opening date and time.</span></div>
       </section>
@@ -93,7 +93,7 @@ export function PostboxHome() {
           </div>
           <div>
             <p>
-              The recipient gets a private link. The message stays hidden until the time you chose, then the seal can be opened.
+              The recipient gets a complete private link containing the decryption key. The key stays in the browser, while Intezaar holds the encrypted letter until the chosen time.
             </p>
           </div>
         </header>
@@ -114,12 +114,12 @@ export function PostboxHome() {
           <p className={styles.eyebrow}>What the recipient sees</p>
           <h2>Before the date, they see the envelope — not the message.</h2>
           <p>
-            The private link shows that a letter is waiting and when it opens. The words inside stay out of view until that moment.
+            The private link shows that a letter is waiting and when it opens. The encrypted words and private media stay sealed until that moment, then decrypt on the recipient&apos;s device.
           </p>
           <ol>
             <li><span>1</span><div><strong>A sealed letter is waiting</strong><p>The opening date and time are visible.</p></div></li>
-            <li><span>2</span><div><strong>The message remains hidden</strong><p>The recipient cannot read the letter early.</p></div></li>
-            <li><span>3</span><div><strong>The seal becomes available</strong><p>At the chosen time, the letter can be opened and read.</p></div></li>
+            <li><span>2</span><div><strong>The message remains encrypted</strong><p>The recipient cannot read the letter early.</p></div></li>
+            <li><span>3</span><div><strong>The seal becomes available</strong><p>At the chosen time, the recipient&apos;s browser can decrypt and open the letter.</p></div></li>
           </ol>
         </div>
 
