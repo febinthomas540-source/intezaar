@@ -1,0 +1,273 @@
+.hero {
+  min-height: 680px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.58), transparent 44%),
+    linear-gradient(118deg, #fbf6ed 0%, #f1e4d1 60%, #dcc09d 100%);
+}
+
+.heroCopy {
+  padding-top: 112px;
+  padding-bottom: 92px;
+}
+
+.heroCopy h1 {
+  max-width: 700px;
+  font-size: clamp(50px, 6vw, 86px);
+  line-height: 1.01;
+  letter-spacing: -.04em !important;
+}
+
+.heroText {
+  max-width: 610px;
+  margin-top: 24px;
+  font-size: clamp(17px, 1.35vw, 20px);
+  line-height: 1.65;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 50px;
+  padding: 0 22px;
+  border-radius: 6px;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.primaryButton {
+  background: #832b24;
+}
+
+.secondaryButton {
+  background: transparent;
+}
+
+.heroTrust {
+  gap: 0;
+  margin-top: 27px;
+}
+
+.heroTrust span {
+  padding: 0 14px;
+  border: 0;
+  border-right: 1px solid rgba(103,68,52,.2);
+  border-radius: 0;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.heroTrust span:first-child { padding-left: 0; }
+.heroTrust span:last-child { border-right: 0; }
+
+.letterDesk {
+  border-radius: 10px;
+  box-shadow: 0 28px 65px rgba(63,38,27,.24);
+}
+
+.trustBand {
+  grid-template-columns: repeat(4, 1fr);
+  background: #fbf6ed;
+}
+
+.trustBand div {
+  min-height: 100px;
+  padding: 23px 26px;
+}
+
+.trustBand strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.howSection,
+.recipientSection,
+.occasionsSection,
+.finalCta {
+  padding-top: 104px;
+  padding-bottom: 104px;
+}
+
+.sectionHeading h2,
+.recipientCopy h2,
+.occasionsSection h2,
+.finalCta h2 {
+  max-width: 780px;
+  font-size: clamp(38px, 4.4vw, 66px);
+  line-height: 1.04;
+  letter-spacing: -.035em !important;
+}
+
+.stepGrid {
+  display: block;
+  margin-top: 52px;
+  border-top: 1px solid rgba(80,50,37,.2);
+}
+
+.stepCard,
+.stepCard + .stepCard {
+  display: grid;
+  grid-template-columns: 64px minmax(210px, .65fr) minmax(0, 1.25fr);
+  gap: 28px;
+  align-items: start;
+  min-height: 0;
+  padding: 27px 0;
+  border-right: 0;
+  border-bottom: 1px solid rgba(80,50,37,.16);
+}
+
+.stepCard > span {
+  padding-top: 4px;
+  font-size: 11px;
+}
+
+.stepCard h3 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.stepCard p {
+  max-width: 620px;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.recipientSection {
+  gap: 7vw;
+}
+
+.recipientPreview {
+  border-radius: 8px;
+  box-shadow: 0 26px 58px rgba(64,35,25,.18);
+}
+
+.previewMessage {
+  padding-left: 18px;
+  padding-right: 18px;
+  text-align: left;
+}
+
+.previewMessage h3 {
+  margin-left: 0;
+  margin-right: 0;
+  font-size: 34px;
+}
+
+.occasionsSection {
+  background: #eee0ca;
+}
+
+.occasionList span {
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.finalCta {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
+  gap: 32px;
+  align-items: center;
+  text-align: left;
+}
+
+.finalCta .eyebrow {
+  grid-column: 2;
+  margin-bottom: -18px;
+}
+
+.finalCta h2 {
+  grid-column: 2;
+  margin: 0;
+}
+
+.finalCta .primaryButton {
+  grid-column: 3;
+  grid-row: 1 / span 3;
+}
+
+.finalStamp {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  margin: 0;
+}
+
+@media (max-width: 1050px) {
+  .finalCta {
+    grid-template-columns: 92px 1fr;
+  }
+
+  .finalCta .primaryButton {
+    grid-column: 2;
+    grid-row: auto;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 720px) {
+  .heroCopy {
+    padding-top: 76px;
+    padding-bottom: 44px;
+  }
+
+  .heroCopy h1 {
+    font-size: clamp(46px, 13.5vw, 64px);
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    border-radius: 5px;
+  }
+
+  .heroTrust {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+  }
+
+  .heroTrust span,
+  .heroTrust span:first-child {
+    padding: 0;
+    border-right: 0;
+    font-size: 11px;
+  }
+
+  .letterDesk {
+    border-radius: 7px;
+  }
+
+  .stepCard,
+  .stepCard + .stepCard {
+    grid-template-columns: 42px 1fr;
+    gap: 10px 18px;
+    padding: 24px 0;
+  }
+
+  .stepCard p {
+    grid-column: 2;
+  }
+
+  .recipientPreview {
+    border-radius: 6px;
+  }
+
+  .finalCta {
+    display: block;
+  }
+
+  .finalStamp {
+    margin: 0 0 28px;
+  }
+
+  .finalCta .eyebrow {
+    margin-bottom: 14px;
+  }
+
+  .finalCta h2 {
+    margin-bottom: 28px;
+  }
+
+  .finalCta .primaryButton {
+    width: auto;
+  }
+}
