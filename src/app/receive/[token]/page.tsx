@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { RecipientPhotoLayoutBridge } from "@/components/recipient-photo-layout-bridge";
 import { RecipientPostageStamp } from "@/components/recipient-postage-stamp";
 import { RegisteredDeliveryGate } from "@/components/registered-delivery-gate";
 import { SecureLetterDelivery } from "@/components/secure-letter-delivery";
 import {
   decryptLetterPayload,
+  e2eeTransportMedia,
   findLetterByAccessToken,
+  letterUsesE2EE,
 } from "@/lib/letter-security";
 import {
   registeredCookieName,
@@ -54,21 +55,33 @@ export default async function SecureRecipientPage({ params }: PageProps) {
   }
 
   const hasArrived = Date.now() >= new Date(letter.opens_at).getTime();
-  const payload = hasArrived && !unavailable
+  const isE2EE = letterUsesE2EE(letter);
+  const payload = hasArrived && !unavailable && !isE2EE
     ? decryptLetterPayload(letter)
+    : null;
+  const e2eePayload = hasArrived && !unavailable && isE2EE
+    ? {
+        version: 3 as const,
+        ciphertext: letter.payload_ciphertext,
+        iv: letter.payload_iv,
+        authTag: letter.payload_auth_tag,
+      }
     : null;
 
   const mediaReady = letter.metadata?.media_ready === true;
-  const manifest = payload?.mediaKey && mediaReady ? payload.media || [] : [];
+  const manifest = hasArrived && !unavailable && mediaReady
+    ? isE2EE
+      ? e2eeTransportMedia(letter)
+      : payload?.mediaKey
+        ? payload.media || []
+        : []
+    : [];
   const signedUrls = manifest.length
     ? await createMediaDownloadUrls(manifest.map((item) => item.path))
     : new Map<string, string>();
   const media = manifest
     .map((item) => ({ ...item, signedUrl: signedUrls.get(item.path) || "" }))
     .filter((item) => Boolean(item.signedUrl));
-  const positionedPhotos = media
-    .filter((item) => item.kind === "photo")
-    .map(({ id, name, caption, photoLayout }) => ({ id, name, caption, photoLayout }));
 
   return (
     <>
@@ -86,11 +99,11 @@ export default async function SecureRecipientPage({ params }: PageProps) {
           message: payload.message,
           closing: payload.closing,
         } : null}
+        e2eePayload={e2eePayload}
         mediaKey={payload?.mediaKey || ""}
         media={media}
       />
       <RecipientPostageStamp />
-      <RecipientPhotoLayoutBridge photos={positionedPhotos} />
     </>
   );
 }
