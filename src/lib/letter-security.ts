@@ -31,6 +31,15 @@ export type LetterMediaManifestItem = {
   photoLayout?: LetterPhotoLayout;
 };
 
+export type E2EETransportMediaItem = {
+  id: string;
+  kind: LetterMediaKind;
+  path: string;
+  mimeType: string;
+  size: number;
+  iv: string;
+};
+
 export type LetterPayload = {
   version: 1 | 2;
   heading: string;
@@ -118,7 +127,38 @@ function validMediaItem(value: unknown): value is LetterMediaManifestItem {
   );
 }
 
+function validE2EETransportMediaItem(value: unknown): value is E2EETransportMediaItem {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Partial<E2EETransportMediaItem>;
+  return (
+    typeof item.id === "string" &&
+    (item.kind === "photo" || item.kind === "voice" || item.kind === "video") &&
+    typeof item.path === "string" &&
+    typeof item.mimeType === "string" &&
+    typeof item.size === "number" &&
+    typeof item.iv === "string"
+  );
+}
+
+export function letterUsesE2EE(letter: StoredLetter) {
+  return letter.metadata?.e2ee_version === 1 && letter.metadata?.payload_version === 3;
+}
+
+export function e2eeTransportMedia(letter: StoredLetter): E2EETransportMediaItem[] {
+  if (!letterUsesE2EE(letter)) return [];
+  const raw = letter.metadata?.e2ee_media;
+  if (raw === undefined) return [];
+  if (!Array.isArray(raw) || !raw.every(validE2EETransportMediaItem)) {
+    throw new Error("Stored E2EE media transport manifest is invalid.");
+  }
+  return raw;
+}
+
 export function decryptLetterPayload(letter: StoredLetter): LetterPayload {
+  if (letterUsesE2EE(letter)) {
+    throw new Error("E2EE letter contents must be decrypted in the recipient browser.");
+  }
+
   const decipher = createDecipheriv(
     "aes-256-gcm",
     encryptionKey(),
