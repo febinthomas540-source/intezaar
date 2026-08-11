@@ -2,6 +2,11 @@
 
 import { createClient } from "@supabase/supabase-js";
 import type { LetterFormat, PhotoPatch } from "@/components/letter-preview";
+import {
+  encryptE2EEPayload,
+  randomE2EEIvBase64,
+  type E2EEPrivateMediaItem,
+} from "@/lib/letter-e2ee";
 import { MAX_DELIVERY_MS, MIN_DELIVERY_MS } from "@/lib/letter-rules";
 
 const POSTED_KEY = "intezaar:last-secure-letter:v1";
@@ -76,6 +81,16 @@ export type SecureLetterResult = {
 
 export type SavedSecureLetter = Omit<SecureLetterResult, "mediaUpload"> & {
   fingerprint: string;
+};
+
+type ApiMediaUploadPlan = {
+  key?: string;
+  items: MediaUploadPlan["items"];
+};
+
+type CreateLetterApiResult = Omit<Partial<SecureLetterResult>, "mediaUpload"> & {
+  mediaUpload?: ApiMediaUploadPlan | null;
+  error?: string;
 };
 
 export function draftFingerprint(draft: SecureDraft, media: SecureMediaItem[]) {
@@ -160,7 +175,7 @@ function createOpensAt(draft: SecureDraft) {
   return localMoment.toISOString();
 }
 
-function mediaDescriptor(media: SecureMediaItem[]) {
+function privateMediaDescriptor(media: SecureMediaItem[]): E2EEPrivateMediaItem[] {
   return media.map((item) => ({
     id: item.id,
     kind: item.kind,
@@ -168,8 +183,26 @@ function mediaDescriptor(media: SecureMediaItem[]) {
     mimeType: item.mimeType,
     size: item.size,
     caption: item.caption,
+    iv: randomE2EEIvBase64(),
     photoLayout: item.photoLayout,
   }));
+}
+
+function recipientUrlWithKey(baseUrl: string, urlKey: string) {
+  const url = new URL(baseUrl, window.location.origin);
+  if (url.origin !== window.location.origin || !/^\/receive\/[A-Za-z0-9_-]{40,60}$/.test(url.pathname)) {
+    throw new Error("The private recipient link returned by the server is invalid.");
+  }
+  url.search = "";
+  url.hash = `k=${urlKey}`;
+  return url.toString();
+}
+
+function recipientUrlWithoutKey(value: string) {
+  const url = new URL(value, window.location.origin);
+  url.hash = "";
+  url.search = "";
+  return url.toString();
 }
 
 export async function createSecureLetter(
@@ -177,6 +210,15 @@ export async function createSecureLetter(
   media: SecureMediaItem[],
 ): Promise<SecureLetterResult> {
   const opensAt = createOpensAt(draft);
+  const privateMedia = privateMediaDescriptor(media);
+  const encrypted = await encryptE2EEPayload({
+    version: 3,
+    heading: draft.heading,
+    message: draft.letter,
+    closing: draft.closing,
+    media: privateMedia,
+  });
+
   const response = await fetch("/api/letters", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -188,20 +230,41 @@ export async function createSecureLetter(
       format: draft.format,
       fromCity: draft.fromCity,
       toCity: draft.toCity,
-      heading: draft.heading,
-      message: draft.letter,
-      closing: draft.closing,
       opensAt,
       timezoneOffset: new Date().getTimezoneOffset(),
-      media: mediaDescriptor(media),
+      encryptedPayload: encrypted.envelope,
+      media: privateMedia.map((item) => ({
+        id: item.id,
+        kind: item.kind,
+        mimeType: item.mimeType,
+        size: item.size,
+        iv: item.iv,
+      })),
     }),
   });
 
-  const result = await response.json() as Partial<SecureLetterResult> & { error?: string };
+  const result = await response.json() as CreateLetterApiResult;
   if (!response.ok || !result.recipientUrl || !result.manageToken || !result.opensAt) {
     throw new Error(result.error || "The letter could not be stored securely.");
   }
-  return result as SecureLetterResult;
+
+  const recipientUrl = recipientUrlWithKey(result.recipientUrl, encrypted.urlKey);
+  const mediaUpload = result.mediaUpload
+    ? {
+        key: encrypted.keyBase64,
+        items: result.mediaUpload.items,
+      } satisfies MediaUploadPlan
+    : null;
+
+  return {
+    recipientUrl,
+    manageToken: result.manageToken,
+    opensAt: result.opensAt,
+    emailDelivery: result.emailDelivery,
+    mediaUpload,
+    mediaReady: result.mediaReady,
+    mediaCount: result.mediaCount,
+  };
 }
 
 function bytesFromBase64(value: string) {
@@ -278,7 +341,8 @@ export async function completeMediaUpload(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       manageToken: result.manageToken,
-      recipientUrl: result.recipientUrl,
+      // Never send the #k decryption fragment back to Intezaar's server.
+      recipientUrl: recipientUrlWithoutKey(result.recipientUrl),
       itemIds,
     }),
   });
