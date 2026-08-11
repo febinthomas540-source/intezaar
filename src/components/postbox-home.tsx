@@ -3,6 +3,7 @@ import { Navigation } from "@/components/navigation";
 import { ReflectionUseCases } from "@/components/reflection-use-cases";
 import styles from "./postbox-home-refresh.module.css";
 import refined from "./postbox-home-refinement.module.css";
+import trust from "./trust-transparency.module.css";
 
 const steps = [
   {
@@ -22,9 +23,60 @@ const steps = [
   },
 ];
 
+const trustSteps = [
+  {
+    number: "01",
+    title: "Encrypted before upload",
+    copy: "For new letters, the written message and private media are encrypted in the sender’s browser before Intezaar stores them.",
+  },
+  {
+    number: "02",
+    title: "The key stays in the private link",
+    copy: "Intezaar stores the encrypted payload, but not the decryption key. The complete private recipient link carries the key in its browser-only fragment.",
+  },
+  {
+    number: "03",
+    title: "Released only when the time arrives",
+    copy: "The server enforces the selected opening time. After that moment, the encrypted payload can be delivered and decrypted on the recipient’s device.",
+  },
+];
+
+const stories = [
+  {
+    label: "Birthday",
+    title: "A letter written before the rush",
+    copy: "Write the words while you have time, then let the letter become openable on the birthday itself.",
+    href: "/create",
+    action: "Write one",
+  },
+  {
+    label: "Future self",
+    title: "A note for the person you are becoming",
+    copy: "Capture what life feels like today and leave it sealed for a later version of yourself.",
+    href: "/future-self",
+    action: "Explore future self",
+  },
+  {
+    label: "Difficult conversation",
+    title: "Words that should not be sent immediately",
+    copy: "Write after an argument, create some distance, and decide what deserves to arrive after the emotion settles.",
+    href: "/write-after-argument",
+    action: "See the use case",
+  },
+  {
+    label: "Open when",
+    title: "Something to keep for a particular kind of day",
+    copy: "Prepare a letter for a moment such as missing home, needing encouragement, or reaching a milestone.",
+    href: "/open-when",
+    action: "Explore open-when",
+  },
+];
+
 const occasions = ["Birthday", "Anniversary", "Apology", "Farewell", "Just because"];
 
 const footerLinks = [
+  { href: "/about", label: "About" },
+  { href: "/how-encryption-works", label: "How encryption works" },
   { href: "/faq", label: "FAQ" },
   { href: "/privacy", label: "Privacy" },
   { href: "/community-guidelines", label: "Community Guidelines" },
@@ -81,6 +133,31 @@ export function PostboxHome() {
         <div><strong>No account</strong><span>Start writing without creating a profile or adding a phone number.</span></div>
         <div><strong>Not public</strong><span>Your letter is not listed or published as public content.</span></div>
         <div><strong>Your timing</strong><span>You choose the opening date and time.</span></div>
+      </section>
+
+      <section className={trust.trustSection} aria-labelledby="trust-heading">
+        <div>
+          <p className={trust.eyebrow}>Trust & transparency</p>
+          <h2 id="trust-heading">Know what happens to the letter before you write it.</h2>
+          <p className={trust.lead}>
+            Privacy should not depend on vague promises. Here is the current public-beta model in plain language.
+          </p>
+          <nav className={trust.trustLinks} aria-label="Trust information">
+            <Link href="/how-encryption-works">How encryption works</Link>
+            <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/terms">User Agreement</Link>
+            <Link href="/about">About Intezaar</Link>
+          </nav>
+        </div>
+        <div className={trust.trustSteps}>
+          {trustSteps.map((item) => (
+            <div className={trust.trustStep} key={item.number}>
+              <span>{item.number}</span>
+              <strong>{item.title}</strong>
+              <p>{item.copy}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <ReflectionUseCases />
@@ -145,6 +222,26 @@ export function PostboxHome() {
         </div>
       </section>
 
+      <section className={trust.storiesSection} aria-labelledby="stories-heading">
+        <div className={trust.storiesHeader}>
+          <div><p className={trust.eyebrow}>Built for real moments</p></div>
+          <div>
+            <h2 id="stories-heading">A delayed letter needs a reason to wait.</h2>
+            <small>These are illustrative use cases, not invented customer testimonials. We will only publish testimonials when real users give us permission to do so.</small>
+          </div>
+        </div>
+        <div className={trust.storyList}>
+          {stories.map((story) => (
+            <article className={trust.story} key={story.title}>
+              <small>{story.label}</small>
+              <strong>{story.title}</strong>
+              <p>{story.copy}</p>
+              <Link href={story.href}>{story.action} →</Link>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className={`${styles.occasionsSection} ${refined.occasionsSection}`}>
         <div>
           <p className={styles.eyebrow}>When timing matters</p>
@@ -152,6 +249,34 @@ export function PostboxHome() {
         </div>
         <div className={styles.occasionList}>
           {occasions.map((occasion) => <span key={occasion}>{occasion}</span>)}
+        </div>
+      </section>
+
+      <section className={trust.reliabilitySection} aria-labelledby="reliability-heading">
+        <div>
+          <p className={trust.eyebrow}>Long-term reliability</p>
+          <h2 id="reliability-heading">Intezaar is a beta, not permanent archival storage.</h2>
+          <p className={trust.lead}>
+            The waiting experience should never hide the practical limits of an early-stage service. Keep your own copy of anything irreplaceable.
+          </p>
+        </div>
+        <div className={trust.reliabilityFacts}>
+          <div className={trust.reliabilityFact}>
+            <strong>While it waits</strong>
+            <p>The encrypted letter remains stored until its opening time, subject to the availability limits described in our <Link href="/terms">User Agreement</Link>.</p>
+          </div>
+          <div className={trust.reliabilityFact}>
+            <strong>After opening</strong>
+            <p>Current beta letters are assigned an expiry 90 days after the selected opening time. The opened-letter screen also lets the recipient save or print a keepsake.</p>
+          </div>
+          <div className={trust.reliabilityFact}>
+            <strong>After expiry</strong>
+            <p>The cleanup process removes encrypted private media and marks the letter expired. Some encrypted database fields, logs or backups may remain for a reasonable operational period as described in the <Link href="/privacy">Privacy Policy</Link>.</p>
+          </div>
+          <div className={trust.reliabilityFact}>
+            <strong>If the service changes or closes</strong>
+            <p>We do not promise permanent storage or a guaranteed shutdown export. Where reasonably possible, we intend to give advance notice of material service closure or migration so users can preserve important content.</p>
+          </div>
         </div>
       </section>
 
