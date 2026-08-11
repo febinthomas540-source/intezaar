@@ -14,6 +14,7 @@ import "./letter-studio-formats.css";
 import "./creation-flow-v2.css";
 import "./installed-app-shell.css";
 import "./typography-refresh.css";
+import "./design-refinement.css";
 
 const sourceSans = Source_Sans_3({
   subsets: ["latin"],
