@@ -10,9 +10,10 @@ type IntentGuideProps = {
   intro: string;
   sections: Section[];
   ctaLabel: string;
+  ctaHref?: string;
 };
 
-export function IntentGuide({ eyebrow, title, intro, sections, ctaLabel }: IntentGuideProps) {
+export function IntentGuide({ eyebrow, title, intro, sections, ctaLabel, ctaHref = "/create" }: IntentGuideProps) {
   return (
     <main className={styles.page}>
       <Navigation />
@@ -21,7 +22,7 @@ export function IntentGuide({ eyebrow, title, intro, sections, ctaLabel }: Inten
           <p>{eyebrow}</p>
           <h1>{title}</h1>
           <span>{intro}</span>
-          <Link href="/create">{ctaLabel}</Link>
+          <Link href={ctaHref}>{ctaLabel}</Link>
         </header>
 
         <div className={styles.body}>
@@ -42,7 +43,7 @@ export function IntentGuide({ eyebrow, title, intro, sections, ctaLabel }: Inten
 
           <div className={styles.finalCta}>
             <p>Ready to turn one of these ideas into a letter?</p>
-            <Link href="/create">{ctaLabel}</Link>
+            <Link href={ctaHref}>{ctaLabel}</Link>
           </div>
         </div>
       </article>
