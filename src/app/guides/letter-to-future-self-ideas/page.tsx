@@ -15,6 +15,7 @@ export default function FutureSelfIdeasGuide() {
       title="What should you write in a letter to your future self?"
       intro="The best future-self letters are not predictions. They are snapshots of who you are now, written for someone who happens to be you later."
       ctaLabel="Write my future-self letter"
+      ctaHref="/future-self/write"
       sections={[
         {
           title: "Start with what is true today",
