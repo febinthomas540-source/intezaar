@@ -70,6 +70,12 @@ export type StoredLetter = {
   metadata: Record<string, unknown>;
 };
 
+export type PublicLetterStats = {
+  posted: number;
+  waiting: number;
+  opened: number;
+};
+
 type EncryptedPayload = {
   ciphertext: string;
   iv: string;
@@ -210,6 +216,46 @@ function supabaseUrl(path: string) {
 async function parseSupabaseError(response: Response) {
   const body = await response.text();
   return body || `${response.status} ${response.statusText}`;
+}
+
+async function countRows(
+  table: "letters" | "letter_events",
+  filters: Record<string, string> = {},
+) {
+  const query = new URLSearchParams({ select: "id", limit: "1", ...filters });
+  const response = await fetch(supabaseUrl(`${table}?${query.toString()}`), {
+    headers: supabaseHeaders({ Prefer: "count=exact" }),
+    next: { revalidate: 300 },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Supabase count failed: ${await parseSupabaseError(response)}`);
+  }
+
+  const contentRange = response.headers.get("content-range") || "";
+  const total = Number(contentRange.split("/").pop());
+  if (!Number.isFinite(total) || total < 0) {
+    throw new Error("Supabase did not return a valid aggregate count.");
+  }
+  return total;
+}
+
+export async function getPublicLetterStats(): Promise<PublicLetterStats> {
+  // Round the waiting threshold to five-minute buckets so the aggregate query
+  // can be cached briefly instead of producing a new cache key every request.
+  const bucketMs = 5 * 60 * 1000;
+  const bucketNow = new Date(Math.floor(Date.now() / bucketMs) * bucketMs).toISOString();
+
+  const [posted, waiting, opened] = await Promise.all([
+    countRows("letters"),
+    countRows("letters", {
+      status: "eq.posted",
+      opens_at: `gt.${bucketNow}`,
+    }),
+    countRows("letter_events", { event_type: "eq.opened" }),
+  ]);
+
+  return { posted, waiting, opened };
 }
 
 export async function insertEncryptedLetter(row: Record<string, unknown>) {
