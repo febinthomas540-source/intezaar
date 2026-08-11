@@ -38,7 +38,7 @@ export function ReflectionUseCases() {
       <header className={styles.heading}>
         <p>Letters that are meant to wait</p>
         <h2 id="letters-for-later-title">For someone you love. For your future self. For a moment that has not happened yet.</h2>
-        <span>Intezaar keeps one thing at the centre: a private letter with time around it.</span>
+        <span>Intezaar keeps one thing at the centre: a private letter with time around it. <Link href="/guides">Browse the writing guides →</Link></span>
       </header>
 
       <div className={styles.grid}>
