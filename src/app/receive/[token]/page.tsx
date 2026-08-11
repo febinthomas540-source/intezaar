@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { RecipientGrowthPrompt } from "@/components/recipient-growth-prompt";
 import { RecipientPostageStamp } from "@/components/recipient-postage-stamp";
 import { RegisteredDeliveryGate } from "@/components/registered-delivery-gate";
 import { SecureLetterDelivery } from "@/components/secure-letter-delivery";
@@ -104,6 +105,7 @@ export default async function SecureRecipientPage({ params }: PageProps) {
         media={media}
       />
       <RecipientPostageStamp />
+      <RecipientGrowthPrompt token={token} enabled={hasArrived && !unavailable} />
     </>
   );
 }
