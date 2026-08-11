@@ -1,5 +1,6 @@
 "use client";
 
+import { SenderGrowthPrompt } from "@/components/sender-growth-prompt";
 import { StableLetterCreator } from "@/components/stable-letter-creator";
 import { TurnstilePostingGuard } from "@/components/turnstile-posting-guard";
 import "../photo-adjustment.css";
@@ -14,6 +15,7 @@ export default function CreatePage() {
     <>
       <StableLetterCreator />
       <TurnstilePostingGuard />
+      <SenderGrowthPrompt />
     </>
   );
 }
