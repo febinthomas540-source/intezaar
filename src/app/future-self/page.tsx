@@ -15,6 +15,7 @@ export default function FutureSelfPage() {
       title="Write something your future self should hear."
       intro="A thought, a promise, a memory, a question. Write it while it belongs to today, then leave it sealed for a later version of you."
       primaryLabel="Write to future me"
+      primaryHref="/future-self/write"
       examplesTitle="What could you leave for future you?"
       examples={[
         "What do I hope I will remember about this season of my life?",
@@ -23,9 +24,9 @@ export default function FutureSelfPage() {
         "What small detail about today do I never want to forget?",
       ]}
       steps={[
-        { title: "Write from today", copy: "Capture the version of you that exists right now, without trying to make it perfect." },
-        { title: "Choose a later moment", copy: "Pick when the letter should become available within Intezaar's current delivery window." },
-        { title: "Seal it", copy: "Post the letter and let time create the distance between writing it and reading it." },
+        { title: "Write from today", copy: "Use the dedicated Future Me studio: your name, your reason, your words, and a few prompts if you need a beginning." },
+        { title: "Choose a later moment", copy: "Pick when the letter should come back to you. During public beta, Future Me letters can wait for up to 30 days." },
+        { title: "Seal it for yourself", copy: "The Future Me studio uses its own night-and-time-capsule theme, then posts through the same private Intezaar letter system." },
       ]}
       reflectionTitle="Reflection does not have to be a journal habit."
       reflectionCopy="Sometimes one letter is enough. Future-self writing can simply be a way to notice what you are carrying now and give those words somewhere to wait."
