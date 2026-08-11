@@ -86,6 +86,43 @@
   .secure-turnstile-widget {
     min-width: 0;
   }
+
+  /* After Cloudflare has approved the post, collapse the large challenge card
+     into a small confirmation row so the next action stays in view. */
+  .secure-posting-check.secure-posting-ready {
+    min-height: 58px;
+    margin: 10px 0 4px;
+    padding: 10px 12px;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border-radius: 12px;
+    background: rgba(247, 242, 229, .96);
+    box-shadow: none;
+  }
+
+  .secure-posting-ready .secure-posting-copy {
+    align-items: center;
+    gap: 10px;
+  }
+
+  .secure-posting-ready .secure-posting-dot {
+    margin-top: 0;
+  }
+
+  .secure-posting-ready .secure-posting-copy small {
+    font-size: 7px;
+    letter-spacing: .12em;
+  }
+
+  .secure-posting-ready .secure-posting-copy strong {
+    margin-top: 2px;
+    font: 650 14px/1.2 Georgia, serif;
+  }
+
+  .secure-posting-ready .secure-posting-copy p,
+  .secure-posting-ready .secure-turnstile-widget {
+    display: none;
+  }
 }
 
 @media (max-width: 390px) {
@@ -93,5 +130,11 @@
     margin-left: -4px;
     margin-right: -4px;
     padding: 14px;
+  }
+
+  .secure-posting-check.secure-posting-ready {
+    margin-left: 0;
+    margin-right: 0;
+    padding: 9px 11px;
   }
 }
