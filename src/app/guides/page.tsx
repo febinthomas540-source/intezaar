@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Navigation } from "@/components/navigation";
-import styles from "@/components/intent-guide.module.css";
+import styles from "./guides.module.css";
 
 export const metadata: Metadata = {
   title: "Letter Writing Guides — Intezaar",
