@@ -15,6 +15,10 @@ const questions = [
     answer: <p>Intezaar is a private digital letter experience. You write a letter, choose when it should open, seal it, post it through the Intezaar post box, and share a complete private recipient link.</p>,
   },
   {
+    question: "Do I need an account?",
+    answer: <p>No. Ordinary letter creation still works without an account or phone number. After posting, a sender can optionally add an email address for a one-time notification when that specific letter is opened. That does not create an account.</p>,
+  },
+  {
     question: "Is this physical post or India Post?",
     answer: <p>No. Intezaar does not send a physical envelope and is not affiliated with India Post, the Government of India, Indian Railways or any postal operator. The post office, envelope, stamp-style artwork, post box and journey scenes are part of an independent nostalgic digital experience.</p>,
   },
@@ -41,6 +45,18 @@ const questions = [
   {
     question: "Does end-to-end encryption hide everything from Intezaar?",
     answer: <p>No. It protects the letter content and private media. Delivery metadata such as names, optional email addresses, opening time, format, route labels, file type and size, letter status and operational security events may remain readable so the service can work. Read <Link href="/how-encryption-works">How encryption works</Link> for the plain-language model.</p>,
+  },
+  {
+    question: "Can I be notified when my letter is opened?",
+    answer: <p>Yes, optionally. After posting a normal letter, the sender can enter an email address and ask for one opened-letter notification. Intezaar records only that the recipient broke the seal after the arrival time. The notification contains no letter text, private media or decryption key. The email address is stored as delivery metadata for that letter.</p>,
+  },
+  {
+    question: "Does Intezaar tell the sender what the recipient did inside the letter?",
+    answer: <p>No. The opened-letter notification only reports that the seal was opened. It does not report what the recipient read, played, downloaded, printed or shared inside the private letter.</p>,
+  },
+  {
+    question: "What happens after I open a letter?",
+    answer: <p>The private letter remains the main experience. At the end, the recipient can save or print a keepsake, write a new letter of their own, write to their future self, or optionally share the public Intezaar idea. Public sharing does not include the private letter URL, contents, recipient name or opening date.</p>,
   },
   {
     question: "What are the media limits?",
@@ -105,7 +121,7 @@ export default function FaqPage() {
     <PolicyShell
       eyebrow="Help desk"
       title="Frequently asked questions"
-      intro="The clear version of how Intezaar works today—including end-to-end encryption, time-locking, Future Me and the limits of the public beta."
+      intro="The clear version of how Intezaar works today—including end-to-end encryption, time-locking, Future Me, optional opened-letter notifications and the limits of the public beta."
       lastUpdated="11 August 2026"
     >
       <section className={styles.warning}>
