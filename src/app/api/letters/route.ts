@@ -14,6 +14,7 @@ import {
   insertEncryptedLetter,
   insertLetterEvent,
   markRecipientNotified,
+  type E2EETransportMediaItem,
   type LetterMediaKind,
   type LetterMediaManifestItem,
   type LetterPhotoLayout,
@@ -39,6 +40,13 @@ const formats = new Set([
 
 const mediaLimits: Record<LetterMediaKind, number> = MEDIA_LIMIT_BYTES;
 
+type E2EEEnvelope = {
+  version: 3;
+  ciphertext: string;
+  iv: string;
+  authTag: string;
+};
+
 type CreateLetterBody = {
   senderName?: unknown;
   senderEmail?: unknown;
@@ -53,6 +61,7 @@ type CreateLetterBody = {
   closing?: unknown;
   opensAt?: unknown;
   timezoneOffset?: unknown;
+  encryptedPayload?: unknown;
   media?: unknown;
 };
 
@@ -63,6 +72,7 @@ type ValidatedMedia = {
   mimeType: string;
   size: number;
   caption: string;
+  iv?: string;
   photoLayout?: LetterPhotoLayout;
 };
 
@@ -97,11 +107,38 @@ function cleanPhotoLayout(value: unknown): LetterPhotoLayout | undefined {
   };
 }
 
-function validateMedia(value: unknown): ValidatedMedia[] | null {
+function validBase64Bytes(value: unknown, expectedBytes: number) {
+  if (typeof value !== "string" || value.length > 128 || !/^[A-Za-z0-9+/]+={0,2}$/.test(value)) return false;
+  try {
+    return Buffer.from(value, "base64").length === expectedBytes;
+  } catch {
+    return false;
+  }
+}
+
+function validateEncryptedPayload(value: unknown): E2EEEnvelope | null {
+  if (!value || typeof value !== "object") return null;
+  const envelope = value as Partial<E2EEEnvelope>;
+  if (
+    envelope.version !== 3 ||
+    typeof envelope.ciphertext !== "string" ||
+    envelope.ciphertext.length < 1 ||
+    envelope.ciphertext.length > 24_000 ||
+    !/^[A-Za-z0-9+/]+={0,2}$/.test(envelope.ciphertext) ||
+    !validBase64Bytes(envelope.iv, 12) ||
+    !validBase64Bytes(envelope.authTag, 16)
+  ) {
+    return null;
+  }
+  return envelope as E2EEEnvelope;
+}
+
+function validateMedia(value: unknown, e2ee: boolean): ValidatedMedia[] | null {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value) || value.length > MAX_MEDIA_ITEMS) return null;
 
   const result: ValidatedMedia[] = [];
+  const seenIvs = new Set<string>();
   let total = 0;
   let videoCount = 0;
 
@@ -113,6 +150,7 @@ function validateMedia(value: unknown): ValidatedMedia[] | null {
     const name = cleanText(item.name, 160) || `${kind}-attachment`;
     const mimeType = cleanText(item.mimeType, 120).toLowerCase();
     const size = typeof item.size === "number" ? Math.floor(item.size) : Number.NaN;
+    const iv = e2ee ? cleanText(item.iv, 64) : undefined;
 
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) return null;
     if (kind !== "photo" && kind !== "voice" && kind !== "video") return null;
@@ -120,6 +158,10 @@ function validateMedia(value: unknown): ValidatedMedia[] | null {
     if (kind === "photo" && !mimeType.startsWith("image/")) return null;
     if (kind === "voice" && !mimeType.startsWith("audio/")) return null;
     if (kind === "video" && !mimeType.startsWith("video/")) return null;
+    if (e2ee) {
+      if (!validBase64Bytes(iv, 12) || seenIvs.has(iv)) return null;
+      seenIvs.add(iv);
+    }
 
     total += size;
     if (total > MAX_TOTAL_MEDIA_BYTES) return null;
@@ -132,8 +174,9 @@ function validateMedia(value: unknown): ValidatedMedia[] | null {
       name,
       mimeType,
       size,
-      caption: cleanText(item.caption, 240),
-      photoLayout: kind === "photo" ? cleanPhotoLayout(item.photoLayout) : undefined,
+      caption: e2ee ? "" : cleanText(item.caption, 240),
+      iv,
+      photoLayout: !e2ee && kind === "photo" ? cleanPhotoLayout(item.photoLayout) : undefined,
     });
   }
 
@@ -163,6 +206,14 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json() as CreateLetterBody;
+    const encryptedPayload = body.encryptedPayload === undefined
+      ? null
+      : validateEncryptedPayload(body.encryptedPayload);
+    if (body.encryptedPayload !== undefined && !encryptedPayload) {
+      return NextResponse.json({ error: "The browser-encrypted letter payload is invalid." }, { status: 400 });
+    }
+    const isE2EE = Boolean(encryptedPayload);
+
     const senderName = cleanText(body.senderName, 80);
     const senderEmail = cleanEmail(body.senderEmail);
     const recipientName = cleanText(body.recipientName, 80);
@@ -171,12 +222,12 @@ export async function POST(request: Request) {
     const format = cleanText(body.format, 30);
     const fromCity = cleanText(body.fromCity, 80);
     const toCity = cleanText(body.toCity, 80);
-    const heading = cleanText(body.heading, 240);
-    const message = cleanText(body.message, 4000);
-    const closing = cleanText(body.closing, 240);
-    const media = validateMedia(body.media);
+    const heading = isE2EE ? "" : cleanText(body.heading, 240);
+    const message = isE2EE ? "" : cleanText(body.message, 4000);
+    const closing = isE2EE ? "" : cleanText(body.closing, 240);
+    const media = validateMedia(body.media, isE2EE);
 
-    if (!senderName || !recipientName || !message) {
+    if (!senderName || !recipientName || (!isE2EE && !message)) {
       return NextResponse.json(
         { error: "Sender, recipient and letter text are required." },
         { status: 400 },
@@ -198,6 +249,10 @@ export async function POST(request: Request) {
       );
     }
 
+    if (isE2EE && media.some((item) => item.iv === encryptedPayload?.iv)) {
+      return NextResponse.json({ error: "The encrypted letter used a duplicate encryption nonce." }, { status: 400 });
+    }
+
     const opensAt = typeof body.opensAt === "string" ? new Date(body.opensAt) : new Date(Number.NaN);
     if (!Number.isFinite(opensAt.getTime())) {
       return NextResponse.json({ error: "Choose a valid opening date and time." }, { status: 400 });
@@ -216,27 +271,49 @@ export async function POST(request: Request) {
     const letterId = randomUUID();
     const accessToken = createPrivateToken();
     const manageToken = createPrivateToken();
-    const mediaKey = media.length ? randomBytes(32).toString("base64") : undefined;
-    const manifest: LetterMediaManifestItem[] = media.map((item) => ({
-      ...item,
-      path: `${letterId}/${item.id}.bin`,
-      iv: randomBytes(12).toString("base64"),
-    }));
-    const uploadTargets = manifest.length
-      ? await createMediaUploadTargets(manifest.map(({ id, path }) => ({ id, path })))
+    const mediaKey = !isE2EE && media.length ? randomBytes(32).toString("base64") : undefined;
+
+    const e2eeManifest: E2EETransportMediaItem[] = isE2EE
+      ? media.map((item) => ({
+          id: item.id,
+          kind: item.kind,
+          path: `${letterId}/${item.id}.bin`,
+          mimeType: item.mimeType,
+          size: item.size,
+          iv: item.iv as string,
+        }))
       : [];
 
-    const encrypted = encryptLetterPayload({
+    const legacyManifest: LetterMediaManifestItem[] = !isE2EE
+      ? media.map((item) => ({
+          id: item.id,
+          kind: item.kind,
+          path: `${letterId}/${item.id}.bin`,
+          name: item.name,
+          mimeType: item.mimeType,
+          size: item.size,
+          caption: item.caption,
+          iv: randomBytes(12).toString("base64"),
+          photoLayout: item.photoLayout,
+        }))
+      : [];
+
+    const uploadManifest = isE2EE ? e2eeManifest : legacyManifest;
+    const uploadTargets = uploadManifest.length
+      ? await createMediaUploadTargets(uploadManifest.map(({ id, path }) => ({ id, path })))
+      : [];
+
+    const encrypted = encryptedPayload || encryptLetterPayload({
       version: 2,
       heading,
       message,
       closing,
       mediaKey,
-      media: manifest,
+      media: legacyManifest,
     });
     const expiresAt = new Date(opensAt.getTime() + 90 * 24 * 60 * 60 * 1000);
     const recipientUrl = `${publicSiteUrl(request)}/receive/${accessToken}`;
-    const baseMetadata = {
+    const baseMetadata: Record<string, unknown> = {
       timezone_offset: typeof body.timezoneOffset === "number" ? body.timezoneOffset : null,
       media_transferred: media.length === 0,
       media_ready: media.length === 0,
@@ -244,7 +321,12 @@ export async function POST(request: Request) {
       source: "web_creator",
       turnstile_validated: !challenge.skipped,
       registered_delivery: Boolean(recipientEmail),
+      payload_version: isE2EE ? 3 : 2,
     };
+    if (isE2EE) {
+      baseMetadata.e2ee_version = 1;
+      baseMetadata.e2ee_media = e2eeManifest;
+    }
 
     await insertEncryptedLetter({
       id: letterId,
@@ -267,14 +349,16 @@ export async function POST(request: Request) {
       metadata: baseMetadata,
     });
 
-    await insertLetterEvent(letterId, "created", { source: "web_creator" });
-    await insertLetterEvent(letterId, "posted", { opens_at: opensAt.toISOString() });
+    await insertLetterEvent(letterId, "created", { source: "web_creator", e2ee: isE2EE });
+    await insertLetterEvent(letterId, "posted", { opens_at: opensAt.toISOString(), e2ee: isE2EE });
 
     const emailDelivery = media.length
       ? {
           attempted: false,
           sent: false,
-          message: "Your media is being secured before the invitation is sent.",
+          message: isE2EE
+            ? "Your media is being encrypted before the delivery notice is sent. You will still need to share the complete private link yourself."
+            : "Your media is being secured before the invitation is sent.",
         }
       : recipientEmail
         ? await sendPostedLetterEmail({
@@ -284,6 +368,7 @@ export async function POST(request: Request) {
             senderName,
             occasion,
             recipientUrl,
+            e2ee: isE2EE,
           })
         : {
             attempted: false,
@@ -297,12 +382,14 @@ export async function POST(request: Request) {
         recipient_email: recipientEmail,
         provider: "resend",
         provider_id: emailDelivery.emailId || null,
+        e2ee: isE2EE,
       });
     } else if (!media.length && recipientEmail && emailDelivery.attempted) {
       await insertLetterEvent(letterId, "email_failed", {
         recipient_email: recipientEmail,
         provider: "resend",
         reason: emailDelivery.message,
+        e2ee: isE2EE,
       });
     }
 
@@ -315,6 +402,7 @@ export async function POST(request: Request) {
           occasion,
           recipientUrl,
           opensAt: opensAt.toISOString(),
+          e2ee: isE2EE,
         })
       : null;
 
@@ -324,12 +412,14 @@ export async function POST(request: Request) {
         provider: "resend",
         provider_id: arrivalDelivery.emailId || null,
         scheduled_at: opensAt.toISOString(),
+        e2ee: isE2EE,
       });
     } else if (arrivalDelivery?.attempted) {
       await insertLetterEvent(letterId, "arrival_email_schedule_failed", {
         recipient_email: recipientEmail,
         provider: "resend",
         reason: arrivalDelivery.message,
+        e2ee: isE2EE,
       });
     }
 
@@ -339,10 +429,12 @@ export async function POST(request: Request) {
         manageToken,
         opensAt: opensAt.toISOString(),
         emailDelivery,
+        mediaReady: media.length === 0,
+        mediaCount: media.length,
         mediaUpload: media.length
           ? {
-              key: mediaKey,
-              items: manifest.map((item) => ({
+              ...(isE2EE ? {} : { key: mediaKey }),
+              items: uploadManifest.map((item) => ({
                 id: item.id,
                 path: item.path,
                 iv: item.iv,
