@@ -150,7 +150,7 @@ function validateMedia(value: unknown, e2ee: boolean): ValidatedMedia[] | null {
     const name = cleanText(item.name, 160) || `${kind}-attachment`;
     const mimeType = cleanText(item.mimeType, 120).toLowerCase();
     const size = typeof item.size === "number" ? Math.floor(item.size) : Number.NaN;
-    const iv = e2ee ? cleanText(item.iv, 64) : undefined;
+    const iv = e2ee ? cleanText(item.iv, 64) : "";
 
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) return null;
     if (kind !== "photo" && kind !== "voice" && kind !== "video") return null;
@@ -159,7 +159,7 @@ function validateMedia(value: unknown, e2ee: boolean): ValidatedMedia[] | null {
     if (kind === "voice" && !mimeType.startsWith("audio/")) return null;
     if (kind === "video" && !mimeType.startsWith("video/")) return null;
     if (e2ee) {
-      if (!validBase64Bytes(iv, 12) || seenIvs.has(iv)) return null;
+      if (!iv || !validBase64Bytes(iv, 12) || seenIvs.has(iv)) return null;
       seenIvs.add(iv);
     }
 
@@ -175,7 +175,7 @@ function validateMedia(value: unknown, e2ee: boolean): ValidatedMedia[] | null {
       mimeType,
       size,
       caption: e2ee ? "" : cleanText(item.caption, 240),
-      iv,
+      iv: e2ee ? iv : undefined,
       photoLayout: !e2ee && kind === "photo" ? cleanPhotoLayout(item.photoLayout) : undefined,
     });
   }
