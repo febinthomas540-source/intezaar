@@ -4,8 +4,12 @@ import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const PIXEL_ID = "1358227923087265";
+// NEXT_PUBLIC_META_PIXEL_ID is the production configuration point. Keep the
+// existing beta pixel as a temporary fallback so current measurement does not
+// disappear before the Vercel environment variable is added.
+const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim() || "1358227923087265";
 const CONSENT_KEY = "intezaar:marketing-consent:v1";
+const PENDING_LEAD_KEY = "intezaar:meta-pending-lead:v1";
 const PROMPT_DELAY_MS = 20_000;
 
 declare global {
@@ -17,6 +21,22 @@ declare global {
 
 function track(event: string) {
   window.fbq?.("trackCustom", event);
+}
+
+function flushPendingLead() {
+  if (!window.fbq) return false;
+
+  try {
+    const raw = window.sessionStorage.getItem(PENDING_LEAD_KEY);
+    if (!raw) return true;
+    const payload = JSON.parse(raw) as Record<string, unknown>;
+    window.fbq("track", "Lead", payload);
+    window.sessionStorage.removeItem(PENDING_LEAD_KEY);
+  } catch {
+    // Measurement must never interfere with navigation or letter creation.
+  }
+
+  return true;
 }
 
 export function MetaPixel() {
@@ -47,8 +67,24 @@ export function MetaPixel() {
   }, [privateRecipient]);
 
   useEffect(() => {
-    if (privateRecipient || consent !== "accepted" || !window.fbq) return;
-    window.fbq("track", "PageView");
+    if (privateRecipient || consent !== "accepted") return;
+
+    let attempts = 0;
+    const tryMeasurement = () => {
+      if (window.fbq) {
+        window.fbq("track", "PageView");
+        flushPendingLead();
+        return true;
+      }
+      attempts += 1;
+      return false;
+    };
+
+    if (tryMeasurement()) return;
+    const timer = window.setInterval(() => {
+      if (tryMeasurement() || attempts >= 20) window.clearInterval(timer);
+    }, 250);
+    return () => window.clearInterval(timer);
   }, [pathname, consent, privateRecipient]);
 
   useEffect(() => {
@@ -100,7 +136,7 @@ export function MetaPixel() {
       {consent === "accepted" ? (
         <>
           <Script id="meta-pixel" strategy="afterInteractive">
-            {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${PIXEL_ID}');fbq('track','PageView');`}
+            {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${PIXEL_ID}');`}
           </Script>
           <noscript>
             {/* eslint-disable-next-line @next/next/no-img-element */}
