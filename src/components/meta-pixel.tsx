@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 const PIXEL_ID = "1358227923087265";
 const CONSENT_KEY = "intezaar:marketing-consent:v1";
+const PROMPT_DELAY_MS = 20_000;
 
 declare global {
   interface Window {
@@ -22,15 +23,27 @@ export function MetaPixel() {
   const pathname = usePathname();
   const privateRecipient = pathname.startsWith("/receive/");
   const [consent, setConsent] = useState<"accepted" | "declined" | null>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
     if (privateRecipient) return;
+
+    let timer: number | undefined;
     try {
       const saved = window.localStorage.getItem(CONSENT_KEY);
-      if (saved === "accepted" || saved === "declined") setConsent(saved);
+      if (saved === "accepted" || saved === "declined") {
+        setConsent(saved);
+        setShowPrompt(false);
+        return;
+      }
     } catch {
       // Consent remains unset when browser storage is unavailable.
     }
+
+    timer = window.setTimeout(() => setShowPrompt(true), PROMPT_DELAY_MS);
+    return () => {
+      if (timer) window.clearTimeout(timer);
+    };
   }, [privateRecipient]);
 
   useEffect(() => {
@@ -77,6 +90,7 @@ export function MetaPixel() {
       // The choice still applies for the current page.
     }
     setConsent(value);
+    setShowPrompt(false);
   }
 
   if (privateRecipient) return null;
@@ -95,35 +109,33 @@ export function MetaPixel() {
         </>
       ) : null}
 
-      {consent === null ? (
+      {consent === null && showPrompt ? (
         <aside
           role="dialog"
-          aria-label="Advertising measurement choice"
+          aria-label="Optional advertising measurement"
           style={{
             position: "fixed",
-            right: 16,
-            bottom: 16,
-            left: 16,
+            right: 14,
+            bottom: 14,
             zIndex: 1000,
-            maxWidth: 560,
-            margin: "0 auto",
-            padding: "16px 18px",
-            border: "1px solid rgba(117,62,44,.25)",
-            borderRadius: 16,
-            background: "#fff8ed",
+            width: "min(360px, calc(100vw - 28px))",
+            padding: "13px 14px",
+            border: "1px solid rgba(117,62,44,.22)",
+            borderRadius: 8,
+            background: "rgba(255,248,237,.98)",
             color: "#432a20",
-            boxShadow: "0 18px 55px rgba(40,22,15,.22)",
+            boxShadow: "0 12px 34px rgba(40,22,15,.16)",
           }}
         >
-          <strong style={{ display: "block", fontFamily: "Georgia,serif", fontSize: 18 }}>Help us understand what works</strong>
-          <p style={{ margin: "7px 0 13px", fontSize: 13, lineHeight: 1.5 }}>
-            Intezaar can use Meta advertising measurement to understand visits and letter-creation steps. It is optional and does not include the contents of your private letter.
+          <strong style={{ display: "block", fontSize: 14, fontWeight: 750 }}>Optional measurement</strong>
+          <p style={{ margin: "5px 0 10px", fontSize: 12, lineHeight: 1.45 }}>
+            Allow Meta advertising measurement to help us understand visits and creation steps. It does not include private letter contents, and it is never loaded on recipient pages.
           </p>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button type="button" onClick={() => choose("accepted")} style={{ border: 0, borderRadius: 999, padding: "10px 15px", background: "#8f2f24", color: "#fff8ef", fontWeight: 800 }}>
-              Allow measurement
+          <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+            <button type="button" onClick={() => choose("accepted")} style={{ border: 0, borderRadius: 5, padding: "8px 11px", background: "#8f2f24", color: "#fff8ef", fontSize: 12, fontWeight: 750 }}>
+              Allow
             </button>
-            <button type="button" onClick={() => choose("declined")} style={{ border: "1px solid rgba(82,49,36,.24)", borderRadius: 999, padding: "10px 15px", background: "transparent", color: "#4a3026", fontWeight: 800 }}>
+            <button type="button" onClick={() => choose("declined")} style={{ border: "1px solid rgba(82,49,36,.24)", borderRadius: 5, padding: "8px 11px", background: "transparent", color: "#4a3026", fontSize: 12, fontWeight: 750 }}>
               No thanks
             </button>
           </div>
