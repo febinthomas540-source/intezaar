@@ -20,24 +20,26 @@ function track(event: string) {
 
 export function MetaPixel() {
   const pathname = usePathname();
+  const privateRecipient = pathname.startsWith("/receive/");
   const [consent, setConsent] = useState<"accepted" | "declined" | null>(null);
 
   useEffect(() => {
+    if (privateRecipient) return;
     try {
       const saved = window.localStorage.getItem(CONSENT_KEY);
       if (saved === "accepted" || saved === "declined") setConsent(saved);
     } catch {
       // Consent remains unset when browser storage is unavailable.
     }
-  }, []);
+  }, [privateRecipient]);
 
   useEffect(() => {
-    if (consent !== "accepted" || !window.fbq) return;
+    if (privateRecipient || consent !== "accepted" || !window.fbq) return;
     window.fbq("track", "PageView");
-  }, [pathname, consent]);
+  }, [pathname, consent, privateRecipient]);
 
   useEffect(() => {
-    if (consent !== "accepted" || pathname !== "/create") return;
+    if (privateRecipient || consent !== "accepted" || pathname !== "/create") return;
 
     const sent = new Set<string>();
     const fireOnce = (name: string) => {
@@ -66,7 +68,7 @@ export function MetaPixel() {
       document.removeEventListener("focusin", onFocus);
       observer.disconnect();
     };
-  }, [consent, pathname]);
+  }, [consent, pathname, privateRecipient]);
 
   function choose(value: "accepted" | "declined") {
     try {
@@ -76,6 +78,8 @@ export function MetaPixel() {
     }
     setConsent(value);
   }
+
+  if (privateRecipient) return null;
 
   return (
     <>
