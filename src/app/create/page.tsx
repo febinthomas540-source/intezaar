@@ -16,6 +16,7 @@ import "../delivery-presets.css";
 
 const DRAFT_KEY = "intezaar:create-draft:v3";
 const ONAM_CAMPAIGN_ID = "onam2026";
+const LEGACY_MALAYALAM_ONAM_CAMPAIGN_ID = "onam2026-malayalam";
 const ONAM_DRAFT_KEY = "intezaar:create-onam2026-draft:v1";
 const CAMPAIGN_BACKUP_KEY = "intezaar:create-normal-draft-backup:v1";
 const CAMPAIGN_ACTIVE_KEY = "intezaar:create-campaign-active:v1";
@@ -33,6 +34,24 @@ const PREFILL_FORMATS = new Set([
   "festival",
   "telegram",
 ]);
+
+const LEGACY_ONAM_STARTER_PREFIXES = [
+  "ഈ ഓണത്തിന് വീട്ടിൽ നിങ്ങളോടൊപ്പം ഇരിക്കാൻ കഴിയാത്തതിന്റെ കുറവ്",
+  "ദൂരെയിരുന്ന് ഹൃദയം നിറഞ്ഞ ഓണാശംസകൾ.",
+  "ഓണം വരുമ്പോഴെല്ലാം പഴയ വീട്ടുവിശേഷങ്ങളും ബാല്യകാല ഓർമ്മകളും",
+  "ഈ ഓണം നമുക്ക് വേറെ വേറെ സ്ഥലങ്ങളിലായിരിക്കുന്നു.",
+  "ചില ദിവസങ്ങളിൽ ദൂരം സാധാരണ പോലെ തോന്നും.",
+  "ഈ ഓണത്തിന് ഞാൻ വീട്ടിൽ ഇല്ലെങ്കിലും",
+  "ദൂരെയിരുന്ന് എല്ലാവർക്കും ഹൃദയം നിറഞ്ഞ ഓണാശംസകൾ.",
+  "ഓണം വന്നാൽ വീട്ടിലെ പഴയ ഓർമ്മകൾ",
+  "ഈ ഓണം അല്പം വ്യത്യസ്തമാണ്",
+  "ചില ദിവസങ്ങളിൽ ദൂരം പതിവുപോലെ തോന്നും.",
+  "I may be away from home this Onam",
+  "Happy Onam from far away.",
+  "Onam always brings back memories of home",
+  "This Onam feels a little different",
+  "There are days when distance feels ordinary",
+];
 
 function pad(value: number) {
   return String(value).padStart(2, "0");
@@ -58,6 +77,15 @@ function parseDraft(raw: string | null) {
 function looksLikeLegacyOnamCampaignDraft(raw: string | null) {
   if (!raw) return false;
   const draft = parseDraft(raw);
+  const letter = typeof draft.letter === "string" ? draft.letter.trim() : "";
+
+  // Repair the exact starter copy shipped by the earlier English and Malayalam
+  // Onam template implementations, even if another field was later changed.
+  if (LEGACY_ONAM_STARTER_PREFIXES.some((prefix) => letter.startsWith(prefix))) {
+    return true;
+  }
+
+  // Fallback fingerprint for older campaign drafts whose text was edited.
   if (draft.occasion !== "Celebration" || draft.format !== "festival") return false;
   if (typeof draft.arrivalDate !== "string" || typeof draft.arrivalTime !== "string") return false;
 
@@ -140,7 +168,7 @@ export default function CreatePage() {
       const campaign = params.get("campaign")?.trim().slice(0, 80) || "";
       const format = PREFILL_FORMATS.has(requestedFormat) ? requestedFormat : "";
       const hasPrefill = Boolean(occasion || opensAtValue || heading || starter || format);
-      const isOnamCampaign = campaign === ONAM_CAMPAIGN_ID;
+      const isOnamCampaign = campaign === ONAM_CAMPAIGN_ID || campaign === LEGACY_MALAYALAM_ONAM_CAMPAIGN_ID;
       const activeCampaign = window.localStorage.getItem(CAMPAIGN_ACTIVE_KEY);
 
       // Leaving the Onam creator always restores the ordinary local draft first.
