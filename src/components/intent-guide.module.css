@@ -3,16 +3,20 @@
 .hero > p { margin: 0 0 14px; color: #96362b; font-size: 11px; font-weight: 900; letter-spacing: .17em; text-transform: uppercase; }
 .hero h1 { max-width: 980px; margin: 0; color: #3f271e; font: 500 clamp(46px, 6vw, 86px)/1 Georgia, serif; letter-spacing: -.045em; }
 .hero span { display: block; max-width: 760px; margin-top: 24px; color: #6e5244; font-size: 19px; line-height: 1.7; }
-.hero a, .finalCta a { display: inline-flex; min-height: 50px; align-items: center; justify-content: center; margin-top: 30px; padding: 0 22px; border-radius: 999px; color: #fff8ef; background: #8f281f; text-decoration: none; font-size: 14px; font-weight: 800; }
+.hero a, .finalCta a { display: inline-flex; min-height: 50px; align-items: center; justify-content: center; margin-top: 30px; padding: 0 22px; border-radius: 6px; color: #fff8ef; background: #8f281f; text-decoration: none; font-size: 14px; font-weight: 800; }
 .body { max-width: 860px; margin: 0 auto; padding: 80px 28px 100px; }
 .body section { padding: 38px 0; border-bottom: 1px solid rgba(80,48,31,.12); }
 .body h2 { margin: 0 0 20px; font: 500 clamp(30px, 3vw, 44px)/1.1 Georgia, serif; letter-spacing: -.025em; }
 .body p, .body li { color: #6f5445; font-size: 17px; line-height: 1.75; }
 .body ul { padding-left: 24px; }
 .body li + li { margin-top: 10px; }
-.body aside { margin-top: 42px; padding: 24px; border-radius: 18px; background: #efe0ca; border: 1px solid rgba(80,48,31,.1); }
+.related { margin-top: 42px; padding: 25px 0; border-top: 1px solid rgba(80,48,31,.13); border-bottom: 1px solid rgba(80,48,31,.13); }
+.related > strong { display: block; margin-bottom: 14px; color: #40291f; font: 500 22px Georgia, serif; }
+.related > div { display: flex; flex-wrap: wrap; gap: 10px 18px; }
+.related a { color: #8f281f; font-size: 14px; font-weight: 800; text-underline-offset: 4px; }
+.body aside { margin-top: 42px; padding: 24px; border-radius: 8px; background: #efe0ca; border: 1px solid rgba(80,48,31,.1); }
 .body aside strong { font: 500 24px Georgia, serif; }
 .body aside p { margin-bottom: 0; font-size: 14px; }
-.finalCta { margin-top: 54px; padding: 36px; text-align: center; border-radius: 24px; color: #fff4e4; background: #41271f; }
+.finalCta { margin-top: 54px; padding: 36px; text-align: center; border-radius: 8px; color: #fff4e4; background: #41271f; }
 .finalCta p { margin: 0; color: #f0dcca; font: 500 28px Georgia, serif; }
-@media (max-width: 680px) { .hero { padding: 78px 22px 58px; } .body { padding: 56px 22px 76px; } }
+@media (max-width: 680px) { .hero { padding: 78px 22px 58px; } .body { padding: 56px 22px 76px; } .related > div { flex-direction: column; align-items: flex-start; } }
