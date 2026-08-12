@@ -16,6 +16,10 @@ export default function FutureSelfIdeasGuide() {
       intro="The best future-self letters are not predictions. They are snapshots of who you are now, written for someone who happens to be you later."
       ctaLabel="Write my future-self letter"
       ctaHref="/future-self/write"
+      relatedLinks={[
+        { href: "/guides/digital-time-capsule-letter-ideas", label: "Digital time capsule letter ideas" },
+        { href: "/guides/letter-to-yourself-for-a-hard-day", label: "A letter to yourself for a hard day" },
+      ]}
       sections={[
         {
           title: "Start with what is true today",
