@@ -73,10 +73,10 @@ export default function CreatePage() {
   if (!prefillReady) return null;
 
   return (
-    <>
+    <div data-nosnippet>
       <StableLetterCreator />
       <TurnstilePostingGuard />
       <SenderGrowthPrompt />
-    </>
+    </div>
   );
 }
