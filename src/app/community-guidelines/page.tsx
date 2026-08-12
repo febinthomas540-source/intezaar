@@ -15,7 +15,7 @@ export default function CommunityGuidelinesPage() {
       eyebrow="Post with care"
       title="Community Guidelines"
       intro="Intezaar is made for thoughtful letters—not pressure, fear, humiliation or unwanted contact. These rules apply to every letter, attachment, sender and recipient."
-      lastUpdated="7 August 2026"
+      lastUpdated="12 August 2026"
     >
       <section>
         <h2>The simple standard</h2>
@@ -68,12 +68,14 @@ export default function CommunityGuidelinesPage() {
       <section>
         <h2>How Intezaar may respond</h2>
         <p>Where reasonably necessary and technically possible, Intezaar may restrict access, disable links, remove content, preserve relevant records or block future use when these guidelines or the <Link href="/terms">User Agreement</Link> are breached.</p>
-        <p>Private letters are not routinely read or pre-screened. Authorised access may occur when needed to investigate a credible safety report, respond to a security incident, enforce these rules or comply with a valid legal requirement.</p>
+        <p>Private letters are not routinely read or pre-screened. Current end-to-end encrypted letters are not automatically decrypted for moderation. Safety reports are triaged using the selected report category and any information the reporter voluntarily chooses to provide. Automated triage can prioritise a report for human review but does not make the final decision that a person has committed a crime or that content is unlawful.</p>
       </section>
 
       <section>
-        <h2>Reporting during the beta</h2>
-        <p>A dedicated in-product reporting route and published safety contact are being prepared before wider public release. Until then, do not engage with threatening or exploitative content, preserve the private link and relevant evidence, and use the appropriate local authority or platform-reporting channel where immediate action is needed.</p>
+        <h2>Reporting a delivery</h2>
+        <p>Private recipient pages include a <strong>Report this delivery</strong> control. A recipient can report a delivery without sharing the private letter contents. The report records the delivery identifier, selected safety category, triage information and report time.</p>
+        <p>If the reporter chooses to type additional details, the form clearly explains that those details are voluntarily sent to Intezaar for safety review and are not end-to-end encrypted. The browser-only letter decryption key is never included in the report.</p>
+        <p>A report flags the delivery for review; it does not automatically disable a letter or prove wrongdoing. Intezaar may take proportionate action after reviewing the available information.</p>
       </section>
 
       <section>
