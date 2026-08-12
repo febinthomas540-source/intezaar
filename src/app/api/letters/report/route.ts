@@ -5,6 +5,7 @@ import {
   insertLetterEvent,
   updateLetterMetadata,
 } from "@/lib/letter-security";
+import { sendSafetyReportAlert } from "@/lib/safety-report-mail";
 import {
   higherSafetyPriority,
   triageSafetyReport,
@@ -113,6 +114,31 @@ export async function POST(request: Request) {
         reason: urgent ? "reporter_marked_immediate_danger" : "critical_safety_category",
         automatic_enforcement: false,
         reported_at: reportedAt,
+      });
+    }
+
+    const alert = await sendSafetyReportAlert({
+      reportId,
+      letterId: letter.id,
+      category,
+      priority: triage.priority,
+      urgent,
+      detailsShared: Boolean(details),
+      reportedAt,
+    });
+
+    if (alert.sent) {
+      await insertLetterEvent(letter.id, "safety_alert_sent", {
+        report_id: reportId,
+        provider: "resend",
+        provider_id: alert.emailId || null,
+        priority: triage.priority,
+      });
+    } else if (alert.attempted) {
+      await insertLetterEvent(letter.id, "safety_alert_failed", {
+        report_id: reportId,
+        provider: "resend",
+        priority: triage.priority,
       });
     }
 
