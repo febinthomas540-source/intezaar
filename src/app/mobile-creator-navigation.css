@@ -1,4 +1,8 @@
 /* Conversion-focused mobile navigation: each step behaves like a compact app screen. */
+.seal-post-flow .mobile-optional-toggle {
+  display: none;
+}
+
 @media (max-width: 720px) {
   .seal-post-flow .creation-panel,
   .seal-post-flow .creation-share-panel {
@@ -72,9 +76,21 @@
     flex-basis: 100%;
   }
 
+  /* Step 1: keep the actual writing as the main decision. Occasion, greeting,
+     writing prompts and sign-off remain available behind one compact Add row. */
+  .seal-post-flow .creation-write-panel textarea {
+    min-height: 270px !important;
+    height: min(38vh, 330px) !important;
+    resize: vertical;
+  }
+
+  .seal-post-flow .creation-write-panel .writing-counter {
+    margin-top: 5px !important;
+  }
+
   /* Step 2: style first, memories only if wanted, preview only on request. */
   .seal-post-flow .recommended-formats {
-    margin-bottom: 12px !important;
+    margin-bottom: 10px !important;
   }
 
   .seal-post-flow .recommended-formats > div {
@@ -98,22 +114,59 @@
 
   .seal-post-flow .format-library-disclosure,
   .seal-post-flow .creation-preview-disclosure {
-    margin-top: 10px !important;
+    margin-top: 9px !important;
   }
 
   .seal-post-flow .compact-media-studio {
-    margin-top: 12px !important;
+    margin-top: 8px !important;
   }
 
   .seal-post-flow .media-choice-row {
     gap: 7px !important;
   }
 
-  /* Step 3: arrival is the only primary decision. Route and email/privacy are
-     represented by compact optional rows until the visitor asks for them. */
+  /* Step 3: arrival is the only primary decision. Keep the quick presets in
+     one swipeable row rather than spending several vertical phone screens. */
+  .seal-post-flow .journey-duration-cards {
+    display: flex !important;
+    gap: 8px !important;
+    overflow-x: auto;
+    padding: 2px 1px 6px !important;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .seal-post-flow .journey-duration-cards::-webkit-scrollbar {
+    display: none;
+  }
+
+  .seal-post-flow .journey-duration-cards > button {
+    flex: 0 0 126px !important;
+    min-width: 126px !important;
+    min-height: 68px !important;
+    padding: 9px 10px !important;
+    scroll-snap-align: start;
+  }
+
+  .seal-post-flow .arrival-preset-note {
+    margin: 5px 0 9px !important;
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+  }
+
   .seal-post-flow .arrival-postal-grid {
     grid-template-columns: minmax(0, 1fr) !important;
-    gap: 9px !important;
+    gap: 8px !important;
+  }
+
+  .seal-post-flow .arrival-card {
+    padding: 14px !important;
+  }
+
+  /* The From/For/Arrival strip repeats information immediately above it and
+     creates another scroll stop, so remove it on phones. */
+  .seal-post-flow .final-review-strip {
+    display: none !important;
   }
 
   .seal-post-flow .mobile-optional-collapsed {
@@ -122,9 +175,9 @@
 
   .seal-post-flow .mobile-optional-toggle {
     width: 100%;
-    min-height: 58px;
+    min-height: 56px;
     margin: 8px 0 0;
-    padding: 10px 13px;
+    padding: 9px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -174,18 +227,18 @@
     margin-top: 8px !important;
   }
 
-  .seal-post-flow .final-review-strip {
-    margin-top: 10px !important;
-  }
-
   /* Keep headings concise so the decision itself appears quickly below the
      persistent progress strip. */
   .seal-post-flow .creation-section-head {
-    margin-bottom: 14px !important;
+    margin-bottom: 12px !important;
   }
 
   .seal-post-flow .creation-section-head p {
-    margin-top: 6px !important;
+    margin-top: 5px !important;
+  }
+
+  .seal-post-flow .creation-section-head > small {
+    display: none !important;
   }
 
   /* The progress strip and bottom action bar are the navigation. Decorative
@@ -213,5 +266,15 @@
 
   .seal-post-flow .recommended-formats > div > button {
     flex-basis: 154px;
+  }
+
+  .seal-post-flow .journey-duration-cards > button {
+    flex-basis: 116px !important;
+    min-width: 116px !important;
+  }
+
+  .seal-post-flow .creation-write-panel textarea {
+    min-height: 250px !important;
+    height: min(36vh, 305px) !important;
   }
 }
