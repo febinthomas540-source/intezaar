@@ -19,15 +19,20 @@ function readRegisteredChoice() {
   }
 }
 
+function setText(node: HTMLElement | null | undefined, value: string) {
+  if (node && node.textContent !== value) node.textContent = value;
+}
+
 function setLabelText(label: HTMLLabelElement, value: string) {
   const textNode = Array.from(label.childNodes).find((node) => node.nodeType === Node.TEXT_NODE);
-  if (textNode) textNode.textContent = value;
+  if (textNode && textNode.textContent !== value) textNode.textContent = value;
 }
 
 export function RecipientArrivalNotificationUpgrade() {
   const [registeredDelivery, setRegisteredDelivery] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const registeredRef = useRef(false);
+  const recipientEmailRef = useRef("");
 
   useEffect(() => {
     const saved = readRegisteredChoice();
@@ -46,7 +51,6 @@ export function RecipientArrivalNotificationUpgrade() {
 
   useEffect(() => {
     let mount: HTMLDivElement | null = null;
-    let activeSection: HTMLElement | null = null;
 
     const upgrade = () => {
       const section = document.querySelector<HTMLElement>(".registered-delivery-option");
@@ -56,11 +60,9 @@ export function RecipientArrivalNotificationUpgrade() {
           mount = null;
           setPortalTarget(null);
         }
-        activeSection = null;
         return;
       }
 
-      activeSection = section;
       section.classList.add("recipient-notification-option");
 
       const headingWrap = section.querySelector<HTMLElement>(":scope > div");
@@ -71,22 +73,25 @@ export function RecipientArrivalNotificationUpgrade() {
       const emailInput = emailLabel?.querySelector<HTMLInputElement>("input[type='email']");
       const status = section.querySelector<HTMLElement>(":scope > small");
 
-      if (eyebrow) eyebrow.textContent = "Arrival notification";
-      if (heading) heading.textContent = "Tell them when the seal can be opened";
-      if (copy) {
-        copy.textContent = "Add their email and Intezaar will send a delivery notice now and one arrival notification when the chosen opening moment is reached. The emails never contain the letter, private media or decryption key.";
-      }
+      setText(eyebrow, "Arrival notification");
+      setText(heading, "Tell them when the seal can be opened");
+      setText(
+        copy,
+        "Add their email and Intezaar will send a delivery notice now and one arrival notification when the chosen opening moment is reached. The emails never contain the letter, private media or decryption key.",
+      );
       if (emailLabel) setLabelText(emailLabel, "Recipient email (optional) ");
 
+      const email = emailInput?.value.trim() || "";
+      recipientEmailRef.current = email;
       if (status) {
-        const hasEmail = Boolean(emailInput?.value.trim());
-        status.textContent = hasEmail
+        const statusCopy = email
           ? "Two service emails: one after posting, one when the letter becomes openable."
           : "No email added — you can still share the complete private link manually.";
-        status.dataset.active = String(hasEmail);
+        setText(status, statusCopy);
+        status.dataset.active = String(Boolean(email));
       }
 
-      if (!mount || !mount.isConnected || activeSection !== section) {
+      if (!mount || !mount.isConnected) {
         mount?.remove();
         mount = document.createElement("div");
         mount.className = "recipient-verification-mount";
@@ -168,16 +173,22 @@ export function RecipientArrivalNotificationUpgrade() {
       const summary = paragraphs.length > 1 ? paragraphs[1] : null;
       if (!summary) return;
 
-      const email = document.querySelector<HTMLInputElement>(".registered-delivery-option input[type='email']")?.value.trim();
+      const email = recipientEmailRef.current;
       if (registeredRef.current && email) {
-        summary.textContent = "Arrival email is scheduled and Registered Intezaar Mail is enabled. The recipient will verify with a one-time code before the encrypted letter is released.";
+        setText(
+          summary,
+          "Arrival email is scheduled and Registered Intezaar Mail is enabled. The recipient will verify with a one-time code before the encrypted letter is released.",
+        );
       } else if (email) {
-        summary.textContent = "Intezaar will email the recipient when the letter becomes openable. Share the complete private link with them too — the email does not contain the decryption key.";
+        setText(
+          summary,
+          "Intezaar will email the recipient when the letter becomes openable. Share the complete private link with them too — the email does not contain the decryption key.",
+        );
       }
     };
 
     const observer = new MutationObserver(rewritePostedSummary);
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
     rewritePostedSummary();
     return () => observer.disconnect();
   }, []);
