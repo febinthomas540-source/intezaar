@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CreatorConversionUpgrade } from "@/components/creator-conversion-upgrade";
 import { RecipientArrivalNotificationUpgrade } from "@/components/recipient-arrival-notification-upgrade";
 import { SenderGrowthPrompt } from "@/components/sender-growth-prompt";
 import { StableLetterCreator } from "@/components/stable-letter-creator";
@@ -223,6 +224,7 @@ export default function CreatePage() {
       <RecipientArrivalNotificationUpgrade />
       <StableLetterCreator />
       <TurnstilePostingGuard />
+      <CreatorConversionUpgrade />
       <SenderGrowthPrompt />
     </div>
   );
