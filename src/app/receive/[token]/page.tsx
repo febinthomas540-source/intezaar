@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { RecipientAbuseReport } from "@/components/recipient-abuse-report";
 import { RecipientGrowthPrompt } from "@/components/recipient-growth-prompt";
 import { RecipientPostageStamp } from "@/components/recipient-postage-stamp";
 import { RegisteredDeliveryGate } from "@/components/registered-delivery-gate";
@@ -51,7 +52,12 @@ export default async function SecureRecipientPage({ params }: PageProps) {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(registeredCookieName(letter.id))?.value;
     if (!registeredSessionIsValid(token, letter.id, sessionCookie)) {
-      return <RegisteredDeliveryGate recipient={letter.recipient_name} token={token} />;
+      return (
+        <>
+          <RegisteredDeliveryGate recipient={letter.recipient_name} token={token} />
+          <RecipientAbuseReport token={token} />
+        </>
+      );
     }
   }
 
@@ -106,6 +112,7 @@ export default async function SecureRecipientPage({ params }: PageProps) {
       />
       <RecipientPostageStamp />
       <RecipientGrowthPrompt token={token} enabled={hasArrived && !unavailable} />
+      <RecipientAbuseReport token={token} />
     </>
   );
 }
