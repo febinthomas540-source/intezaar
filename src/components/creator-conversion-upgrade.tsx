@@ -12,6 +12,10 @@ const MOBILE_QUERY = "(max-width: 720px)";
 
 type OptionalKind = "route" | "notification";
 
+function setNodeText(node: Element | null, value: string) {
+  if (node && node.textContent !== value) node.textContent = value;
+}
+
 function prepareMobilePreview() {
   if (!window.matchMedia(MOBILE_QUERY).matches) return;
   const details = document.querySelector<HTMLDetailsElement>(".creation-preview-disclosure");
@@ -28,7 +32,9 @@ function optionalState(panel: HTMLElement, kind: OptionalKind) {
 }
 
 function setOptionalState(panel: HTMLElement, kind: OptionalKind, open: boolean) {
-  panel.dataset[kind === "route" ? "mobileRouteOpen" : "mobileNotificationOpen"] = String(open);
+  const key = kind === "route" ? "mobileRouteOpen" : "mobileNotificationOpen";
+  const value = String(open);
+  if (panel.dataset[key] !== value) panel.dataset[key] = value;
 }
 
 function makeOptionalToggle(
@@ -66,10 +72,12 @@ function makeOptionalToggle(
   const title = button.querySelector("strong");
   const note = button.querySelector("small");
   const icon = button.querySelector("i");
-  if (title) title.textContent = open ? openLabel : closedLabel;
-  if (note) note.textContent = hint;
-  if (icon) icon.textContent = open ? "−" : "+";
-  button.setAttribute("aria-expanded", String(open));
+  setNodeText(title, open ? openLabel : closedLabel);
+  setNodeText(note, hint);
+  setNodeText(icon, open ? "−" : "+");
+  if (button.getAttribute("aria-expanded") !== String(open)) {
+    button.setAttribute("aria-expanded", String(open));
+  }
   target.classList.toggle("mobile-optional-collapsed", !open);
 
   return open;
