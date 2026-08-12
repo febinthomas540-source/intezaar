@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { RecipientArrivalNotificationUpgrade } from "@/components/recipient-arrival-notification-upgrade";
 import { SenderGrowthPrompt } from "@/components/sender-growth-prompt";
 import { StableLetterCreator } from "@/components/stable-letter-creator";
 import { TurnstilePostingGuard } from "@/components/turnstile-posting-guard";
@@ -10,6 +11,7 @@ import "../seal-post.css";
 import "../mobile-creator-polish.css";
 import "../turnstile-posting.css";
 import "../registered-delivery.css";
+import "../recipient-arrival-notification.css";
 import "../delivery-presets.css";
 
 const DRAFT_KEY = "intezaar:create-draft:v3";
@@ -74,6 +76,7 @@ export default function CreatePage() {
 
   return (
     <div data-nosnippet>
+      <RecipientArrivalNotificationUpgrade />
       <StableLetterCreator />
       <TurnstilePostingGuard />
       <SenderGrowthPrompt />
