@@ -21,6 +21,32 @@ function prepareMobilePreview() {
   details.open = false;
 }
 
+function currentCreatorStage() {
+  if (document.querySelector(".creation-share-panel.posted-share-panel")) return "share";
+  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>(".creation-stepper button"));
+  const activeIndex = buttons.findIndex((button) => button.classList.contains("active"));
+  return activeIndex >= 0 ? `step-${activeIndex + 1}` : "";
+}
+
+function scrollCurrentStepIntoView() {
+  if (!window.matchMedia(MOBILE_QUERY).matches) return;
+
+  const target = document.querySelector<HTMLElement>(
+    ".creation-panel, .creation-share-panel.posted-share-panel",
+  );
+  if (!target) return;
+
+  const stepper = document.querySelector<HTMLElement>(".creation-stepper");
+  const stickyOffset = (stepper?.offsetHeight || 0) + 10;
+  const top = target.getBoundingClientRect().top + window.scrollY - stickyOffset;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  window.scrollTo({
+    top: Math.max(0, top),
+    behavior: reduceMotion ? "auto" : "smooth",
+  });
+}
+
 function findSecurePostButton(panel: HTMLElement) {
   return Array.from(panel.querySelectorAll<HTMLButtonElement>(".nostalgia-form-actions button"))
     .find((button) => {
@@ -34,10 +60,23 @@ function findSecurePostButton(panel: HTMLElement) {
 export function CreatorConversionUpgrade() {
   useEffect(() => {
     let autoFinishTimer: number | null = null;
+    let stepScrollTimer: number | null = null;
     let securePostCompleted = false;
+    let previousStage = "";
 
     const inspect = () => {
       prepareMobilePreview();
+
+      const stage = currentCreatorStage();
+      if (stage && stage !== previousStage) {
+        if (previousStage) {
+          if (stepScrollTimer !== null) window.clearTimeout(stepScrollTimer);
+          // Let React paint the new panel first, then place its heading directly
+          // below the sticky progress bar instead of preserving the old scroll depth.
+          stepScrollTimer = window.setTimeout(scrollCurrentStepIntoView, 40);
+        }
+        previousStage = stage;
+      }
 
       if (document.querySelector(".creation-share-panel.posted-share-panel")) {
         securePostCompleted = true;
@@ -81,6 +120,7 @@ export function CreatorConversionUpgrade() {
       observer.disconnect();
       mediaQuery.removeEventListener?.("change", onViewportChange);
       if (autoFinishTimer !== null) window.clearTimeout(autoFinishTimer);
+      if (stepScrollTimer !== null) window.clearTimeout(stepScrollTimer);
     };
   }, []);
 
