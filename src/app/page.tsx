@@ -12,6 +12,38 @@ export const metadata: Metadata = {
   },
 };
 
+const softwareApplicationSchema = {
+  "@context": "https://schema.org",
+  "@type": ["SoftwareApplication", "WebApplication"],
+  name: "Intezaar",
+  url: "https://www.intezaar.in",
+  applicationCategory: "CommunicationApplication",
+  operatingSystem: "Any",
+  browserRequirements: "Requires JavaScript and a modern web browser.",
+  description: "A web application for writing private end-to-end encrypted digital letters with a chosen opening time.",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "GBP",
+    description: "Free during the current public beta.",
+  },
+  featureList: [
+    "End-to-end encrypted letter content and private media",
+    "Chosen opening date and time",
+    "Private recipient link",
+    "Optional photos, voice notes and video",
+    "No account required to start writing",
+  ],
+};
+
 export default function Home() {
-  return <PostboxHome />;
+  return (
+    <>
+      <PostboxHome />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema) }}
+      />
+    </>
+  );
 }
