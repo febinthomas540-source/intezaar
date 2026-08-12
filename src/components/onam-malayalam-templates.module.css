@@ -1,0 +1,214 @@
+.section {
+  position: relative;
+  overflow: hidden;
+  padding: 78px 20px 86px;
+  color: #45291f;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(210,169,78,.16), transparent 20%),
+    radial-gradient(circle at 88% 88%, rgba(152,47,37,.08), transparent 22%),
+    repeating-linear-gradient(0deg, rgba(93,56,34,.014) 0 1px, transparent 1px 5px),
+    #fff6e8;
+}
+
+.section::before,
+.section::after {
+  content: "";
+  position: absolute;
+  width: 170px;
+  height: 340px;
+  opacity: .1;
+  border-radius: 100% 0 100% 0;
+  background: linear-gradient(135deg, #255037, #78a05a);
+}
+
+.section::before {
+  left: -120px;
+  top: 10px;
+  transform: rotate(30deg);
+}
+
+.section::after {
+  right: -125px;
+  bottom: -60px;
+  transform: rotate(210deg);
+}
+
+.flower {
+  position: relative;
+  z-index: 1;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 16px;
+  color: #d67b28;
+  font-size: 26px;
+}
+
+.heading {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.heading > p {
+  margin: 0 0 12px;
+  color: #982f25;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .15em;
+}
+
+.heading h2 {
+  margin: 0;
+  font-size: clamp(39px, 11vw, 62px);
+  line-height: 1.08;
+  font-weight: 600;
+  letter-spacing: -.035em;
+  font-family: "Noto Serif Malayalam", "Noto Sans Malayalam", var(--font-lora), Georgia, serif;
+}
+
+.heading > span {
+  display: block;
+  max-width: 650px;
+  margin: 17px auto 0;
+  color: #725749;
+  font-size: 15px;
+  line-height: 1.8;
+  font-family: "Noto Sans Malayalam", var(--font-source-sans), sans-serif;
+}
+
+.grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 14px;
+  max-width: 1120px;
+  margin: 38px auto 0;
+}
+
+.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 30px;
+  gap: 13px;
+  align-items: center;
+  min-height: 136px;
+  padding: 16px 15px;
+  border: 1px solid rgba(112,69,43,.16);
+  border-radius: 8px;
+  color: inherit;
+  background: rgba(255,251,243,.84);
+  box-shadow: 0 12px 30px rgba(92,54,32,.05);
+  text-decoration: none;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(152,47,37,.28);
+  box-shadow: 0 17px 35px rgba(92,54,32,.09);
+}
+
+.number {
+  align-self: start;
+  padding-top: 4px;
+  color: #b17b62;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+
+.card small {
+  display: block;
+  color: #a05e43;
+  font-size: 9px;
+  font-weight: 800;
+  font-family: "Noto Sans Malayalam", var(--font-source-sans), sans-serif;
+}
+
+.card strong {
+  display: block;
+  margin-top: 6px;
+  color: #4b2c22;
+  font-size: 21px;
+  line-height: 1.35;
+  font-weight: 700;
+  font-family: "Noto Serif Malayalam", "Noto Sans Malayalam", var(--font-lora), Georgia, serif;
+}
+
+.card p {
+  margin: 7px 0 0;
+  color: #775e50;
+  font-size: 13px;
+  line-height: 1.65;
+  font-family: "Noto Sans Malayalam", var(--font-source-sans), sans-serif;
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: #fff6e7;
+  background: #982f25;
+  font-size: 16px;
+}
+
+.note {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  margin: 24px auto 0;
+  color: #81695b;
+  font-size: 12px;
+  line-height: 1.75;
+  text-align: center;
+  font-family: "Noto Sans Malayalam", var(--font-source-sans), sans-serif;
+}
+
+@media (min-width: 700px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .section {
+    padding: 100px 6vw 112px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 48px;
+  }
+
+  .card {
+    grid-template-columns: 1fr;
+    align-content: start;
+    min-height: 250px;
+    padding: 20px;
+  }
+
+  .number {
+    padding: 0;
+  }
+
+  .arrow {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+  }
+
+  .card p {
+    padding-bottom: 34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card { transition: none; }
+}
