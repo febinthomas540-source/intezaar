@@ -1,39 +1,217 @@
-/* Conversion-focused mobile navigation: every step starts predictably and its primary action stays reachable. */
+/* Conversion-focused mobile navigation: each step behaves like a compact app screen. */
 @media (max-width: 720px) {
   .seal-post-flow .creation-panel,
   .seal-post-flow .creation-share-panel {
     scroll-margin-top: 82px;
   }
 
-  .seal-post-flow .creation-panel {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  /* On phones the creator itself is the experience. Keep the large decorative
+     railway/postbox scene for wider screens instead of making people scroll past it. */
+  .seal-post-flow .nostalgia-create-photo {
+    display: none !important;
   }
 
+  .seal-post-flow .nostalgia-create-layout {
+    display: block !important;
+    width: 100% !important;
+    min-height: 0 !important;
+  }
+
+  .seal-post-flow .nostalgia-create-form-wrap,
+  .seal-post-flow .creation-main {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  .seal-post-flow .creation-panel {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+  }
+
+  /* Every unfinished creator step gets the same permanent action dock. The
+     user never has to hunt for Continue after a long textarea or optional block. */
   .seal-post-flow .creation-panel > .nostalgia-form-actions {
-    position: sticky;
-    z-index: 36;
-    bottom: 0;
-    margin-right: -14px;
-    margin-left: -14px;
-    padding: 11px 14px calc(11px + env(safe-area-inset-bottom));
-    border-top: 1px solid rgba(91, 55, 36, .13);
-    background: rgba(253, 246, 232, .97);
-    box-shadow: 0 -12px 28px rgba(69, 42, 27, .11);
-    backdrop-filter: blur(16px);
+    position: fixed !important;
+    z-index: 70 !important;
+    right: max(10px, env(safe-area-inset-right));
+    bottom: 0 !important;
+    left: max(10px, env(safe-area-inset-left));
+    width: auto !important;
+    max-width: 700px;
+    margin: 0 auto !important;
+    padding: 10px 10px calc(10px + env(safe-area-inset-bottom)) !important;
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    border: 1px solid rgba(91, 55, 36, .13);
+    border-bottom: 0;
+    border-radius: 16px 16px 0 0;
+    background: rgba(253, 246, 232, .985);
+    box-shadow: 0 -12px 30px rgba(69, 42, 27, .14);
+    backdrop-filter: blur(18px);
   }
 
   .seal-post-flow .creation-panel > .nostalgia-form-actions .nostalgia-button {
-    min-height: 50px;
+    min-width: 0;
+    min-height: 52px;
+    margin: 0 !important;
+  }
+
+  .seal-post-flow .creation-panel > .nostalgia-form-actions .nostalgia-button-ghost {
+    flex: 0 1 38%;
+  }
+
+  .seal-post-flow .creation-panel > .nostalgia-form-actions .nostalgia-button-primary {
+    flex: 1 1 62%;
   }
 
   .seal-post-flow .creation-panel > .nostalgia-form-actions .nostalgia-button-primary:only-child,
   .seal-post-flow .creation-panel > .nostalgia-form-actions button:only-child {
     width: 100%;
+    flex-basis: 100%;
+  }
+
+  /* Step 2: style first, memories only if wanted, preview only on request. */
+  .seal-post-flow .recommended-formats {
+    margin-bottom: 12px !important;
+  }
+
+  .seal-post-flow .recommended-formats > div {
+    display: flex !important;
+    gap: 9px !important;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .seal-post-flow .recommended-formats > div::-webkit-scrollbar {
+    display: none;
+  }
+
+  .seal-post-flow .recommended-formats > div > button {
+    flex: 0 0 min(44vw, 168px);
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+
+  .seal-post-flow .format-library-disclosure,
+  .seal-post-flow .creation-preview-disclosure {
+    margin-top: 10px !important;
+  }
+
+  .seal-post-flow .compact-media-studio {
+    margin-top: 12px !important;
+  }
+
+  .seal-post-flow .media-choice-row {
+    gap: 7px !important;
+  }
+
+  /* Step 3: arrival is the only primary decision. Route and email/privacy are
+     represented by compact optional rows until the visitor asks for them. */
+  .seal-post-flow .arrival-postal-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 9px !important;
+  }
+
+  .seal-post-flow .mobile-optional-collapsed {
+    display: none !important;
+  }
+
+  .seal-post-flow .mobile-optional-toggle {
+    width: 100%;
+    min-height: 58px;
+    margin: 8px 0 0;
+    padding: 10px 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid rgba(91, 55, 36, .14);
+    border-radius: 13px;
+    background: rgba(255, 250, 240, .86);
+    color: #4b3025;
+    text-align: left;
+    box-shadow: 0 5px 14px rgba(65, 39, 25, .04);
+  }
+
+  .seal-post-flow .mobile-optional-toggle > span,
+  .seal-post-flow .mobile-optional-toggle strong,
+  .seal-post-flow .mobile-optional-toggle small {
+    display: block;
+  }
+
+  .seal-post-flow .mobile-optional-toggle strong {
+    font-size: 13px;
+    line-height: 1.2;
+  }
+
+  .seal-post-flow .mobile-optional-toggle small {
+    margin-top: 3px;
+    color: #826657;
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  .seal-post-flow .mobile-optional-toggle i {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(126, 46, 36, .09);
+    color: #842d25;
+    font-style: normal;
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .seal-post-flow .registered-delivery-option,
+  .seal-post-flow .recipient-verification-choice {
+    margin-top: 8px !important;
+  }
+
+  .seal-post-flow .final-review-strip {
+    margin-top: 10px !important;
+  }
+
+  /* Keep headings concise so the decision itself appears quickly below the
+     persistent progress strip. */
+  .seal-post-flow .creation-section-head {
+    margin-bottom: 14px !important;
+  }
+
+  .seal-post-flow .creation-section-head p {
+    margin-top: 6px !important;
   }
 
   /* The progress strip and bottom action bar are the navigation. Decorative
      content should never be able to trap the next button far off-screen. */
   .seal-post-flow .creation-form {
     overflow: visible;
+  }
+}
+
+@media (max-width: 390px) {
+  .seal-post-flow .creation-panel > .nostalgia-form-actions {
+    right: max(6px, env(safe-area-inset-right));
+    left: max(6px, env(safe-area-inset-left));
+    padding-inline: 8px !important;
+  }
+
+  .seal-post-flow .creation-panel > .nostalgia-form-actions .nostalgia-button-ghost {
+    flex-basis: 35%;
+    padding-inline: 10px !important;
+  }
+
+  .seal-post-flow .creation-panel > .nostalgia-form-actions .nostalgia-button-primary {
+    flex-basis: 65%;
+  }
+
+  .seal-post-flow .recommended-formats > div > button {
+    flex-basis: 154px;
   }
 }
