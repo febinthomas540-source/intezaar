@@ -15,7 +15,8 @@ import "../recipient-arrival-notification.css";
 import "../delivery-presets.css";
 
 const DRAFT_KEY = "intezaar:create-draft:v3";
-const CAMPAIGN_DRAFT_KEY = "intezaar:create-campaign-draft:v1";
+const ONAM_CAMPAIGN_ID = "onam2026";
+const ONAM_DRAFT_KEY = "intezaar:create-onam2026-draft:v1";
 const CAMPAIGN_BACKUP_KEY = "intezaar:create-normal-draft-backup:v1";
 const CAMPAIGN_ACTIVE_KEY = "intezaar:create-campaign-active:v1";
 const NO_DRAFT_SENTINEL = "__INTEZAAR_NO_DRAFT__";
@@ -65,8 +66,8 @@ function looksLikeLegacyOnamCampaignDraft(raw: string | null) {
 }
 
 function restoreNormalDraft() {
-  const campaignRaw = window.localStorage.getItem(DRAFT_KEY);
-  if (campaignRaw) window.localStorage.setItem(CAMPAIGN_DRAFT_KEY, campaignRaw);
+  const onamRaw = window.localStorage.getItem(DRAFT_KEY);
+  if (onamRaw) window.localStorage.setItem(ONAM_DRAFT_KEY, onamRaw);
 
   const backup = window.localStorage.getItem(CAMPAIGN_BACKUP_KEY);
   if (backup && backup !== NO_DRAFT_SENTINEL) {
@@ -84,9 +85,45 @@ function migrateLegacyOnamLeak() {
   if (!looksLikeLegacyOnamCampaignDraft(current)) return;
 
   // Older Onam links wrote directly into the ordinary creator draft. Preserve
-  // that work as a campaign draft, then give the normal creator a clean slate.
-  if (current) window.localStorage.setItem(CAMPAIGN_DRAFT_KEY, current);
+  // that work as an Onam draft, then give the normal creator a clean slate.
+  if (current) window.localStorage.setItem(ONAM_DRAFT_KEY, current);
   window.localStorage.removeItem(DRAFT_KEY);
+}
+
+function applyPrefill(
+  base: Record<string, unknown>,
+  occasion: string,
+  heading: string,
+  starter: string,
+  format: string,
+  opensAtValue: string,
+) {
+  const next: Record<string, unknown> = { ...base };
+
+  if (occasion) next.occasion = occasion;
+  if (heading) next.heading = heading;
+  if (starter) next.letter = starter;
+  if (format) next.format = format;
+
+  if (opensAtValue) {
+    const opensAt = new Date(opensAtValue);
+    const timestamp = opensAt.getTime();
+    const now = Date.now();
+    if (
+      Number.isFinite(timestamp)
+      && timestamp >= now + MIN_DELIVERY_MS
+      && timestamp <= now + MAX_DELIVERY_MS
+    ) {
+      // Campaign links carry an absolute opening instant. Convert that
+      // instant to the visitor's local form fields so createSecureLetter()
+      // converts it back to the same UTC moment when the letter is posted.
+      next.arrivalDate = localDateInput(opensAt);
+      next.arrivalTime = localTimeInput(opensAt);
+      next.arrivalPreset = "custom";
+    }
+  }
+
+  return next;
 }
 
 export default function CreatePage() {
@@ -102,63 +139,48 @@ export default function CreatePage() {
       const requestedFormat = params.get("format")?.trim() || "";
       const campaign = params.get("campaign")?.trim().slice(0, 80) || "";
       const format = PREFILL_FORMATS.has(requestedFormat) ? requestedFormat : "";
-      const hasCampaignPrefill = Boolean(campaign || occasion || opensAtValue || heading || starter || format);
+      const hasPrefill = Boolean(occasion || opensAtValue || heading || starter || format);
+      const isOnamCampaign = campaign === ONAM_CAMPAIGN_ID;
+      const activeCampaign = window.localStorage.getItem(CAMPAIGN_ACTIVE_KEY);
 
-      if (!hasCampaignPrefill) {
-        if (window.localStorage.getItem(CAMPAIGN_ACTIVE_KEY)) {
-          restoreNormalDraft();
-        } else {
-          migrateLegacyOnamLeak();
-        }
+      // Leaving the Onam creator always restores the ordinary local draft first.
+      if (!isOnamCampaign && activeCampaign === ONAM_CAMPAIGN_ID) {
+        restoreNormalDraft();
+      }
+
+      if (!isOnamCampaign) {
+        // Repair browsers that visited the older leaking Onam implementation.
+        migrateLegacyOnamLeak();
+        if (!hasPrefill) return;
+
+        const existing = parseDraft(window.localStorage.getItem(DRAFT_KEY));
+        const next = applyPrefill(existing, occasion, heading, starter, format, opensAtValue);
+        window.localStorage.setItem(DRAFT_KEY, JSON.stringify(next));
         return;
       }
 
-      const campaignAlreadyActive = Boolean(window.localStorage.getItem(CAMPAIGN_ACTIVE_KEY));
+      const onamAlreadyActive = window.localStorage.getItem(CAMPAIGN_ACTIVE_KEY) === ONAM_CAMPAIGN_ID;
 
-      if (!campaignAlreadyActive) {
+      if (!onamAlreadyActive) {
         const normalDraft = window.localStorage.getItem(DRAFT_KEY);
         window.localStorage.setItem(CAMPAIGN_BACKUP_KEY, normalDraft ?? NO_DRAFT_SENTINEL);
 
-        // Resume an earlier campaign draft if one exists. Otherwise start the
-        // campaign clean instead of merging a normal letter into an Onam one.
-        const previousCampaignDraft = window.localStorage.getItem(CAMPAIGN_DRAFT_KEY);
-        if (previousCampaignDraft) {
-          window.localStorage.setItem(DRAFT_KEY, previousCampaignDraft);
+        // Resume the user's Onam draft if one exists. Otherwise start the Onam
+        // flow clean instead of merging an ordinary letter into the festival one.
+        const previousOnamDraft = window.localStorage.getItem(ONAM_DRAFT_KEY);
+        if (previousOnamDraft) {
+          window.localStorage.setItem(DRAFT_KEY, previousOnamDraft);
         } else {
           window.localStorage.removeItem(DRAFT_KEY);
         }
       }
 
-      window.localStorage.setItem(CAMPAIGN_ACTIVE_KEY, campaign || "campaign");
+      window.localStorage.setItem(CAMPAIGN_ACTIVE_KEY, ONAM_CAMPAIGN_ID);
 
-      const existingRaw = window.localStorage.getItem(DRAFT_KEY);
-      const next: Record<string, unknown> = { ...parseDraft(existingRaw) };
-
-      if (occasion) next.occasion = occasion;
-      if (heading) next.heading = heading;
-      if (starter) next.letter = starter;
-      if (format) next.format = format;
-
-      if (opensAtValue) {
-        const opensAt = new Date(opensAtValue);
-        const timestamp = opensAt.getTime();
-        const now = Date.now();
-        if (
-          Number.isFinite(timestamp)
-          && timestamp >= now + MIN_DELIVERY_MS
-          && timestamp <= now + MAX_DELIVERY_MS
-        ) {
-          // Campaign links carry an absolute opening instant. Convert that
-          // instant to the visitor's local form fields so createSecureLetter()
-          // converts it back to the same UTC moment when the letter is posted.
-          next.arrivalDate = localDateInput(opensAt);
-          next.arrivalTime = localTimeInput(opensAt);
-          next.arrivalPreset = "custom";
-        }
-      }
-
+      const existing = parseDraft(window.localStorage.getItem(DRAFT_KEY));
+      const next = applyPrefill(existing, occasion, heading, starter, format, opensAtValue);
       window.localStorage.setItem(DRAFT_KEY, JSON.stringify(next));
-      window.localStorage.setItem(CAMPAIGN_DRAFT_KEY, JSON.stringify(next));
+      window.localStorage.setItem(ONAM_DRAFT_KEY, JSON.stringify(next));
     } catch (error) {
       console.error("Campaign creator prefill could not be applied:", error);
     } finally {
