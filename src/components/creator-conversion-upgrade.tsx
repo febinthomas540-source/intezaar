@@ -10,7 +10,14 @@ declare global {
 
 const MOBILE_QUERY = "(max-width: 720px)";
 
-type OptionalKind = "route" | "notification";
+type OptionalKind = "letterDetails" | "media" | "route" | "notification";
+
+const optionalDatasetKeys: Record<OptionalKind, "mobileLetterDetailsOpen" | "mobileMediaOpen" | "mobileRouteOpen" | "mobileNotificationOpen"> = {
+  letterDetails: "mobileLetterDetailsOpen",
+  media: "mobileMediaOpen",
+  route: "mobileRouteOpen",
+  notification: "mobileNotificationOpen",
+};
 
 function setNodeText(node: Element | null, value: string) {
   if (node && node.textContent !== value) node.textContent = value;
@@ -28,18 +35,19 @@ function prepareMobilePreview() {
 }
 
 function optionalState(panel: HTMLElement, kind: OptionalKind) {
-  return panel.dataset[kind === "route" ? "mobileRouteOpen" : "mobileNotificationOpen"] === "true";
+  return panel.dataset[optionalDatasetKeys[kind]] === "true";
 }
 
 function setOptionalState(panel: HTMLElement, kind: OptionalKind, open: boolean) {
-  const key = kind === "route" ? "mobileRouteOpen" : "mobileNotificationOpen";
+  const key = optionalDatasetKeys[kind];
   const value = String(open);
   if (panel.dataset[key] !== value) panel.dataset[key] = value;
 }
 
 function makeOptionalToggle(
   panel: HTMLElement,
-  target: HTMLElement,
+  anchor: HTMLElement,
+  targets: HTMLElement[],
   kind: OptionalKind,
   closedLabel: string,
   openLabel: string,
@@ -60,7 +68,7 @@ function makeOptionalToggle(
     const icon = document.createElement("i");
     copy.append(title, note);
     button.append(copy, icon);
-    target.before(button);
+    anchor.before(button);
 
     button.addEventListener("click", () => {
       setOptionalState(panel, kind, !optionalState(panel, kind));
@@ -78,12 +86,66 @@ function makeOptionalToggle(
   if (button.getAttribute("aria-expanded") !== String(open)) {
     button.setAttribute("aria-expanded", String(open));
   }
-  target.classList.toggle("mobile-optional-collapsed", !open);
+  targets.forEach((target) => target.classList.toggle("mobile-optional-collapsed", !open));
 
   return open;
 }
 
-function prepareMobileOptionals() {
+function prepareMobileWritingOptionals() {
+  if (!window.matchMedia(MOBILE_QUERY).matches) return;
+  const panel = document.querySelector<HTMLElement>(".creation-write-panel");
+  if (!panel) return;
+
+  const grids = panel.querySelectorAll<HTMLElement>(":scope > .nostalgia-form-grid");
+  const optionalGrid = grids[1];
+  const writingHelp = panel.querySelector<HTMLElement>(":scope > .writing-help");
+  const directLabels = Array.from(panel.querySelectorAll<HTMLLabelElement>(":scope > label"));
+  const closingLabel = directLabels.find((label) => Boolean(label.querySelector("input")));
+  if (!optionalGrid || !writingHelp || !closingLabel) return;
+
+  if (panel.dataset.mobileLetterDetailsOpen === undefined) {
+    const occasion = optionalGrid.querySelector<HTMLSelectElement>("select")?.value || "Just because";
+    const opening = optionalGrid.querySelector<HTMLInputElement>("input")?.value.trim() || "";
+    const closing = closingLabel.querySelector<HTMLInputElement>("input")?.value.trim() || "";
+    if (occasion !== "Just because" || opening || closing) {
+      setOptionalState(panel, "letterDetails", true);
+    }
+  }
+
+  makeOptionalToggle(
+    panel,
+    optionalGrid,
+    [optionalGrid, writingHelp, closingLabel],
+    "letterDetails",
+    "Add opening, occasion or sign-off",
+    "Hide extra letter details",
+    "Optional · greeting, writing help and closing",
+  );
+}
+
+function prepareMobilePersonaliseOptionals() {
+  if (!window.matchMedia(MOBILE_QUERY).matches) return;
+  const media = document.querySelector<HTMLElement>(".compact-media-studio");
+  const panel = media?.closest<HTMLElement>(".creation-panel");
+  if (!media || !panel) return;
+
+  if (panel.dataset.mobileMediaOpen === undefined) {
+    const alreadyHasMedia = Boolean(media.querySelector(".media-item, .photo-edit-inside-note"));
+    if (alreadyHasMedia) setOptionalState(panel, "media", true);
+  }
+
+  makeOptionalToggle(
+    panel,
+    media,
+    [media],
+    "media",
+    "Add a photo, voice or video",
+    "Hide optional media",
+    "Optional · up to 3 private memories",
+  );
+}
+
+function prepareMobileArrivalOptionals() {
   if (!window.matchMedia(MOBILE_QUERY).matches) return;
   const panel = document.querySelector<HTMLElement>(".creation-panel .arrival-postal-grid")?.closest<HTMLElement>(".creation-panel");
   if (!panel) return;
@@ -93,6 +155,7 @@ function prepareMobileOptionals() {
     makeOptionalToggle(
       panel,
       route,
+      [route],
       "route",
       "Add route details",
       "Hide route details",
@@ -109,18 +172,24 @@ function prepareMobileOptionals() {
       setOptionalState(panel, "notification", true);
     }
 
-    const open = makeOptionalToggle(
+    const verificationMount = panel.querySelector<HTMLElement>(".recipient-verification-mount");
+    const targets = verificationMount ? [notification, verificationMount] : [notification];
+    makeOptionalToggle(
       panel,
       notification,
+      targets,
       "notification",
       "Add email notification",
       "Hide email options",
       "Optional · opening-time email and extra privacy",
     );
-
-    const verificationMount = panel.querySelector<HTMLElement>(".recipient-verification-mount");
-    verificationMount?.classList.toggle("mobile-optional-collapsed", !open);
   }
+}
+
+function prepareMobileOptionals() {
+  prepareMobileWritingOptionals();
+  prepareMobilePersonaliseOptionals();
+  prepareMobileArrivalOptionals();
 }
 
 function currentCreatorStage() {
