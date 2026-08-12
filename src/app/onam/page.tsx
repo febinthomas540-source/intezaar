@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { OnamCampaign } from "@/components/onam-campaign";
+import { OnamMalayalamTemplates } from "@/components/onam-malayalam-templates";
 
 export const metadata: Metadata = {
   title: "Onam 2026 Letter — Write Home",
@@ -20,5 +21,10 @@ export const metadata: Metadata = {
 };
 
 export default function OnamPage() {
-  return <OnamCampaign />;
+  return (
+    <>
+      <OnamCampaign />
+      <OnamMalayalamTemplates />
+    </>
+  );
 }
