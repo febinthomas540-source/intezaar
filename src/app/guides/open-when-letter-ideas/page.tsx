@@ -16,6 +16,10 @@ export default function OpenWhenIdeasGuide() {
       intro="The best open-when letters are written for a specific emotional moment. The more clearly you picture that moment, the more personal the letter becomes."
       ctaLabel="Write an open-when letter"
       ctaHref="/open-when"
+      relatedLinks={[
+        { href: "/guides/open-when-you-miss-home-letter", label: "Open when you miss home" },
+        { href: "/guides/meaningful-letter-ideas-for-partner", label: "Meaningful letter ideas for a partner" },
+      ]}
       sections={[
         {
           title: "For difficult days",
