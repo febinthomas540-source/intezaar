@@ -15,6 +15,18 @@ import "../recipient-arrival-notification.css";
 import "../delivery-presets.css";
 
 const DRAFT_KEY = "intezaar:create-draft:v3";
+const PREFILL_FORMATS = new Set([
+  "classic",
+  "minimal",
+  "typewriter",
+  "airmail",
+  "inland",
+  "postcard",
+  "folded",
+  "photo",
+  "festival",
+  "telegram",
+]);
 
 function pad(value: number) {
   return String(value).padStart(2, "0");
@@ -36,7 +48,11 @@ export default function CreatePage() {
       const params = new URLSearchParams(window.location.search);
       const occasion = params.get("occasion")?.trim().slice(0, 100) || "";
       const opensAtValue = params.get("opensAt")?.trim() || "";
-      const hasCampaignPrefill = Boolean(occasion || opensAtValue);
+      const heading = params.get("heading")?.trim().slice(0, 240) || "";
+      const starter = params.get("starter")?.trim().slice(0, 1200) || "";
+      const requestedFormat = params.get("format")?.trim() || "";
+      const format = PREFILL_FORMATS.has(requestedFormat) ? requestedFormat : "";
+      const hasCampaignPrefill = Boolean(occasion || opensAtValue || heading || starter || format);
 
       if (hasCampaignPrefill) {
         const existingRaw = window.localStorage.getItem(DRAFT_KEY);
@@ -44,6 +60,9 @@ export default function CreatePage() {
         const next: Record<string, unknown> = { ...existing };
 
         if (occasion) next.occasion = occasion;
+        if (heading) next.heading = heading;
+        if (starter) next.letter = starter;
+        if (format) next.format = format;
 
         if (opensAtValue) {
           const opensAt = new Date(opensAtValue);
