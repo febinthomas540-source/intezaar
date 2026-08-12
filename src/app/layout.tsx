@@ -3,6 +3,7 @@ import { Lora, Source_Sans_3 } from "next/font/google";
 import { FirstPartyAnalytics } from "@/components/first-party-analytics";
 import { InstalledAppShell } from "@/components/installed-app-shell";
 import { MetaPixel } from "@/components/meta-pixel";
+import { RecipientLinkRecovery } from "@/components/recipient-link-recovery";
 import "./globals.css";
 import "./postal-theme.css";
 import "./postal-interactions.css";
@@ -119,6 +120,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en-IN" className={`${sourceSans.variable} ${lora.variable}`}>
       <body>
         <InstalledAppShell />
+        <RecipientLinkRecovery />
         {children}
         <FirstPartyAnalytics />
         <MetaPixel />
