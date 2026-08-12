@@ -34,9 +34,16 @@ function findSecurePostButton(panel: HTMLElement) {
 export function CreatorConversionUpgrade() {
   useEffect(() => {
     let autoFinishTimer: number | null = null;
+    let securePostCompleted = false;
 
     const inspect = () => {
       prepareMobilePreview();
+
+      if (document.querySelector(".creation-share-panel.posted-share-panel")) {
+        securePostCompleted = true;
+        return;
+      }
+      if (securePostCompleted) return;
 
       const panel = document.querySelector<HTMLElement>(".post-panel");
       if (!panel || panel.dataset.autoSecurePostAttempted === "true") return;
