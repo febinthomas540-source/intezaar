@@ -3,19 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-const REGISTERED_KEY = "intezaar:recipient-verification:v1";
-
 declare global {
   interface Window {
     __intezaarTurnstileToken?: string;
-  }
-}
-
-function readRegisteredChoice() {
-  try {
-    return window.sessionStorage.getItem(REGISTERED_KEY) === "true";
-  } catch {
-    return false;
   }
 }
 
@@ -35,18 +25,7 @@ export function RecipientArrivalNotificationUpgrade() {
   const recipientEmailRef = useRef("");
 
   useEffect(() => {
-    const saved = readRegisteredChoice();
-    registeredRef.current = saved;
-    setRegisteredDelivery(saved);
-  }, []);
-
-  useEffect(() => {
     registeredRef.current = registeredDelivery;
-    try {
-      window.sessionStorage.setItem(REGISTERED_KEY, String(registeredDelivery));
-    } catch {
-      // The choice still applies for this page session.
-    }
   }, [registeredDelivery]);
 
   useEffect(() => {
@@ -137,8 +116,6 @@ export function RecipientArrivalNotificationUpgrade() {
           new Headers(init.headers).forEach((value, key) => headers.set(key, value));
         }
 
-        // Normally Turnstile wraps this fetch after this bridge and supplies the
-        // token. This fallback keeps the route robust if effect ordering changes.
         let resetLocally = false;
         if (!headers.get("x-intezaar-turnstile-token") && window.__intezaarTurnstileToken) {
           headers.set("x-intezaar-turnstile-token", window.__intezaarTurnstileToken);
