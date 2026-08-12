@@ -10,6 +10,7 @@ import { MAX_DELIVERY_MS, MIN_DELIVERY_MS } from "@/lib/letter-rules";
 import "../photo-adjustment.css";
 import "../seal-post.css";
 import "../mobile-creator-polish.css";
+import "../mobile-creator-navigation.css";
 import "../turnstile-posting.css";
 import "../registered-delivery.css";
 import "../recipient-arrival-notification.css";
