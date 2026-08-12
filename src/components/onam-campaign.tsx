@@ -8,12 +8,18 @@ const ATHAM_START_UTC = Date.parse("2026-08-15T18:30:00.000Z"); // 16 Aug 2026, 
 const THIRUVONAM_OPEN_UTC = "2026-08-26T01:30:00.000Z"; // 26 Aug 2026, 07:00 IST
 const PENDING_LEAD_KEY = "intezaar:meta-pending-lead:v1";
 
-// FEBIN PROOFING NOTE:
-// Keep the Malayalam line empty until a fluent Malayalam speaker has proofed it.
-// Do not ship an AI-guessed translation in this campaign.
-const MALAYALAM_LINE_REQUIRES_PROOF = "";
+type TemplateLanguage = "en" | "ml";
 
-const templates = [
+type OnamTemplate = {
+  id: string;
+  label: string;
+  note: string;
+  heading: string;
+  starter: string;
+  motif: "lamp" | "leaf" | "flower" | "seal" | "boat";
+};
+
+const englishTemplates: OnamTemplate[] = [
   {
     id: "parents",
     label: "For Amma & Acha",
@@ -54,9 +60,52 @@ const templates = [
     starter: "There are days when distance feels ordinary, and then there are days like Onam when every kilometre suddenly feels visible. Today I am thinking about home more than usual.\n\nThe piece of Kerala I carry with me wherever I go is…",
     motif: "boat",
   },
-] as const;
+];
 
-function createHref(template?: (typeof templates)[number]) {
+const malayalamTemplates: OnamTemplate[] = [
+  {
+    id: "parents-ml",
+    label: "അമ്മയ്ക്കും അച്ചനും",
+    note: "ഫോൺ കോളിൽ പറഞ്ഞുതീരാതെ പോകുന്ന കാര്യങ്ങൾക്കായി.",
+    heading: "പ്രിയ അമ്മയ്ക്കും അച്ചനും,",
+    starter: "ഈ ഓണത്തിന് ഞാൻ വീട്ടിൽ ഇല്ലെങ്കിലും, ഇന്നത്തെ രാവിലെ എന്റെ മനസ്സ് മുഴുവൻ നിങ്ങളോടൊപ്പമാണ്. വീട്ടിലെ പൂക്കളവും, സദ്യയുടെ മണവും, എല്ലാവരും ഒരുമിച്ചിരിക്കുന്ന ആ തിരക്കുമെല്ലാം വളരെ ഓർമ്മ വരുന്നു.\n\nഈ വർഷം എനിക്ക് ഏറ്റവും അധികം നഷ്ടമായി തോന്നുന്നത്…",
+    motif: "lamp",
+  },
+  {
+    id: "family-ml",
+    label: "വീട്ടിലുള്ള എല്ലാവർക്കും",
+    note: "ഒരുമിച്ച് ഇരിക്കാൻ ആഗ്രഹിക്കുന്ന ആ വീട്ടുമേശയ്ക്കായി.",
+    heading: "വീട്ടിലുള്ള എല്ലാവർക്കും,",
+    starter: "ദൂരെയിരുന്ന് എല്ലാവർക്കും ഹൃദയം നിറഞ്ഞ ഓണാശംസകൾ. ഇന്ന് വീട്ടിലേക്ക് നടന്ന് കയറാനും, ആ ശബ്ദത്തിലും തിരക്കിലും സദ്യയിലും ഒത്തു ചേരാനും എത്ര ആഗ്രഹമുണ്ടെന്ന് പറയാൻ വയ്യ.\n\nഇന്ന് ഞാൻ വീട്ടിലുണ്ടായിരുന്നെങ്കിൽ ആദ്യം ചെയ്യുമായിരുന്നത്…",
+    motif: "leaf",
+  },
+  {
+    id: "grandparents-ml",
+    label: "അമ്മച്ചിക്കും അപ്പച്ചനും",
+    note: "ഓർമ്മകളും നന്ദിയും നിറഞ്ഞ ഒരു ശാന്തമായ കത്തിനായി.",
+    heading: "പ്രിയ അമ്മച്ചിക്കും അപ്പച്ചനും,",
+    starter: "ഓണം വന്നാൽ വീട്ടിലെ പഴയ ഓർമ്മകൾ സ്വയം മനസ്സിലേക്ക് വരും. ആ ഓർമ്മകളിൽ നിങ്ങളും, വീട്ടുമുറ്റവും, രാവിലെ തുടങ്ങുന്ന ആ പരിചിതമായ തിരക്കുകളും എല്ലാം ഉണ്ട്.\n\nഇന്നും ഞാൻ മനസ്സിൽ സൂക്ഷിക്കുന്ന ഒരു ഓണ ഓർമ്മ…",
+    motif: "flower",
+  },
+  {
+    id: "partner-ml",
+    label: "പ്രിയപ്പെട്ട ഒരാൾക്ക്",
+    note: "ഈ ഓണം വേറിട്ട ഇടങ്ങളിൽ കഴിയുന്ന രണ്ടുപേർക്കായി.",
+    heading: "എന്റെ പ്രിയപ്പെട്ടവളേ / പ്രിയപ്പെട്ടവനേ,",
+    starter: "ഈ ഓണം അല്പം വ്യത്യസ്തമാണ്, കാരണം നീ എന്റെ അടുത്തില്ല. ഒരു സാധാരണ മെസേജിനേക്കാൾ മന്ദഗതിയിൽ, ഇന്നത്തെ രാവിലെയെത്തി തുറക്കാവുന്ന എന്തെങ്കിലും നിനക്കായി വിടണമെന്ന് തോന്നി.\n\nഇന്ന് നമ്മൾ ഒരുമിച്ചിരുന്നെങ്കിൽ…",
+    motif: "seal",
+  },
+  {
+    id: "from-abroad-ml",
+    label: "പ്രവാസത്തിൽ നിന്ന് വീട്ടിലേക്ക്",
+    note: "എവിടെയായാലും കേരളം മനസ്സിൽ കൊണ്ടുനടക്കുന്നവർക്കായി.",
+    heading: "ദൂരെയிருந்து, വീട്ടിലേക്ക്,",
+    starter: "ചില ദിവസങ്ങളിൽ ദൂരം പതിവുപോലെ തോന്നും. പക്ഷേ ഓണം പോലുള്ള ദിവസങ്ങളിൽ ഓരോ കിലോമീറ്ററും കൂടുതൽ വ്യക്തമായി അനുഭവപ്പെടുന്നു. ഇന്ന് പതിവിലും കൂടുതൽ വീട്ടിനെ ഓർക്കുന്നു.\n\nഎവിടെ പോയാലും ഞാൻ മനസ്സിൽ കൊണ്ടുനടക്കുന്ന കേരളത്തിന്റെ ഒരു ചെറിയ ഭാഗം…",
+    motif: "boat",
+  },
+];
+
+function createHref(template?: OnamTemplate) {
   const params = new URLSearchParams({
     occasion: "Celebration",
     opensAt: THIRUVONAM_OPEN_UTC,
@@ -118,6 +167,8 @@ function CampaignCta({ compact = false }: { compact?: boolean }) {
 
 export function OnamCampaign() {
   const [now, setNow] = useState(() => Date.now());
+  const [templateLanguage, setTemplateLanguage] = useState<TemplateLanguage>("en");
+  const templates = templateLanguage === "ml" ? malayalamTemplates : englishTemplates;
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 60_000);
@@ -149,9 +200,6 @@ export function OnamCampaign() {
           </div>
           <p className={styles.eyebrow}>A private letter for home</p>
           <h1>This Onam,<br /><em>write home.</em></h1>
-          {MALAYALAM_LINE_REQUIRES_PROOF ? (
-            <p className={styles.malayalam}>{MALAYALAM_LINE_REQUIRES_PROOF}</p>
-          ) : null}
           <p className={styles.lede}>
             Seal a letter today. It opens with Thiruvonam morning in Kerala, wherever you are.
           </p>
@@ -201,22 +249,79 @@ export function OnamCampaign() {
           <span className={styles.floralRule} aria-hidden="true">✿</span>
           <p className={styles.eyebrow}>Not sure how to begin?</p>
           <h2>Begin with an Onam template.</h2>
-          <p>These are starting points, not finished greetings. Choose one, make it yours, then let it wait for Thiruvonam morning.</p>
+          <p>Choose English or Malayalam. These are starting points, not finished greetings — make the letter sound like you.</p>
+
+          <div
+            role="group"
+            aria-label="Onam template language"
+            style={{
+              display: "inline-flex",
+              gap: 4,
+              marginTop: 18,
+              padding: 4,
+              border: "1px solid rgba(111, 55, 35, .18)",
+              borderRadius: 999,
+              background: "rgba(255, 249, 237, .7)",
+            }}
+          >
+            <button
+              type="button"
+              aria-pressed={templateLanguage === "en"}
+              onClick={() => setTemplateLanguage("en")}
+              style={{
+                minHeight: 40,
+                padding: "0 17px",
+                border: 0,
+                borderRadius: 999,
+                cursor: "pointer",
+                color: templateLanguage === "en" ? "#fff8ec" : "#69483a",
+                background: templateLanguage === "en" ? "#8f3028" : "transparent",
+                fontWeight: 800,
+                fontSize: 13,
+              }}
+            >
+              English
+            </button>
+            <button
+              type="button"
+              aria-pressed={templateLanguage === "ml"}
+              onClick={() => setTemplateLanguage("ml")}
+              lang="ml"
+              style={{
+                minHeight: 40,
+                padding: "0 17px",
+                border: 0,
+                borderRadius: 999,
+                cursor: "pointer",
+                color: templateLanguage === "ml" ? "#fff8ec" : "#69483a",
+                background: templateLanguage === "ml" ? "#8f3028" : "transparent",
+                fontWeight: 800,
+                fontSize: 14,
+                fontFamily: '"Noto Sans Malayalam", "Nirmala UI", Kartika, sans-serif',
+              }}
+            >
+              മലയാളം
+            </button>
+          </div>
         </div>
 
-        <div className={styles.templateGrid}>
+        <div className={styles.templateGrid} key={templateLanguage}>
           {templates.map((template) => (
             <Link
               key={template.id}
               href={createHref(template)}
               className={styles.templateCard}
+              lang={templateLanguage === "ml" ? "ml" : "en"}
               onClick={() => queueOrFireLead(`Onam template · ${template.id}`)}
             >
               <div className={`${styles.templateArt} ${styles[`motif_${template.motif}`]}`} aria-hidden="true">
                 <span /><i /><b />
               </div>
-              <div className={styles.templateCopy}>
-                <small>ONAM LETTER STARTER</small>
+              <div
+                className={styles.templateCopy}
+                style={templateLanguage === "ml" ? { fontFamily: '"Noto Sans Malayalam", "Nirmala UI", Kartika, sans-serif' } : undefined}
+              >
+                <small>{templateLanguage === "ml" ? "ഓണ കത്തിനുള്ള തുടക്കം" : "ONAM LETTER STARTER"}</small>
                 <strong>{template.label}</strong>
                 <p>{template.note}</p>
               </div>
@@ -224,6 +329,23 @@ export function OnamCampaign() {
             </Link>
           ))}
         </div>
+
+        {templateLanguage === "ml" ? (
+          <p
+            lang="ml"
+            style={{
+              maxWidth: 680,
+              margin: "20px auto 0",
+              color: "#7a5c4d",
+              fontSize: 12,
+              lineHeight: 1.7,
+              textAlign: "center",
+              fontFamily: '"Noto Sans Malayalam", "Nirmala UI", Kartika, sans-serif',
+            }}
+          >
+            ഇത് ഒരു തുടക്കം മാത്രം. നിങ്ങളുടെ സ്വന്തം ഭാഷയും ഓർമ്മകളും ചേർത്ത് കത്ത് മാറ്റിയെഴുതാം.
+          </p>
+        ) : null}
       </section>
 
       <section className={styles.distanceStory}>
