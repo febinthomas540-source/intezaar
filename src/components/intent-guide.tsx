@@ -3,6 +3,7 @@ import { Navigation } from "@/components/navigation";
 import styles from "./intent-guide.module.css";
 
 type Section = { title: string; paragraphs: string[]; bullets?: string[] };
+type RelatedLink = { href: string; label: string };
 
 type IntentGuideProps = {
   eyebrow: string;
@@ -11,9 +12,20 @@ type IntentGuideProps = {
   sections: Section[];
   ctaLabel: string;
   ctaHref?: string;
+  relatedLinks?: RelatedLink[];
+  showReflectionNote?: boolean;
 };
 
-export function IntentGuide({ eyebrow, title, intro, sections, ctaLabel, ctaHref = "/create" }: IntentGuideProps) {
+export function IntentGuide({
+  eyebrow,
+  title,
+  intro,
+  sections,
+  ctaLabel,
+  ctaHref = "/create",
+  relatedLinks = [],
+  showReflectionNote = true,
+}: IntentGuideProps) {
   return (
     <main className={styles.page}>
       <Navigation />
@@ -36,10 +48,21 @@ export function IntentGuide({ eyebrow, title, intro, sections, ctaLabel, ctaHref
             </section>
           ))}
 
-          <aside>
-            <strong>Keep it personal, not perfect.</strong>
-            <p>Intezaar is a reflective writing and private-letter experience, not therapy, diagnosis, medical advice or a clinical mental-health service.</p>
-          </aside>
+          {relatedLinks.length ? (
+            <nav className={styles.related} aria-label="Related letter writing guides">
+              <strong>Keep reading</strong>
+              <div>
+                {relatedLinks.map((link) => <Link href={link.href} key={link.href}>{link.label} →</Link>)}
+              </div>
+            </nav>
+          ) : null}
+
+          {showReflectionNote ? (
+            <aside>
+              <strong>Keep it personal, not perfect.</strong>
+              <p>Intezaar is a reflective writing and private-letter experience, not therapy, diagnosis, medical advice or a clinical mental-health service.</p>
+            </aside>
+          ) : null}
 
           <div className={styles.finalCta}>
             <p>Ready to turn one of these ideas into a letter?</p>
