@@ -1,0 +1,39 @@
+/* Conversion-focused mobile navigation: every step starts predictably and its primary action stays reachable. */
+@media (max-width: 720px) {
+  .seal-post-flow .creation-panel,
+  .seal-post-flow .creation-share-panel {
+    scroll-margin-top: 82px;
+  }
+
+  .seal-post-flow .creation-panel {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+
+  .seal-post-flow .creation-panel > .nostalgia-form-actions {
+    position: sticky;
+    z-index: 36;
+    bottom: 0;
+    margin-right: -14px;
+    margin-left: -14px;
+    padding: 11px 14px calc(11px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(91, 55, 36, .13);
+    background: rgba(253, 246, 232, .97);
+    box-shadow: 0 -12px 28px rgba(69, 42, 27, .11);
+    backdrop-filter: blur(16px);
+  }
+
+  .seal-post-flow .creation-panel > .nostalgia-form-actions .nostalgia-button {
+    min-height: 50px;
+  }
+
+  .seal-post-flow .creation-panel > .nostalgia-form-actions .nostalgia-button-primary:only-child,
+  .seal-post-flow .creation-panel > .nostalgia-form-actions button:only-child {
+    width: 100%;
+  }
+
+  /* The progress strip and bottom action bar are the navigation. Decorative
+     content should never be able to trap the next button far off-screen. */
+  .seal-post-flow .creation-form {
+    overflow: visible;
+  }
+}
