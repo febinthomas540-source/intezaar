@@ -53,10 +53,10 @@ export function RecipientArrivalNotificationUpgrade() {
       const status = section.querySelector<HTMLElement>(":scope > small");
 
       setText(eyebrow, "Optional notification");
-      setText(heading, "Notify them when it can be opened");
+      setText(heading, "Send them email reminders");
       setText(
         copy,
-        "Add their email for one notice after posting and another when the opening moment arrives. The private letter and decryption key are never emailed.",
+        "Add their email for an instant delivery email with a return button, plus another email when the letter becomes openable. The private letter and decryption key are never emailed.",
       );
       if (emailLabel) setLabelText(emailLabel, "Recipient email (optional) ");
 
@@ -64,7 +64,7 @@ export function RecipientArrivalNotificationUpgrade() {
       recipientEmailRef.current = email;
       if (status) {
         const statusCopy = email
-          ? "Email notifications on · share the complete private link separately."
+          ? "Email reminders on · after they use the complete private link once, reminder buttons can bring them back on that browser."
           : "Skip this if you prefer to share the private link yourself.";
         setText(status, statusCopy);
         status.dataset.active = String(Boolean(email));
@@ -154,12 +154,12 @@ export function RecipientArrivalNotificationUpgrade() {
       if (registeredRef.current && email) {
         setText(
           summary,
-          "Arrival email is scheduled and Registered Intezaar Mail is enabled. The recipient will verify with a one-time code before the encrypted letter is released.",
+          "Email reminders are scheduled and Registered Intezaar Mail is enabled. Share the complete private link once; later reminder buttons can return the recipient on the same browser, and they will verify with a one-time code before the encrypted letter is released.",
         );
       } else if (email) {
         setText(
           summary,
-          "Intezaar will email the recipient when the letter becomes openable. Share the complete private link with them too — the email does not contain the decryption key.",
+          "Email reminders are scheduled. Share the complete private link once; after the recipient opens it on their browser, future email buttons can bring them back without emailing the decryption key.",
         );
       }
     };
