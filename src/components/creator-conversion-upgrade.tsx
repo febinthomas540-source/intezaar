@@ -10,6 +10,8 @@ declare global {
 
 const MOBILE_QUERY = "(max-width: 720px)";
 
+type OptionalKind = "route" | "notification";
+
 function prepareMobilePreview() {
   if (!window.matchMedia(MOBILE_QUERY).matches) return;
   const details = document.querySelector<HTMLDetailsElement>(".creation-preview-disclosure");
@@ -19,6 +21,98 @@ function prepareMobilePreview() {
   // preview sit between the visitor and the next step unless they ask to see it.
   details.dataset.conversionPrepared = "true";
   details.open = false;
+}
+
+function optionalState(panel: HTMLElement, kind: OptionalKind) {
+  return panel.dataset[kind === "route" ? "mobileRouteOpen" : "mobileNotificationOpen"] === "true";
+}
+
+function setOptionalState(panel: HTMLElement, kind: OptionalKind, open: boolean) {
+  panel.dataset[kind === "route" ? "mobileRouteOpen" : "mobileNotificationOpen"] = String(open);
+}
+
+function makeOptionalToggle(
+  panel: HTMLElement,
+  target: HTMLElement,
+  kind: OptionalKind,
+  closedLabel: string,
+  openLabel: string,
+  hint: string,
+) {
+  const selector = `[data-mobile-optional-toggle="${kind}"]`;
+  let button = panel.querySelector<HTMLButtonElement>(selector);
+
+  if (!button) {
+    button = document.createElement("button");
+    button.type = "button";
+    button.className = "mobile-optional-toggle";
+    button.dataset.mobileOptionalToggle = kind;
+
+    const copy = document.createElement("span");
+    const title = document.createElement("strong");
+    const note = document.createElement("small");
+    const icon = document.createElement("i");
+    copy.append(title, note);
+    button.append(copy, icon);
+    target.before(button);
+
+    button.addEventListener("click", () => {
+      setOptionalState(panel, kind, !optionalState(panel, kind));
+      window.dispatchEvent(new Event("intezaar:creator-optional-change"));
+    });
+  }
+
+  const open = optionalState(panel, kind);
+  const title = button.querySelector("strong");
+  const note = button.querySelector("small");
+  const icon = button.querySelector("i");
+  if (title) title.textContent = open ? openLabel : closedLabel;
+  if (note) note.textContent = hint;
+  if (icon) icon.textContent = open ? "−" : "+";
+  button.setAttribute("aria-expanded", String(open));
+  target.classList.toggle("mobile-optional-collapsed", !open);
+
+  return open;
+}
+
+function prepareMobileOptionals() {
+  if (!window.matchMedia(MOBILE_QUERY).matches) return;
+  const panel = document.querySelector<HTMLElement>(".creation-panel .arrival-postal-grid")?.closest<HTMLElement>(".creation-panel");
+  if (!panel) return;
+
+  const route = panel.querySelector<HTMLElement>(".postal-route-card");
+  if (route) {
+    makeOptionalToggle(
+      panel,
+      route,
+      "route",
+      "Add route details",
+      "Hide route details",
+      "Optional · for the cinematic journey",
+    );
+  }
+
+  const notification = panel.querySelector<HTMLElement>(".registered-delivery-option");
+  if (notification) {
+    const emailInput = notification.querySelector<HTMLInputElement>("input[type='email']");
+    const verificationChoice = panel.querySelector<HTMLInputElement>(".recipient-verification-choice input[type='checkbox']");
+    const hasExistingChoice = Boolean(emailInput?.value.trim()) || verificationChoice?.checked === true;
+    if (hasExistingChoice && panel.dataset.mobileNotificationOpen === undefined) {
+      setOptionalState(panel, "notification", true);
+    }
+
+    const open = makeOptionalToggle(
+      panel,
+      notification,
+      "notification",
+      "Add email notification",
+      "Hide email options",
+      "Optional · opening-time email and extra privacy",
+    );
+
+    const verificationMount = panel.querySelector<HTMLElement>(".recipient-verification-mount");
+    verificationMount?.classList.toggle("mobile-optional-collapsed", !open);
+  }
 }
 
 function currentCreatorStage() {
@@ -66,6 +160,7 @@ export function CreatorConversionUpgrade() {
 
     const inspect = () => {
       prepareMobilePreview();
+      prepareMobileOptionals();
 
       const stage = currentCreatorStage();
       if (stage && stage !== previousStage) {
@@ -108,17 +203,23 @@ export function CreatorConversionUpgrade() {
       subtree: true,
       characterData: true,
       attributes: true,
-      attributeFilter: ["class", "disabled"],
+      attributeFilter: ["class", "disabled", "value", "checked"],
     });
 
     const mediaQuery = window.matchMedia(MOBILE_QUERY);
-    const onViewportChange = () => prepareMobilePreview();
+    const onViewportChange = () => {
+      prepareMobilePreview();
+      prepareMobileOptionals();
+    };
+    const onOptionalChange = () => prepareMobileOptionals();
     mediaQuery.addEventListener?.("change", onViewportChange);
+    window.addEventListener("intezaar:creator-optional-change", onOptionalChange);
     inspect();
 
     return () => {
       observer.disconnect();
       mediaQuery.removeEventListener?.("change", onViewportChange);
+      window.removeEventListener("intezaar:creator-optional-change", onOptionalChange);
       if (autoFinishTimer !== null) window.clearTimeout(autoFinishTimer);
       if (stepScrollTimer !== null) window.clearTimeout(stepScrollTimer);
     };
