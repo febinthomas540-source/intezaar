@@ -51,6 +51,23 @@ function resendConfiguration(input: { to: string }) {
   return { apiKey, from, error: null };
 }
 
+function frame(content: string) {
+  return `<!doctype html>
+<html lang="en">
+  <body style="margin:0;background:#f4ecdf;color:#3e291f;font-family:Arial,sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4ecdf;padding:32px 16px;">
+      <tr><td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fffaf2;border:1px solid #dfcfba;border-radius:20px;overflow:hidden;">
+          <tr><td style="padding:20px 28px;background:#78251e;color:#fff2dc;font-size:13px;font-weight:700;letter-spacing:.14em;">INTEZAAR · PRIVATE DIGITAL MAIL</td></tr>
+          <tr><td style="padding:38px 30px;">${content}</td></tr>
+          <tr><td style="padding:18px 30px;background:#2c1a14;color:#cbb09a;font-size:12px;line-height:1.5;">Intezaar is a private digital letter experience, not physical postage or an emergency messaging service.</td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </body>
+</html>`;
+}
+
 export async function sendPostedLetterEmail(
   input: PostedLetterEmailInput,
 ): Promise<EmailDeliveryResult> {
@@ -60,72 +77,36 @@ export async function sendPostedLetterEmail(
   const recipientName = escapeHtml(input.recipientName);
   const recipientUrl = escapeHtml(input.recipientUrl);
   const e2eeCopy = input.e2ee
-    ? "This is an end-to-end encrypted letter. Intezaar does not have the decryption key. This email is only a delivery notice; to open the letter later, use the complete private link shared by the sender."
-    : "The sender asked Intezaar to verify that this letter reaches the intended recipient. Open the private link and complete the one-time-code check before the sender details or letter are revealed.";
+    ? "A private end-to-end encrypted Intezaar letter has been posted for you. This notice does not contain the decryption key, so keep the complete private link shared by the sender safe."
+    : "A private Intezaar letter has been posted for you. Keep the private delivery link safe until its chosen opening time.";
   const e2eeNote = input.e2ee
-    ? "The button below does not contain the decryption key. Keep the complete private link from the sender safe."
-    : "Keep this private link safe. The link alone does not reveal the sender or letter; recipient verification is still required.";
+    ? "Intezaar stores the encrypted letter but not its decryption key. The complete sender-shared private link carries that key in the browser-only fragment."
+    : "If the sender enabled recipient verification, you may be asked for a one-time code before the letter is released.";
 
-  const html = `<!doctype html>
-<html lang="en">
-  <body style="margin:0;background:#f4ecdf;color:#3e291f;font-family:Arial,sans-serif;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4ecdf;padding:32px 16px;">
-      <tr>
-        <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fffaf2;border:1px solid #dfcfba;border-radius:20px;overflow:hidden;">
-            <tr>
-              <td style="padding:20px 28px;background:#78251e;color:#fff2dc;font-size:13px;font-weight:700;letter-spacing:.14em;">
-                INTEZAAR · REGISTERED DIGITAL MAIL
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:38px 30px;">
-                <p style="margin:0 0 12px;color:#9a392e;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Private registered mail for ${recipientName}</p>
-                <h1 style="margin:0;color:#40281f;font-family:Georgia,serif;font-size:38px;line-height:1.08;font-weight:500;">A private letter has been posted for you.</h1>
-                <p style="margin:22px 0 0;color:#6d5143;font-size:17px;line-height:1.65;">${e2eeCopy}</p>
-                <div style="margin:26px 0;padding:18px 20px;background:#f3e3cb;border-radius:14px;">
-                  <span style="display:block;color:#9a392e;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">${input.e2ee ? "End-to-end encrypted" : "Registered delivery"}</span>
-                  <strong style="display:block;margin-top:6px;color:#493126;font-family:Georgia,serif;font-size:20px;">${input.e2ee ? "The decryption key stays in the sender-shared link" : "Identity stays sealed until verification"}</strong>
-                </div>
-                <a href="${recipientUrl}" style="display:inline-block;padding:15px 24px;border-radius:8px;background:#8f281f;color:#fff8ef;text-decoration:none;font-weight:700;">${input.e2ee ? "View delivery notice" : "Continue to registered delivery"}</a>
-                <p style="margin:24px 0 0;color:#8a7162;font-size:13px;line-height:1.55;">${e2eeNote}</p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:18px 30px;background:#2c1a14;color:#cbb09a;font-size:12px;line-height:1.5;">
-                Intezaar is a digital letter experience, not physical postage or an emergency messaging service.
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`;
+  const html = frame(`
+    <p style="margin:0 0 12px;color:#9a392e;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">A letter is waiting for ${recipientName}</p>
+    <h1 style="margin:0;color:#40281f;font-family:Georgia,serif;font-size:38px;line-height:1.08;font-weight:500;">A private letter has been posted for you.</h1>
+    <p style="margin:22px 0 0;color:#6d5143;font-size:17px;line-height:1.65;">${e2eeCopy}</p>
+    <div style="margin:26px 0;padding:18px 20px;background:#f3e3cb;border-radius:14px;">
+      <span style="display:block;color:#9a392e;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Delivery notice</span>
+      <strong style="display:block;margin-top:6px;color:#493126;font-family:Georgia,serif;font-size:20px;">We will email you again when the chosen opening moment arrives.</strong>
+    </div>
+    <a href="${recipientUrl}" style="display:inline-block;padding:15px 24px;border-radius:8px;background:#8f281f;color:#fff8ef;text-decoration:none;font-weight:700;">View the sealed delivery</a>
+    <p style="margin:24px 0 0;color:#8a7162;font-size:13px;line-height:1.55;">${e2eeNote}</p>
+  `);
 
-  const text = input.e2ee
-    ? [
-        `Private registered mail for ${input.recipientName}`,
-        "",
-        "A private end-to-end encrypted Intezaar letter has been posted for you.",
-        "Intezaar does not have the decryption key.",
-        "Use the complete private link shared by the sender when you want to receive and open the letter.",
-        "",
-        `Delivery notice: ${input.recipientUrl}`,
-        "",
-        "This email link does not contain the decryption key.",
-      ].join("\n")
-    : [
-        `Private registered mail for ${input.recipientName}`,
-        "",
-        "A private letter has been posted for you.",
-        "The sender asked Intezaar to verify that this letter reaches the intended recipient.",
-        "Complete recipient verification before the sender details or letter are revealed.",
-        "",
-        `Continue to registered delivery: ${input.recipientUrl}`,
-        "",
-        "Keep this private link safe. Recipient verification is still required.",
-      ].join("\n");
+  const text = [
+    `A letter is waiting for ${input.recipientName}`,
+    "",
+    "A private Intezaar letter has been posted for you.",
+    input.e2ee
+      ? "This is end-to-end encrypted. The email does not contain the decryption key; use the complete private link shared by the sender."
+      : "Keep the private delivery link safe until the chosen opening time.",
+    "",
+    `Delivery notice: ${input.recipientUrl}`,
+    "",
+    "Intezaar will send another email when the chosen opening moment arrives.",
+  ].join("\n");
 
   try {
     const response = await fetch("https://api.resend.com/emails", {
@@ -141,6 +122,10 @@ export async function sendPostedLetterEmail(
         subject: "A private Intezaar letter is waiting for you",
         html,
         text,
+        tags: [
+          { name: "category", value: "letter_posted" },
+          { name: "letter_id", value: input.letterId.replace(/-/g, "").slice(0, 32) },
+        ],
       }),
       cache: "no-store",
     });
@@ -151,7 +136,7 @@ export async function sendPostedLetterEmail(
         attempted: true,
         sent: false,
         recipient: input.to,
-        message: result.message || "The invitation email could not be sent. Copy the private link instead.",
+        message: result.message || "The delivery notice could not be sent. Copy the private link instead.",
       };
     }
 
@@ -161,16 +146,16 @@ export async function sendPostedLetterEmail(
       recipient: input.to,
       emailId: result.id,
       message: input.e2ee
-        ? `Delivery notice emailed to ${input.to}. Share the complete private link yourself; the email does not contain the decryption key.`
-        : `Invitation emailed to ${input.to}.`,
+        ? `Delivery notice emailed to ${input.to}, and an opening-time notification is scheduled separately. Share the complete private link yourself; email never contains the decryption key.`
+        : `Delivery notice emailed to ${input.to}.`,
     };
   } catch (error) {
-    console.error("Resend invitation failed:", error);
+    console.error("Resend delivery notice failed:", error);
     return {
       attempted: true,
       sent: false,
       recipient: input.to,
-      message: "The invitation email could not be sent. Copy the private link instead.",
+      message: "The delivery notice could not be sent. Copy the private link instead.",
     };
   }
 }
@@ -194,51 +179,28 @@ export async function scheduleArrivalLetterEmail(
   }
 
   const arrivalCopy = input.e2ee
-    ? "The chosen moment is here. Use the complete private link that the sender shared with you. The email notice does not contain the decryption key, and Intezaar cannot reconstruct it."
-    : "The moment chosen for your private letter is here. Open the same private delivery and, if requested, complete recipient verification before the letter is released.";
+    ? "The waiting is over. Your letter can now be opened. Use the complete private link shared by the sender; this email does not contain the decryption key."
+    : "The waiting is over. The moment chosen for your private letter has arrived, and the seal can now be opened.";
 
-  const html = `<!doctype html>
-<html lang="en">
-  <body style="margin:0;background:#f4ecdf;color:#3e291f;font-family:Arial,sans-serif;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4ecdf;padding:32px 16px;">
-      <tr><td align="center">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fffaf2;border:1px solid #dfcfba;border-radius:20px;overflow:hidden;">
-          <tr><td style="padding:20px 28px;background:#78251e;color:#fff2dc;font-size:13px;font-weight:700;letter-spacing:.14em;">INTEZAAR · PRIVATE DIGITAL MAIL</td></tr>
-          <tr><td style="padding:38px 30px;">
-            <p style="margin:0 0 12px;color:#9a392e;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Arrival notice for ${recipientName}</p>
-            <h1 style="margin:0;color:#40281f;font-family:Georgia,serif;font-size:38px;line-height:1.08;font-weight:500;">Your Intezaar letter has arrived.</h1>
-            <p style="margin:22px 0;color:#6d5143;font-size:17px;line-height:1.65;">${arrivalCopy}</p>
-            <a href="${recipientUrl}" style="display:inline-block;padding:15px 24px;border-radius:8px;background:#8f281f;color:#fff8ef;text-decoration:none;font-weight:700;">${input.e2ee ? "View arrival notice" : "Open your letter"}</a>
-            <p style="margin:24px 0 0;color:#8a7162;font-size:13px;line-height:1.55;">${input.e2ee ? "For an end-to-end encrypted letter, only the complete sender-shared private link carries the decryption key." : "Keep this private link to yourself. Intezaar never asks you to forward a verification code."}</p>
-          </td></tr>
-          <tr><td style="padding:18px 30px;background:#2c1a14;color:#cbb09a;font-size:12px;line-height:1.5;">Intezaar is a private digital letter experience, not physical postage or an emergency messaging service.</td></tr>
-        </table>
-      </td></tr>
-    </table>
-  </body>
-</html>`;
+  const html = frame(`
+    <p style="margin:0 0 12px;color:#9a392e;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Opening-time notice for ${recipientName}</p>
+    <h1 style="margin:0;color:#40281f;font-family:Georgia,serif;font-size:38px;line-height:1.08;font-weight:500;">Your Intezaar letter is ready.</h1>
+    <p style="margin:22px 0;color:#6d5143;font-size:17px;line-height:1.65;">${arrivalCopy}</p>
+    <a href="${recipientUrl}" style="display:inline-block;padding:15px 24px;border-radius:8px;background:#8f281f;color:#fff8ef;text-decoration:none;font-weight:700;">${input.e2ee ? "View the arrival notice" : "Open your letter"}</a>
+    <p style="margin:24px 0 0;color:#8a7162;font-size:13px;line-height:1.55;">${input.e2ee ? "Only the complete sender-shared private link carries the decryption key. Intezaar cannot reconstruct it." : "If recipient verification was enabled, complete the one-time-code check before the letter is released."}</p>
+  `);
 
-  const text = input.e2ee
-    ? [
-        `Arrival notice for ${input.recipientName}`,
-        "",
-        "Your end-to-end encrypted Intezaar letter has arrived.",
-        "Use the complete private link shared by the sender to decrypt it on your device.",
-        "",
-        `Arrival notice: ${input.recipientUrl}`,
-        "",
-        "This email link does not contain the decryption key.",
-      ].join("\n")
-    : [
-        `Arrival notice for ${input.recipientName}`,
-        "",
-        "Your Intezaar letter has arrived.",
-        "The moment chosen for your private letter is here.",
-        "",
-        `Open your letter: ${input.recipientUrl}`,
-        "",
-        "Keep this private link to yourself. Complete recipient verification if requested.",
-      ].join("\n");
+  const text = [
+    `Opening-time notice for ${input.recipientName}`,
+    "",
+    "Your Intezaar letter is ready.",
+    "The waiting is over. The chosen opening moment has arrived.",
+    input.e2ee
+      ? "Use the complete private link shared by the sender; this email does not contain the decryption key."
+      : "Open the private delivery link and complete recipient verification if requested.",
+    "",
+    `Arrival notice: ${input.recipientUrl}`,
+  ].join("\n");
 
   try {
     const response = await fetch("https://api.resend.com/emails", {
@@ -251,7 +213,7 @@ export async function scheduleArrivalLetterEmail(
       body: JSON.stringify({
         from: configuration.from,
         to: [input.to],
-        subject: "Your Intezaar letter has arrived",
+        subject: "Your Intezaar letter is ready to open",
         html,
         text,
         scheduled_at: scheduledAt.toISOString(),
@@ -269,7 +231,7 @@ export async function scheduleArrivalLetterEmail(
         attempted: true,
         sent: false,
         recipient: input.to,
-        message: result.message || "The arrival notification could not be scheduled.",
+        message: result.message || "The opening-time notification could not be scheduled.",
       };
     }
 
@@ -279,8 +241,8 @@ export async function scheduleArrivalLetterEmail(
       recipient: input.to,
       emailId: result.id,
       message: input.e2ee
-        ? `Arrival notice scheduled for ${input.to}. The recipient still needs the complete private link from the sender.`
-        : `Arrival notification scheduled for ${input.to}.`,
+        ? `Opening-time notification scheduled for ${input.to}. The recipient still needs the complete private link from the sender.`
+        : `Opening-time notification scheduled for ${input.to}.`,
     };
   } catch (error) {
     console.error("Resend arrival scheduling failed:", error);
@@ -288,7 +250,7 @@ export async function scheduleArrivalLetterEmail(
       attempted: true,
       sent: false,
       recipient: input.to,
-      message: "The arrival notification could not be scheduled.",
+      message: "The opening-time notification could not be scheduled.",
     };
   }
 }
