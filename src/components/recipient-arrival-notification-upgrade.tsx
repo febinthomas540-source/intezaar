@@ -52,11 +52,11 @@ export function RecipientArrivalNotificationUpgrade() {
       const emailInput = emailLabel?.querySelector<HTMLInputElement>("input[type='email']");
       const status = section.querySelector<HTMLElement>(":scope > small");
 
-      setText(eyebrow, "Arrival notification");
-      setText(heading, "Tell them when the seal can be opened");
+      setText(eyebrow, "Optional notification");
+      setText(heading, "Notify them when it can be opened");
       setText(
         copy,
-        "Add their email and Intezaar will send a delivery notice now and one arrival notification when the chosen opening moment is reached. The emails never contain the letter, private media or decryption key.",
+        "Add their email for one notice after posting and another when the opening moment arrives. The private letter and decryption key are never emailed.",
       );
       if (emailLabel) setLabelText(emailLabel, "Recipient email (optional) ");
 
@@ -64,8 +64,8 @@ export function RecipientArrivalNotificationUpgrade() {
       recipientEmailRef.current = email;
       if (status) {
         const statusCopy = email
-          ? "Two service emails: one after posting, one when the letter becomes openable."
-          : "No email added — you can still share the complete private link manually.";
+          ? "Email notifications on · share the complete private link separately."
+          : "Skip this if you prefer to share the private link yourself.";
         setText(status, statusCopy);
         status.dataset.active = String(Boolean(email));
       }
@@ -180,11 +180,11 @@ export function RecipientArrivalNotificationUpgrade() {
         />
         <span>
           <strong>Require a one-time code before opening</strong>
-          <small>Optional extra privacy · Registered Intezaar Mail</small>
+          <small>Extra privacy · optional</small>
         </span>
       </label>
       <p>
-        Leave this off for normal notification-only delivery. Turn it on only if you want the recipient to verify their email before sender details, encrypted letter data or private-media URLs are released.
+        Off by default. Turn this on only if you want the recipient to verify their email before the encrypted letter is released.
       </p>
     </section>,
     portalTarget,
