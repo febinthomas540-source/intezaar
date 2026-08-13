@@ -42,11 +42,14 @@ function flushPendingLead() {
 export function MetaPixel() {
   const pathname = usePathname();
   const privateRecipient = pathname.startsWith("/receive/");
+  // Creator URLs can contain campaign prefills such as heading/starter text.
+  // Third-party pixels must never see those URLs, even after marketing consent.
+  const sensitiveRoute = privateRecipient || pathname === "/create";
   const [consent, setConsent] = useState<"accepted" | "declined" | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
-    if (privateRecipient) return;
+    if (sensitiveRoute) return;
 
     let timer: number | undefined;
     try {
@@ -64,10 +67,10 @@ export function MetaPixel() {
     return () => {
       if (timer) window.clearTimeout(timer);
     };
-  }, [privateRecipient]);
+  }, [sensitiveRoute]);
 
   useEffect(() => {
-    if (privateRecipient || consent !== "accepted") return;
+    if (sensitiveRoute || consent !== "accepted") return;
 
     let attempts = 0;
     const tryMeasurement = () => {
@@ -85,10 +88,10 @@ export function MetaPixel() {
       if (tryMeasurement() || attempts >= 20) window.clearInterval(timer);
     }, 250);
     return () => window.clearInterval(timer);
-  }, [pathname, consent, privateRecipient]);
+  }, [pathname, consent, sensitiveRoute]);
 
   useEffect(() => {
-    if (privateRecipient || consent !== "accepted" || pathname !== "/create") return;
+    if (sensitiveRoute || consent !== "accepted" || pathname !== "/create") return;
 
     const sent = new Set<string>();
     const fireOnce = (name: string) => {
@@ -117,7 +120,7 @@ export function MetaPixel() {
       document.removeEventListener("focusin", onFocus);
       observer.disconnect();
     };
-  }, [consent, pathname, privateRecipient]);
+  }, [consent, pathname, sensitiveRoute]);
 
   function choose(value: "accepted" | "declined") {
     try {
@@ -129,7 +132,7 @@ export function MetaPixel() {
     setShowPrompt(false);
   }
 
-  if (privateRecipient) return null;
+  if (sensitiveRoute) return null;
 
   return (
     <>
@@ -165,7 +168,7 @@ export function MetaPixel() {
         >
           <strong style={{ display: "block", fontSize: 14, fontWeight: 750 }}>Optional measurement</strong>
           <p style={{ margin: "5px 0 10px", fontSize: 12, lineHeight: 1.45 }}>
-            Allow Meta advertising measurement to help us understand visits and creation steps. It does not include private letter contents, and it is never loaded on recipient pages.
+            Allow Meta advertising measurement to help us understand public-site visits. It does not include private letter contents, and it is never loaded on the creator or recipient pages.
           </p>
           <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
             <button type="button" onClick={() => choose("accepted")} style={{ border: 0, borderRadius: 5, padding: "8px 11px", background: "#8f2f24", color: "#fff8ef", fontSize: 12, fontWeight: 750 }}>
