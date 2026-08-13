@@ -65,20 +65,22 @@ export function InstalledAppShell() {
         </Link>
       </header>
 
-      <nav className="installed-app-tabbar" aria-label="App navigation">
-        <Link href="/" className={onHome ? "active" : ""} aria-current={onHome ? "page" : undefined}>
-          <HomeIcon />
-          <span>Home</span>
-        </Link>
-        <Link href="/create" className={`installed-app-compose ${onCreate ? "active" : ""}`} aria-current={onCreate ? "page" : undefined}>
-          <span className="compose-icon"><LetterIcon /></span>
-          <span>Write</span>
-        </Link>
-        <Link href="/#how-it-works">
-          <GuideIcon />
-          <span>How it works</span>
-        </Link>
-      </nav>
+      {!onCreate ? (
+        <nav className="installed-app-tabbar" aria-label="App navigation">
+          <Link href="/" className={onHome ? "active" : ""} aria-current={onHome ? "page" : undefined}>
+            <HomeIcon />
+            <span>Home</span>
+          </Link>
+          <Link href="/create" className="installed-app-compose">
+            <span className="compose-icon"><LetterIcon /></span>
+            <span>Write</span>
+          </Link>
+          <Link href="/#how-it-works">
+            <GuideIcon />
+            <span>How it works</span>
+          </Link>
+        </nav>
+      ) : null}
     </>
   );
 }
