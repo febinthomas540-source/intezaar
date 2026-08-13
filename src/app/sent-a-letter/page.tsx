@@ -4,7 +4,7 @@ import { Navigation } from "@/components/navigation";
 import styles from "../viral-share.module.css";
 
 export const metadata: Metadata = {
-  title: "I Sent a Letter That Has to Wait — Intezaar",
+  title: "I Sent a Letter That Has to Wait",
   description: "Someone used Intezaar to send a private digital letter with a chosen opening time. Write one of your own.",
   robots: { index: false, follow: true },
   alternates: { canonical: "/sent-a-letter" },
