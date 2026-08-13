@@ -44,26 +44,30 @@ export async function POST(request: Request) {
     }
 
     if (upstream.ok && result && typeof result.manageToken === "string") {
-      const letter = await findLetterByManageToken(result.manageToken);
-      if (letter) {
-        const metadata: Record<string, unknown> = {
-          ...(letter.metadata || {}),
-          registered_delivery: registeredDelivery,
-          recipient_notification_email: Boolean(recipientEmail),
-          recipient_notification_mode: recipientEmail ? "posted_and_arrival_email" : "private_link_only",
-          recipient_notification_updated_at: new Date().toISOString(),
-        };
+      try {
+        const letter = await findLetterByManageToken(result.manageToken);
+        if (letter) {
+          const metadata: Record<string, unknown> = {
+            ...(letter.metadata || {}),
+            registered_delivery: registeredDelivery,
+            recipient_notification_email: Boolean(recipientEmail),
+            recipient_notification_mode: recipientEmail ? "posted_and_arrival_email" : "private_link_only",
+            recipient_notification_updated_at: new Date().toISOString(),
+          };
 
-        await updateLetterMetadata(letter.id, metadata);
-        await insertLetterEvent(
-          letter.id,
-          recipientEmail ? "recipient_notifications_enabled" : "recipient_notifications_not_requested",
-          { source: "creator", registered_delivery: registeredDelivery },
-        );
+          await updateLetterMetadata(letter.id, metadata);
+          await insertLetterEvent(
+            letter.id,
+            recipientEmail ? "recipient_notifications_enabled" : "recipient_notifications_not_requested",
+            { source: "creator", registered_delivery: registeredDelivery },
+          );
 
-        if (registeredDelivery) {
-          await insertLetterEvent(letter.id, "registered_delivery_enabled", { source: "creator" });
+          if (registeredDelivery) {
+            await insertLetterEvent(letter.id, "registered_delivery_enabled", { source: "creator" });
+          }
         }
+      } catch (error) {
+        console.error("Notification metadata enrichment failed after letter creation:", error);
       }
 
       result.registeredDelivery = registeredDelivery;
