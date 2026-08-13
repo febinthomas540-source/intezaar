@@ -31,6 +31,10 @@ declare global {
 type Status = "loading" | "ready" | "expired" | "error";
 
 const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
+const protectedCreatePaths = new Set([
+  "/api/letters",
+  "/api/letters/notification-create",
+]);
 
 function statusCopy(status: Status) {
   if (status === "ready") return "Security check complete";
@@ -74,7 +78,11 @@ export function TurnstilePostingGuard() {
       const method = (init?.method || (input instanceof Request ? input.method : "GET")).toUpperCase();
       const url = new URL(rawUrl, window.location.origin);
 
-      if (url.origin === window.location.origin && url.pathname === "/api/letters" && method === "POST") {
+      if (
+        url.origin === window.location.origin
+        && protectedCreatePaths.has(url.pathname)
+        && method === "POST"
+      ) {
         const token = window.__intezaarTurnstileToken;
         if (!token) return blockedResponse();
 
