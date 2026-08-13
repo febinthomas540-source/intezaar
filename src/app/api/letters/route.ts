@@ -52,6 +52,7 @@ type CreateLetterBody = {
   senderEmail?: unknown;
   recipientName?: unknown;
   recipientEmail?: unknown;
+  registeredDelivery?: unknown;
   occasion?: unknown;
   format?: unknown;
   fromCity?: unknown;
@@ -218,6 +219,7 @@ export async function POST(request: Request) {
     const senderEmail = cleanEmail(body.senderEmail);
     const recipientName = cleanText(body.recipientName, 80);
     const recipientEmail = cleanEmail(body.recipientEmail);
+    const registeredDelivery = body.registeredDelivery === true && Boolean(recipientEmail);
     const occasion = cleanText(body.occasion, 100) || "Just because";
     const format = cleanText(body.format, 30);
     const fromCity = cleanText(body.fromCity, 80);
@@ -320,7 +322,7 @@ export async function POST(request: Request) {
       media_count: media.length,
       source: "web_creator",
       turnstile_validated: !challenge.skipped,
-      registered_delivery: Boolean(recipientEmail),
+      registered_delivery: registeredDelivery,
       payload_version: isE2EE ? 3 : 2,
     };
     if (isE2EE) {
