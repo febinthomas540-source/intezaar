@@ -4,7 +4,7 @@ import { Navigation } from "@/components/navigation";
 import styles from "../viral-share.module.css";
 
 export const metadata: Metadata = {
-  title: "Someone Sent Me a Letter I Had to Wait to Open — Intezaar",
+  title: "Someone Sent Me a Letter I Had to Wait to Open",
   description: "Someone received a private Intezaar letter that stayed sealed until its chosen opening time. Write one of your own.",
   robots: { index: false, follow: true },
   alternates: { canonical: "/received-a-letter" },
@@ -33,17 +33,17 @@ export default function ReceivedALetterPage() {
             Intezaar keeps the message sealed until its chosen moment. After opening one, you can continue the ritual by writing a private letter of your own.
           </p>
           <div className={styles.actions}>
-            <Link href="/create" className={styles.primary}>Write a letter back</Link>
-            <Link href="/future-self" className={styles.secondary}>Write to future me</Link>
+            <Link href="/create" className={styles.primary}>Write your own letter</Link>
+            <Link href="/open-when" className={styles.secondary}>Explore Open When letters</Link>
           </div>
         </div>
 
-        <div className={styles.card} aria-label="An opened Intezaar letter experience">
+        <div className={styles.card} aria-label="An opened Intezaar envelope">
           <div className={styles.envelope}>
-            <strong>The wait ended. The words arrived.</strong>
+            <strong>The waiting ended. The letter arrived.</strong>
             <span className={styles.seal}>I</span>
           </div>
-          <p className={styles.note}>This public page contains no private letter link, message, sender or recipient identity, or opening date.</p>
+          <p className={styles.note}>This public page never contains the private letter, recipient link, recipient name or opening details.</p>
         </div>
       </section>
     </main>
