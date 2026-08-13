@@ -3,13 +3,16 @@
 import { createClient } from "@supabase/supabase-js";
 import type { LetterFormat, PhotoPatch } from "@/components/letter-preview";
 import {
+  e2eeOpenProofFromUrlKey,
   encryptE2EEPayload,
   randomE2EEIvBase64,
+  type E2EEEnvelope,
   type E2EEPrivateMediaItem,
 } from "@/lib/letter-e2ee";
 import { MAX_DELIVERY_MS, MIN_DELIVERY_MS } from "@/lib/letter-rules";
 
 const POSTED_KEY = "intezaar:last-secure-letter:v1";
+const PENDING_CREATION_KEY = "intezaar:pending-secure-letter:v1";
 const DRAFT_KEY = "intezaar:create-draft:v3";
 const LEGACY_CONTACT_KEY = "intezaar:create-contacts:v1";
 const MEDIA_BUCKET = "letter-media";
@@ -91,7 +94,21 @@ type ApiMediaUploadPlan = {
 type CreateLetterApiResult = Omit<Partial<SecureLetterResult>, "mediaUpload"> & {
   mediaUpload?: ApiMediaUploadPlan | null;
   error?: string;
+  replayed?: boolean;
 };
+
+type PendingSecureCreation = {
+  fingerprint: string;
+  idempotencyKey: string;
+  opensAt: string;
+  privateMedia: E2EEPrivateMediaItem[];
+  envelope: E2EEEnvelope;
+  keyBase64: string;
+  urlKey: string;
+  openProofCommitment: string;
+};
+
+let memoryPendingCreation: PendingSecureCreation | null = null;
 
 export function draftFingerprint(draft: SecureDraft, media: SecureMediaItem[]) {
   const source = JSON.stringify([
@@ -126,6 +143,56 @@ export function draftFingerprint(draft: SecureDraft, media: SecureMediaItem[]) {
   return (hash >>> 0).toString(36);
 }
 
+function validPendingCreation(value: unknown, fingerprint: string): value is PendingSecureCreation {
+  if (!value || typeof value !== "object") return false;
+  const pending = value as Partial<PendingSecureCreation>;
+  return (
+    pending.fingerprint === fingerprint &&
+    typeof pending.idempotencyKey === "string" &&
+    /^[A-Za-z0-9_-]{32,64}$/.test(pending.idempotencyKey) &&
+    typeof pending.opensAt === "string" &&
+    Array.isArray(pending.privateMedia) &&
+    pending.envelope?.version === 3 &&
+    typeof pending.envelope.ciphertext === "string" &&
+    typeof pending.envelope.iv === "string" &&
+    typeof pending.envelope.authTag === "string" &&
+    typeof pending.keyBase64 === "string" &&
+    typeof pending.urlKey === "string" &&
+    typeof pending.openProofCommitment === "string" &&
+    /^[A-Za-z0-9_-]{43}$/.test(pending.openProofCommitment)
+  );
+}
+
+function readPendingCreation(fingerprint: string) {
+  if (memoryPendingCreation?.fingerprint === fingerprint) return memoryPendingCreation;
+  try {
+    const parsed = JSON.parse(window.sessionStorage.getItem(PENDING_CREATION_KEY) || "null") as unknown;
+    if (!validPendingCreation(parsed, fingerprint)) return null;
+    memoryPendingCreation = parsed;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function savePendingCreation(pending: PendingSecureCreation) {
+  memoryPendingCreation = pending;
+  try {
+    window.sessionStorage.setItem(PENDING_CREATION_KEY, JSON.stringify(pending));
+  } catch {
+    // The in-memory retry still protects the current page when storage is unavailable.
+  }
+}
+
+function clearPendingCreation() {
+  memoryPendingCreation = null;
+  try {
+    window.sessionStorage.removeItem(PENDING_CREATION_KEY);
+  } catch {
+    // Session storage is optional.
+  }
+}
+
 export function readSavedLetter(fingerprint: string): SavedSecureLetter | null {
   try {
     const saved = JSON.parse(window.sessionStorage.getItem(POSTED_KEY) || "null") as SavedSecureLetter | null;
@@ -140,6 +207,7 @@ export function saveSecureLetter(result: SecureLetterResult, fingerprint: string
   const saved: SavedSecureLetter = { ...safeResult, fingerprint };
   try {
     window.sessionStorage.setItem(POSTED_KEY, JSON.stringify(saved));
+    clearPendingCreation();
     window.localStorage.setItem(
       "intezaar:last-manage-token:v1",
       JSON.stringify({
@@ -205,10 +273,11 @@ function recipientUrlWithoutKey(value: string) {
   return url.toString();
 }
 
-export async function createSecureLetter(
+async function createPendingCreation(
+  fingerprint: string,
   draft: SecureDraft,
   media: SecureMediaItem[],
-): Promise<SecureLetterResult> {
+): Promise<PendingSecureCreation> {
   const opensAt = createOpensAt(draft);
   const privateMedia = privateMediaDescriptor(media);
   const encrypted = await encryptE2EEPayload({
@@ -218,6 +287,33 @@ export async function createSecureLetter(
     closing: draft.closing,
     media: privateMedia,
   });
+  const openProofCommitment = await e2eeOpenProofFromUrlKey(encrypted.urlKey);
+
+  return {
+    fingerprint,
+    idempotencyKey: window.crypto.randomUUID(),
+    opensAt,
+    privateMedia,
+    envelope: encrypted.envelope,
+    keyBase64: encrypted.keyBase64,
+    urlKey: encrypted.urlKey,
+    openProofCommitment,
+  };
+}
+
+export async function createSecureLetter(
+  draft: SecureDraft,
+  media: SecureMediaItem[],
+): Promise<SecureLetterResult> {
+  const fingerprint = draftFingerprint(draft, media);
+  let pending = readPendingCreation(fingerprint);
+  if (!pending) {
+    pending = await createPendingCreation(fingerprint, draft, media);
+    // Persist the exact ciphertext, key material and retry identifier before the
+    // network request. If the server commits but the response is lost, the next
+    // attempt can safely recover the same letter instead of creating a duplicate.
+    savePendingCreation(pending);
+  }
 
   const response = await fetch("/api/letters", {
     method: "POST",
@@ -230,10 +326,12 @@ export async function createSecureLetter(
       format: draft.format,
       fromCity: draft.fromCity,
       toCity: draft.toCity,
-      opensAt,
+      opensAt: pending.opensAt,
       timezoneOffset: new Date().getTimezoneOffset(),
-      encryptedPayload: encrypted.envelope,
-      media: privateMedia.map((item) => ({
+      encryptedPayload: pending.envelope,
+      idempotencyKey: pending.idempotencyKey,
+      openProofCommitment: pending.openProofCommitment,
+      media: pending.privateMedia.map((item) => ({
         id: item.id,
         kind: item.kind,
         mimeType: item.mimeType,
@@ -248,10 +346,10 @@ export async function createSecureLetter(
     throw new Error(result.error || "The letter could not be stored securely.");
   }
 
-  const recipientUrl = recipientUrlWithKey(result.recipientUrl, encrypted.urlKey);
+  const recipientUrl = recipientUrlWithKey(result.recipientUrl, pending.urlKey);
   const mediaUpload = result.mediaUpload
     ? {
-        key: encrypted.keyBase64,
+        key: pending.keyBase64,
         items: result.mediaUpload.items,
       } satisfies MediaUploadPlan
     : null;
