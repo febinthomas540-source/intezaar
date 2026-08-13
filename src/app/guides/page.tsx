@@ -4,7 +4,7 @@ import { Navigation } from "@/components/navigation";
 import styles from "./guides.module.css";
 
 export const metadata: Metadata = {
-  title: "Letter Writing Guides — Intezaar",
+  title: "Letter Writing Guides",
   description: "Practical letter-writing ideas for future-self letters, Open When letters, long-distance birthdays, wedding mornings, Onam, parents, apologies and digital time capsules.",
   alternates: { canonical: "/guides" },
 };
