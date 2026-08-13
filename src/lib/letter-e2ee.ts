@@ -102,6 +102,22 @@ export function readE2EEKeyFromHash(hash = window.location.hash) {
   }
 }
 
+export async function e2eeOpenProofFromUrlKey(urlKey: string) {
+  const crypto = requiredCrypto();
+  const rawKey = base64UrlToBytes(urlKey);
+  if (rawKey.length !== 32) throw new Error("The private decryption key is invalid.");
+
+  // This is a one-way commitment to the random 256-bit E2EE key, not the key
+  // itself. Intezaar stores only this digest so a keyless delivery token cannot
+  // forge a successful-decryption/opened receipt later.
+  const context = new TextEncoder().encode("intezaar-open-proof-v1:");
+  const source = new Uint8Array(context.length + rawKey.length);
+  source.set(context, 0);
+  source.set(rawKey, context.length);
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", source));
+  return bytesToBase64Url(digest);
+}
+
 function validatePayload(value: unknown): E2EEPayload {
   if (!value || typeof value !== "object") throw new Error("The encrypted letter payload is invalid.");
   const payload = value as Partial<E2EEPayload>;
