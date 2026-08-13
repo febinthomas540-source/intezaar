@@ -4,7 +4,7 @@ import { PolicyShell } from "@/components/policy-shell";
 import styles from "@/components/policy-shell.module.css";
 
 export const metadata: Metadata = {
-  title: "About Intezaar — Private Letters That Wait",
+  title: "About — Private Letters That Wait",
   description: "What Intezaar is, why it exists, what the public beta does today, and the limits we want users to understand clearly.",
   alternates: { canonical: "/about" },
 };
