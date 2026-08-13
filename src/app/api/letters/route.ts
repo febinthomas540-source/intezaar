@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import {
   MAX_DELIVERY_MS,
@@ -9,7 +9,9 @@ import {
 } from "@/lib/letter-rules";
 import {
   createPrivateToken,
+  e2eeTransportMedia,
   encryptLetterPayload,
+  findLetterByAccessToken,
   hashPrivateToken,
   insertEncryptedLetter,
   insertLetterEvent,
@@ -18,6 +20,7 @@ import {
   type LetterMediaKind,
   type LetterMediaManifestItem,
   type LetterPhotoLayout,
+  type StoredLetter,
 } from "@/lib/letter-security";
 import { scheduleArrivalLetterEmail, sendPostedLetterEmail } from "@/lib/resend-mail";
 import { createMediaUploadTargets } from "@/lib/supabase-storage";
@@ -64,6 +67,8 @@ type CreateLetterBody = {
   timezoneOffset?: unknown;
   encryptedPayload?: unknown;
   media?: unknown;
+  idempotencyKey?: unknown;
+  openProofCommitment?: unknown;
 };
 
 type ValidatedMedia = {
@@ -189,6 +194,76 @@ function publicSiteUrl(request: Request) {
   return configured || new URL(request.url).origin;
 }
 
+function cleanIdempotencyKey(value: unknown) {
+  const key = cleanText(value, 64);
+  return /^[A-Za-z0-9_-]{32,64}$/.test(key) ? key : "";
+}
+
+function cleanOpenProof(value: unknown) {
+  const proof = cleanText(value, 64);
+  return /^[A-Za-z0-9_-]{43}$/.test(proof) ? proof : "";
+}
+
+function idempotentPrivateToken(idempotencyKey: string, purpose: "access" | "manage") {
+  return createHash("sha256")
+    .update(`intezaar-create-${purpose}-v1:${idempotencyKey}`)
+    .digest("base64url");
+}
+
+function idempotentLetterId(idempotencyKey: string) {
+  const chars = createHash("sha256")
+    .update(`intezaar-create-letter-v1:${idempotencyKey}`)
+    .digest("hex")
+    .slice(0, 32)
+    .split("");
+  chars[12] = "4";
+  chars[16] = ((Number.parseInt(chars[16], 16) & 3) | 8).toString(16);
+  const value = chars.join("");
+  return `${value.slice(0, 8)}-${value.slice(8, 12)}-${value.slice(12, 16)}-${value.slice(16, 20)}-${value.slice(20)}`;
+}
+
+function creationRequestHash(input: Record<string, unknown>) {
+  return createHash("sha256").update(JSON.stringify(input)).digest("base64url");
+}
+
+async function replayCreationResponse(
+  request: Request,
+  letter: StoredLetter,
+  accessToken: string,
+  manageToken: string,
+) {
+  const manifest = e2eeTransportMedia(letter);
+  const mediaReady = letter.metadata?.media_ready === true;
+  const uploadTargets = !mediaReady && manifest.length
+    ? await createMediaUploadTargets(manifest.map(({ id, path }) => ({ id, path })))
+    : [];
+  const mediaCount = typeof letter.metadata?.media_count === "number"
+    ? letter.metadata.media_count
+    : manifest.length;
+
+  return NextResponse.json(
+    {
+      recipientUrl: `${publicSiteUrl(request)}/receive/${accessToken}`,
+      manageToken,
+      opensAt: letter.opens_at,
+      mediaReady,
+      mediaCount,
+      mediaUpload: !mediaReady && manifest.length
+        ? {
+            items: manifest.map((item) => ({
+              id: item.id,
+              path: item.path,
+              iv: item.iv,
+              token: uploadTargets.find((target) => target.id === item.id)?.token,
+            })),
+          }
+        : null,
+      replayed: true,
+    },
+    { status: 200, headers: { "Cache-Control": "no-store" } },
+  );
+}
+
 export async function POST(request: Request) {
   try {
     if (!request.headers.get("content-type")?.includes("application/json")) {
@@ -228,6 +303,8 @@ export async function POST(request: Request) {
     const message = isE2EE ? "" : cleanText(body.message, 4000);
     const closing = isE2EE ? "" : cleanText(body.closing, 240);
     const media = validateMedia(body.media, isE2EE);
+    const idempotencyKey = cleanIdempotencyKey(body.idempotencyKey);
+    const openProofCommitment = cleanOpenProof(body.openProofCommitment);
 
     if (!senderName || !recipientName || (!isE2EE && !message)) {
       return NextResponse.json(
@@ -251,6 +328,16 @@ export async function POST(request: Request) {
       );
     }
 
+    if (body.idempotencyKey !== undefined && !idempotencyKey) {
+      return NextResponse.json({ error: "The posting retry key is invalid." }, { status: 400 });
+    }
+    if (idempotencyKey && !isE2EE) {
+      return NextResponse.json({ error: "Idempotent posting requires browser-encrypted delivery." }, { status: 400 });
+    }
+    if (idempotencyKey && !openProofCommitment) {
+      return NextResponse.json({ error: "The encrypted opened-receipt commitment is invalid." }, { status: 400 });
+    }
+
     if (isE2EE && media.some((item) => item.iv === encryptedPayload?.iv)) {
       return NextResponse.json({ error: "The encrypted letter used a duplicate encryption nonce." }, { status: 400 });
     }
@@ -258,6 +345,47 @@ export async function POST(request: Request) {
     const opensAt = typeof body.opensAt === "string" ? new Date(body.opensAt) : new Date(Number.NaN);
     if (!Number.isFinite(opensAt.getTime())) {
       return NextResponse.json({ error: "Choose a valid opening date and time." }, { status: 400 });
+    }
+
+    const replayHash = idempotencyKey
+      ? creationRequestHash({
+          senderName,
+          recipientName,
+          recipientEmail: recipientEmail || "",
+          occasion,
+          format,
+          fromCity,
+          toCity,
+          opensAt: opensAt.toISOString(),
+          encryptedPayload,
+          media: media.map((item) => ({
+            id: item.id,
+            kind: item.kind,
+            mimeType: item.mimeType,
+            size: item.size,
+            iv: item.iv || "",
+          })),
+          openProofCommitment,
+        })
+      : "";
+    const accessToken = idempotencyKey
+      ? idempotentPrivateToken(idempotencyKey, "access")
+      : createPrivateToken();
+    const manageToken = idempotencyKey
+      ? idempotentPrivateToken(idempotencyKey, "manage")
+      : createPrivateToken();
+
+    if (idempotencyKey) {
+      const existing = await findLetterByAccessToken(accessToken);
+      if (existing) {
+        if (existing.metadata?.creation_request_hash !== replayHash) {
+          return NextResponse.json(
+            { error: "This posting retry key was already used for a different encrypted letter." },
+            { status: 409, headers: { "Cache-Control": "no-store" } },
+          );
+        }
+        return replayCreationResponse(request, existing, accessToken, manageToken);
+      }
     }
 
     const now = Date.now();
@@ -270,9 +398,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const letterId = randomUUID();
-    const accessToken = createPrivateToken();
-    const manageToken = createPrivateToken();
+    const letterId = idempotencyKey ? idempotentLetterId(idempotencyKey) : randomUUID();
     const mediaKey = !isE2EE && media.length ? randomBytes(32).toString("base64") : undefined;
 
     const e2eeManifest: E2EETransportMediaItem[] = isE2EE
@@ -328,28 +454,43 @@ export async function POST(request: Request) {
     if (isE2EE) {
       baseMetadata.e2ee_version = 1;
       baseMetadata.e2ee_media = e2eeManifest;
+      if (openProofCommitment) baseMetadata.e2ee_open_proof = openProofCommitment;
+    }
+    if (idempotencyKey) {
+      baseMetadata.creation_request_hash = replayHash;
+      baseMetadata.idempotent_creation = true;
     }
 
-    await insertEncryptedLetter({
-      id: letterId,
-      access_token_hash: hashPrivateToken(accessToken),
-      manage_token_hash: hashPrivateToken(manageToken),
-      sender_name: senderName,
-      sender_email: senderEmail || null,
-      recipient_name: recipientName,
-      recipient_email: recipientEmail || null,
-      occasion,
-      letter_format: format,
-      from_city: fromCity || null,
-      to_city: toCity || null,
-      payload_ciphertext: encrypted.ciphertext,
-      payload_iv: encrypted.iv,
-      payload_auth_tag: encrypted.authTag,
-      opens_at: opensAt.toISOString(),
-      status: "posted",
-      expires_at: expiresAt.toISOString(),
-      metadata: baseMetadata,
-    });
+    try {
+      await insertEncryptedLetter({
+        id: letterId,
+        access_token_hash: hashPrivateToken(accessToken),
+        manage_token_hash: hashPrivateToken(manageToken),
+        sender_name: senderName,
+        sender_email: senderEmail || null,
+        recipient_name: recipientName,
+        recipient_email: recipientEmail || null,
+        occasion,
+        letter_format: format,
+        from_city: fromCity || null,
+        to_city: toCity || null,
+        payload_ciphertext: encrypted.ciphertext,
+        payload_iv: encrypted.iv,
+        payload_auth_tag: encrypted.authTag,
+        opens_at: opensAt.toISOString(),
+        status: "posted",
+        expires_at: expiresAt.toISOString(),
+        metadata: baseMetadata,
+      });
+    } catch (error) {
+      if (idempotencyKey) {
+        const existing = await findLetterByAccessToken(accessToken);
+        if (existing?.metadata?.creation_request_hash === replayHash) {
+          return replayCreationResponse(request, existing, accessToken, manageToken);
+        }
+      }
+      throw error;
+    }
 
     await insertLetterEvent(letterId, "created", { source: "web_creator", e2ee: isE2EE });
     await insertLetterEvent(letterId, "posted", { opens_at: opensAt.toISOString(), e2ee: isE2EE });
@@ -444,6 +585,7 @@ export async function POST(request: Request) {
               })),
             }
           : null,
+        replayed: false,
       },
       {
         status: 201,
