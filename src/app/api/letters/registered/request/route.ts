@@ -60,20 +60,20 @@ export async function POST(request: Request) {
     const verification = createVerificationCode(letter.id);
     const requestedAt = new Date().toISOString();
     const expiresAt = new Date(now + 10 * 60 * 1000).toISOString();
-    const metadata = {
+
+    // Make the new code verifiable before sending it, but do not consume the
+    // resend cooldown or hourly allowance until the provider confirms delivery.
+    // If delivery fails, restore the exact previous metadata so a provider
+    // outage never locks the recipient out of another attempt.
+    const pendingMetadata = {
       ...letter.metadata,
       registered_otp_hash: verification.hash,
       registered_otp_salt: verification.salt,
       registered_otp_expires_at: expiresAt,
-      registered_otp_sent_at: requestedAt,
       registered_otp_attempts: 0,
-      registered_otp_window_started_at: inWindow
-        ? letter.metadata.registered_otp_window_started_at
-        : requestedAt,
-      registered_otp_request_count: requestCount + 1,
     };
 
-    await updateRegisteredMetadata(letter.id, metadata);
+    await updateRegisteredMetadata(letter.id, pendingMetadata);
     const delivery = await sendRegisteredVerificationCode({
       letterId: letter.id,
       requestId: verification.hash.slice(0, 16),
@@ -83,10 +83,33 @@ export async function POST(request: Request) {
     });
 
     if (!delivery.sent) {
+      try {
+        await updateRegisteredMetadata(letter.id, letter.metadata);
+      } catch (rollbackError) {
+        console.error("Registered verification metadata rollback failed:", rollbackError);
+      }
       return NextResponse.json(
         { error: delivery.message },
         { status: 503, headers: { "Cache-Control": "no-store" } },
       );
+    }
+
+    const deliveredMetadata = {
+      ...pendingMetadata,
+      registered_otp_sent_at: requestedAt,
+      registered_otp_window_started_at: inWindow
+        ? letter.metadata.registered_otp_window_started_at
+        : requestedAt,
+      registered_otp_request_count: requestCount + 1,
+    };
+
+    try {
+      await updateRegisteredMetadata(letter.id, deliveredMetadata);
+    } catch (bookkeepingError) {
+      // The email has already been delivered and pendingMetadata contains a
+      // valid code. Do not tell the recipient the send failed just because the
+      // cooldown bookkeeping could not be committed.
+      console.error("Registered verification delivery bookkeeping failed:", bookkeepingError);
     }
 
     return NextResponse.json(
