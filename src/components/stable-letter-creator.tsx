@@ -205,7 +205,7 @@ export function StableLetterCreator() {
     + videos.reduce((total, item) => total + item.size, 0);
   const mediaSlotsLeft = Math.max(0, MAX_MEDIA_ITEMS - mediaCount);
   const wordCount = letter.trim() ? letter.trim().split(/\s+/).length : 0;
-  const canContinue = Boolean(sender.trim() && recipient.trim() && letter.trim() && validEmail(recipientEmail));
+  const canContinue = Boolean(sender.trim() && recipient.trim() && letter.trim());
   const currentStep = created ? 6 : step;
   const progress = ["Write", "Personalise", "Arrival", "Seal", "Post", "Share"];
   const minArrival = toDateInput(new Date());
@@ -243,7 +243,11 @@ export function StableLetterCreator() {
         setArrivalPreset(validArrivalPreset(draft.arrivalPreset) ? draft.arrivalPreset : "custom");
       }
     } catch {
-      window.localStorage.removeItem(DRAFT_KEY);
+      try {
+        window.localStorage.removeItem(DRAFT_KEY);
+      } catch {
+        // Draft persistence is optional; the creator still works in memory.
+      }
     } finally {
       setDraftReady(true);
     }
@@ -266,7 +270,11 @@ export function StableLetterCreator() {
       arrivalTime,
       arrivalPreset,
     };
-    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    try {
+      window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch {
+      // Autosave is best-effort; storage restrictions must never break writing.
+    }
   }, [draftReady, sender, recipient, recipientEmail, occasion, heading, letter, closing, format, fromCity, toCity, arrivalDate, arrivalTime, arrivalPreset]);
 
   useEffect(() => () => {
