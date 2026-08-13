@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { e2eeOpenProofFromUrlKey, readE2EEKeyFromHash } from "@/lib/letter-e2ee";
 import styles from "./recipient-growth-prompt.module.css";
 
 type Props = {
@@ -19,12 +20,25 @@ export function RecipientGrowthPrompt({ token, enabled }: Props) {
     [token],
   );
 
-  function record(action: RecipientAction) {
+  async function record(action: RecipientAction) {
     if (!enabled) return;
+
+    let openProof = "";
+    if (action === "opened") {
+      const urlKey = readE2EEKeyFromHash();
+      if (urlKey) {
+        try {
+          openProof = await e2eeOpenProofFromUrlKey(urlKey);
+        } catch {
+          // Reading the letter must never depend on receipt telemetry.
+        }
+      }
+    }
+
     void fetch("/api/letters/recipient-event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, action }),
+      body: JSON.stringify({ token, action, ...(openProof ? { openProof } : {}) }),
       cache: "no-store",
       keepalive: true,
     }).catch(() => {
@@ -47,7 +61,7 @@ export function RecipientGrowthPrompt({ token, enabled }: Props) {
       const button = (event.target as HTMLElement | null)?.closest("button");
       if (!button || button.textContent?.trim() !== "Break the seal") return;
 
-      record("opened");
+      void record("opened");
       try {
         window.sessionStorage.setItem(sessionKey, "opened");
       } catch {
@@ -61,16 +75,16 @@ export function RecipientGrowthPrompt({ token, enabled }: Props) {
   }, [enabled, sessionKey]);
 
   function writeBack() {
-    record("write_back");
+    void record("write_back");
     window.location.assign("/create");
   }
 
   function futureSelf() {
-    record("future_self");
+    void record("future_self");
   }
 
   async function shareIdea() {
-    record("share_idea");
+    void record("share_idea");
     const url = `${window.location.origin}/received-a-letter`;
     const text = "Someone sent me an Intezaar letter I had to wait to open. The private letter stayed private.";
 
