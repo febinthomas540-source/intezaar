@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PostboxHome } from "@/components/postbox-home";
 
 export const metadata: Metadata = {
-  title: "Intezaar — End-to-end encrypted letters for later",
+  title: "End-to-end encrypted letters for later",
   description: "Write an end-to-end encrypted digital letter, choose when it can be opened, or leave a private letter for your future self with Intezaar.",
   alternates: { canonical: "/" },
   openGraph: {
