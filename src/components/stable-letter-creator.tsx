@@ -28,6 +28,7 @@ import {
   encryptAndUploadMedia,
   readSavedLetter,
   saveSecureLetter,
+  type EmailDelivery,
   type SecureDraft,
   type SecureLetterResult,
   type SecureMediaItem,
@@ -69,8 +70,12 @@ type StableVideoItem = VideoItem & { file: File; mimeType: string; lastModified:
 
 type Draft = {
   sender: string;
+  senderEmail: string;
+  senderNotifications: boolean;
   recipient: string;
   recipientEmail: string;
+  recipientNotifications: boolean;
+  registeredDelivery: boolean;
   occasion: string;
   heading: string;
   letter: string;
@@ -156,7 +161,23 @@ function fileSize(bytes: number) {
 }
 
 function validEmail(value: string) {
-  return !value.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+function deliveryTone(delivery: EmailDelivery | undefined, requested: boolean) {
+  if (!requested) return "not-requested";
+  if (delivery?.sent) return "success";
+  if (delivery?.message.toLowerCase().includes("not configured")) return "failed";
+  if (delivery?.attempted) return "failed";
+  return "attention";
+}
+
+function deliveryLabel(delivery: EmailDelivery | undefined, requested: boolean, success: string) {
+  if (!requested) return "Not requested";
+  if (delivery?.sent) return success;
+  if (delivery?.message.toLowerCase().includes("not configured")) return "Unavailable";
+  if (delivery?.attempted) return "Failed";
+  return "Check status";
 }
 
 function validArrivalPreset(value: unknown): value is ArrivalPreset {
@@ -169,8 +190,12 @@ export function StableLetterCreator() {
   const [draftReady, setDraftReady] = useState(false);
   const [format, setFormat] = useState<LetterFormat>("classic");
   const [sender, setSender] = useState("");
+  const [senderEmail, setSenderEmail] = useState("");
+  const [senderNotifications, setSenderNotifications] = useState(false);
   const [recipient, setRecipient] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
+  const [recipientNotifications, setRecipientNotifications] = useState(false);
+  const [registeredDelivery, setRegisteredDelivery] = useState(false);
   const [occasion, setOccasion] = useState("Just because");
   const [heading, setHeading] = useState("");
   const [letter, setLetter] = useState("");
@@ -224,9 +249,18 @@ export function StableLetterCreator() {
       const legacyContacts = JSON.parse(window.localStorage.getItem(LEGACY_CONTACT_KEY) || "{}") as { recipientEmail?: unknown };
 
       if (typeof draft.sender === "string") setSender(draft.sender);
+      if (typeof draft.senderEmail === "string") setSenderEmail(draft.senderEmail);
+      if (typeof draft.senderNotifications === "boolean") setSenderNotifications(draft.senderNotifications);
+      else if (typeof draft.senderEmail === "string" && draft.senderEmail.trim()) setSenderNotifications(true);
       if (typeof draft.recipient === "string") setRecipient(draft.recipient);
       if (typeof draft.recipientEmail === "string") setRecipientEmail(draft.recipientEmail);
       else if (typeof legacyContacts.recipientEmail === "string") setRecipientEmail(legacyContacts.recipientEmail);
+      if (typeof draft.recipientNotifications === "boolean") setRecipientNotifications(draft.recipientNotifications);
+      else if (
+        (typeof draft.recipientEmail === "string" && draft.recipientEmail.trim())
+        || (typeof legacyContacts.recipientEmail === "string" && legacyContacts.recipientEmail.trim())
+      ) setRecipientNotifications(true);
+      if (typeof draft.registeredDelivery === "boolean") setRegisteredDelivery(draft.registeredDelivery);
       if (typeof draft.occasion === "string") setOccasion(draft.occasion);
       if (typeof draft.heading === "string") setHeading(draft.heading);
       if (typeof draft.letter === "string") setLetter(draft.letter);
@@ -257,8 +291,12 @@ export function StableLetterCreator() {
     if (!draftReady) return;
     const draft: Draft = {
       sender,
+      senderEmail: senderEmail.trim(),
+      senderNotifications,
       recipient,
       recipientEmail: recipientEmail.trim(),
+      recipientNotifications,
+      registeredDelivery,
       occasion,
       heading,
       letter,
@@ -275,7 +313,7 @@ export function StableLetterCreator() {
     } catch {
       // Autosave is best-effort; storage restrictions must never break writing.
     }
-  }, [draftReady, sender, recipient, recipientEmail, occasion, heading, letter, closing, format, fromCity, toCity, arrivalDate, arrivalTime, arrivalPreset]);
+  }, [draftReady, sender, senderEmail, senderNotifications, recipient, recipientEmail, recipientNotifications, registeredDelivery, occasion, heading, letter, closing, format, fromCity, toCity, arrivalDate, arrivalTime, arrivalPreset]);
 
   useEffect(() => () => {
     timers.current.forEach((timer) => window.clearTimeout(timer));
@@ -482,8 +520,12 @@ export function StableLetterCreator() {
   function secureDraft(): SecureDraft {
     return {
       sender: sender.trim(),
+      senderEmail: senderNotifications ? senderEmail.trim() : "",
+      senderNotifications,
       recipient: recipient.trim(),
-      recipientEmail: recipientEmail.trim(),
+      recipientEmail: recipientNotifications ? recipientEmail.trim() : "",
+      recipientNotifications,
+      registeredDelivery: recipientNotifications && registeredDelivery,
       occasion,
       heading,
       letter,
@@ -645,10 +687,12 @@ export function StableLetterCreator() {
     />
   );
 
-  const registered = Boolean(recipientEmail.trim());
-  const emailOkay = validEmail(recipientEmail);
+  const recipientEmailOkay = !recipientNotifications || validEmail(recipientEmail);
+  const senderEmailOkay = !senderNotifications || validEmail(senderEmail);
+  const emailOkay = recipientEmailOkay && senderEmailOkay;
   const currentArrivalError = step === 3 ? arrivalErrorFor(arrivalDate, arrivalTime) : "";
-  const deliveryMessage = secureResult?.emailDelivery?.message;
+  const notificationDelivery = secureResult?.notificationDelivery;
+  const senderEmailUnavailable = notificationDelivery?.senderPosted.message.toLowerCase().includes("not configured") === true;
   const mediaMessage = secureResult?.mediaReady
     ? `${secureResult.mediaCount || 0} media item${secureResult.mediaCount === 1 ? "" : "s"} encrypted and stored privately.`
     : "Your letter text is encrypted behind a private token.";
@@ -702,7 +746,105 @@ export function StableLetterCreator() {
                 </div>
                 <p className="arrival-preset-note" data-invalid={String(Boolean(arrivalError || currentArrivalError))}>{arrivalError || currentArrivalError || "Intezaar Express starts at 12 hours. Slower journeys keep the waiting ritual at the centre."}</p>
                 <div className="arrival-postal-grid"><section className="arrival-card"><span>Arrival</span><h3>{readableDate(arrivalDate)}</h3><label>Arrival date<input type="date" min={minArrival} max={maxArrival} value={arrivalDate} onChange={(event) => { setArrivalDate(event.target.value); setArrivalPreset("custom"); setArrivalError(""); }} /></label><label>Opening time<input type="time" value={arrivalTime} onChange={(event) => { setArrivalTime(event.target.value); setArrivalPreset("custom"); setArrivalError(""); }} /></label><p>{recipient || "The recipient"} will see a sealed letter before this moment.</p></section><section className="arrival-card postal-route-card"><span>Postal route</span><h3>{fromCity || "Origin"} → {toCity || "Destination"}</h3><label>Posted from<input value={fromCity} onChange={(event) => setFromCity(event.target.value)} /></label><label>Arriving in<input value={toCity} onChange={(event) => setToCity(event.target.value)} /></label><p>The route is cinematic, not live postal or railway tracking.</p></section></div>
-                <section className="registered-delivery-option"><div><span>Optional privacy</span><h3>Registered Intezaar Mail</h3><p>Add the recipient’s email only if you want them to verify with a one-time code before sender details, the letter or private media are released.</p></div><label>Recipient email (optional)<input type="email" inputMode="email" autoComplete="email" maxLength={254} value={recipientEmail} onChange={(event) => setRecipientEmail(event.target.value)} placeholder="name@example.com" /></label><small data-active={String(registered)}>{registered ? "Registered delivery enabled · recipient verification required" : "Leave blank for ordinary private-link delivery"}</small>{!emailOkay ? <p className="registered-delivery-error" role="alert">Enter a valid email address or leave it blank.</p> : null}</section>
+                <section className="registered-delivery-option recipient-notification-option">
+                  <div>
+                    <span>Optional notifications</span>
+                    <h3>Choose exactly who gets emailed</h3>
+                    <p>Nothing is assumed. Turn on only the updates you want, then confirm each address before sealing.</p>
+                  </div>
+
+                  <div className={`notification-choice ${recipientNotifications ? "active" : ""}`}>
+                    <label className="notification-choice-toggle">
+                      <input
+                        type="checkbox"
+                        checked={recipientNotifications}
+                        onChange={(event) => {
+                          setRecipientNotifications(event.target.checked);
+                          if (!event.target.checked) setRegisteredDelivery(false);
+                        }}
+                      />
+                      <span>
+                        <strong>Email the recipient</strong>
+                        <small>One delivery email now + one ready-to-open email at the chosen time</small>
+                      </span>
+                    </label>
+                    {recipientNotifications ? (
+                      <div className="notification-choice-fields">
+                        <label htmlFor="recipient-notification-email">
+                          Recipient email
+                          <input
+                            id="recipient-notification-email"
+                            type="email"
+                            inputMode="email"
+                            autoComplete="email"
+                            maxLength={254}
+                            value={recipientEmail}
+                            onChange={(event) => setRecipientEmail(event.target.value)}
+                            placeholder="recipient@example.com"
+                            required
+                          />
+                        </label>
+                        {!recipientEmailOkay ? <p className="registered-delivery-error" role="alert">Enter a valid recipient email.</p> : null}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className={`notification-choice ${senderNotifications ? "active" : ""}`}>
+                    <label className="notification-choice-toggle">
+                      <input
+                        type="checkbox"
+                        checked={senderNotifications}
+                        onChange={(event) => setSenderNotifications(event.target.checked)}
+                      />
+                      <span>
+                        <strong>Email me</strong>
+                        <small>One posting receipt now + one alert when the recipient breaks the seal</small>
+                      </span>
+                    </label>
+                    {senderNotifications ? (
+                      <div className="notification-choice-fields">
+                        <label htmlFor="sender-notification-email">
+                          Your email
+                          <input
+                            id="sender-notification-email"
+                            type="email"
+                            inputMode="email"
+                            autoComplete="email"
+                            maxLength={254}
+                            value={senderEmail}
+                            onChange={(event) => setSenderEmail(event.target.value)}
+                            placeholder="you@example.com"
+                            required
+                          />
+                        </label>
+                        {!senderEmailOkay ? <p className="registered-delivery-error" role="alert">Enter a valid sender email.</p> : null}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {recipientNotifications ? (
+                    <section className="recipient-verification-choice" aria-label="Optional recipient verification">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={registeredDelivery}
+                          onChange={(event) => setRegisteredDelivery(event.target.checked)}
+                        />
+                        <span>
+                          <strong>Require a one-time code before opening</strong>
+                          <small>Extra privacy · optional</small>
+                        </span>
+                      </label>
+                      <p>The code goes to the recipient email above before sender details or encrypted contents are released.</p>
+                    </section>
+                  ) : null}
+
+                  <small data-active={String(recipientNotifications || senderNotifications)}>
+                    {recipientNotifications || senderNotifications
+                      ? `${recipientNotifications ? "Recipient emails on" : "Recipient emails off"} · ${senderNotifications ? "sender emails on" : "sender emails off"}`
+                      : "No emails will be sent. You can still share the complete private link yourself."}
+                  </small>
+                </section>
                 <div className="final-review-strip"><div><small>From</small><strong>{sender}</strong></div><div><small>For</small><strong>{recipient}</strong></div><div><small>Arrival</small><strong>{readableDate(arrivalDate)}</strong></div><div><small>Opens</small><strong>{arrivalTime}</strong></div></div>
                 <div className="nostalgia-form-actions"><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => resetCeremony(2)}>Back to personalise</button><button className="nostalgia-button nostalgia-button-primary" type="button" disabled={!emailOkay || Boolean(currentArrivalError)} onClick={continueToSeal}>Continue to seal</button></div>
               </section> : null}
@@ -722,7 +864,72 @@ export function StableLetterCreator() {
                 <div className="nostalgia-form-actions">{postState === "idle" ? <><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => setStep(4)}>Back to sealed letter</button><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={startPost}>Post the letter</button></> : null}{postState === "posting" ? <button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={finishPost}>Finish animation</button> : null}{postState === "posted" ? <button className="nostalgia-button nostalgia-button-primary" type="button" disabled={secureBusy} onClick={continueToShare}>{secureBusy ? secureStatus : pendingSecureResult ? "Retry encrypted media upload" : secureStatus}</button> : null}</div>
               </section> : null}
             </form>
-          ) : <section className="nostalgia-create-success creation-share-panel posted-share-panel"><p className="nostalgia-eyebrow">Step 6 of 6 · Posted</p><h2>Your letter is on its way.</h2><p>{registered ? `Registered delivery is enabled for ${recipient}. They will verify with the code sent to their email before the letter can be released.` : `Send the private link to ${recipient}. They will see a sealed letter and its arrival date before they can open it.`}</p><div className="posted-stamp-card"><span>POSTED</span><strong>{fromCity} → {toCity}</strong><p>Opens {readableDate(arrivalDate)} at {arrivalTime}</p></div><div className="share-link-box"><span>Private recipient link</span><code>{secureResult?.recipientUrl || ""}</code><button type="button" onClick={copyShareLink}>{copied ? "Copied" : "Copy link"}</button></div><div className="nostalgia-success-actions"><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={shareLetter}>Share letter link</button>{secureResult?.recipientUrl ? <Link href={secureResult.recipientUrl} className="nostalgia-button nostalgia-button-ghost">Open recipient link</Link> : null}<button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => { setCreated(false); setPostState("posted"); setStep(5); }}>Back to posted letter</button></div><p className="prototype-transfer-note">{deliveryMessage ? `${deliveryMessage} ${mediaMessage}` : mediaMessage}</p></section>}
+          ) : (
+            <section className="nostalgia-create-success creation-share-panel posted-share-panel">
+              <p className="nostalgia-eyebrow">Step 6 of 6 · Posted</p>
+              <h2>Your letter is on its way.</h2>
+              <p>
+                Share the complete private link with {recipient}. Automated emails never contain the decryption key.
+                {registeredDelivery ? " They will also verify with a one-time code before the encrypted letter is released." : ""}
+              </p>
+
+              <div className="posted-stamp-card">
+                <span>POSTED</span>
+                <strong>{fromCity} → {toCity}</strong>
+                <p>Opens {readableDate(arrivalDate)} at {arrivalTime}</p>
+              </div>
+
+              <section className="notification-delivery-summary" aria-labelledby="notification-delivery-heading">
+                <div className="notification-delivery-heading">
+                  <div>
+                    <span>Email delivery</span>
+                    <h3 id="notification-delivery-heading">What was actually sent</h3>
+                  </div>
+                  <small>No hidden assumptions</small>
+                </div>
+
+                <div className="notification-delivery-list">
+                  <article data-tone={deliveryTone(notificationDelivery?.recipientPosted, recipientNotifications)}>
+                    <div><strong>Recipient delivery email</strong><small>{notificationDelivery?.recipientPosted.message || "Recipient delivery email status is unavailable."}</small></div>
+                    <span>{deliveryLabel(notificationDelivery?.recipientPosted, recipientNotifications, "Sent")}</span>
+                  </article>
+                  <article data-tone={deliveryTone(notificationDelivery?.recipientArrival, recipientNotifications)}>
+                    <div><strong>Recipient ready-to-open email</strong><small>{notificationDelivery?.recipientArrival.message || "Ready-to-open email status is unavailable."}</small></div>
+                    <span>{deliveryLabel(notificationDelivery?.recipientArrival, recipientNotifications, "Scheduled")}</span>
+                  </article>
+                  <article data-tone={deliveryTone(notificationDelivery?.senderPosted, senderNotifications)}>
+                    <div><strong>Your posting receipt</strong><small>{notificationDelivery?.senderPosted.message || "Sender receipt status is unavailable."}</small></div>
+                    <span>{deliveryLabel(notificationDelivery?.senderPosted, senderNotifications, "Sent")}</span>
+                  </article>
+                  <article data-tone={!senderNotifications ? "not-requested" : notificationDelivery?.senderPosted.sent ? "success" : senderEmailUnavailable ? "failed" : "attention"}>
+                    <div>
+                      <strong>Your opened-letter alert</strong>
+                      <small>{senderNotifications
+                        ? notificationDelivery?.senderPosted.sent
+                          ? "Enabled. We will email you once when the recipient breaks the seal."
+                          : senderEmailUnavailable
+                            ? "The preference was saved, but email delivery is not configured, so the opened alert cannot currently be delivered."
+                            : "Enabled, but email delivery could not be confirmed from the posting receipt."
+                        : "You chose not to receive an opened-letter alert."}</small>
+                    </div>
+                    <span>{senderNotifications ? notificationDelivery?.senderPosted.sent ? "Enabled" : senderEmailUnavailable ? "Email unavailable" : "Enabled · unconfirmed" : "Not requested"}</span>
+                  </article>
+                </div>
+              </section>
+
+              <div className="share-link-box">
+                <span>Private recipient link</span>
+                <code>{secureResult?.recipientUrl || ""}</code>
+                <button type="button" onClick={copyShareLink}>{copied ? "Copied" : "Copy link"}</button>
+              </div>
+              <div className="nostalgia-success-actions">
+                <button className="nostalgia-button nostalgia-button-primary" type="button" onClick={shareLetter}>Share letter link</button>
+                {secureResult?.recipientUrl ? <Link href={secureResult.recipientUrl} className="nostalgia-button nostalgia-button-ghost">Open recipient link</Link> : null}
+                <button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => { setCreated(false); setPostState("posted"); setStep(5); }}>Back to posted letter</button>
+              </div>
+              <p className="prototype-transfer-note">{mediaMessage}</p>
+            </section>
+          )}
         </div>
       </section>
     </main>

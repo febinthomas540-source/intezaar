@@ -161,8 +161,12 @@ export function FutureSelfCreator() {
 
     const draft: SecureDraft = {
       sender: name.trim(),
+      senderEmail: "",
+      senderNotifications: false,
       recipient: `Future ${name.trim()}`,
       recipientEmail: email.trim(),
+      recipientNotifications: Boolean(email.trim()),
+      registeredDelivery: false,
       occasion: reason,
       heading: "A letter from my past self",
       letter: message.trim(),

@@ -16,7 +16,7 @@ const questions = [
   },
   {
     question: "Do I need an account?",
-    answer: <p>No. Ordinary letter creation still works without an account or phone number. After posting, a sender can optionally add an email address for a one-time notification when that specific letter is opened. That does not create an account.</p>,
+    answer: <p>No. Ordinary letter creation still works without an account or phone number. Before sealing, a sender can explicitly opt into a posting receipt and a one-time notification when that specific letter is opened. That does not create an account.</p>,
   },
   {
     question: "Is this physical post or India Post?",
@@ -48,7 +48,7 @@ const questions = [
   },
   {
     question: "Can I be notified when my letter is opened?",
-    answer: <p>Yes, optionally. After posting a normal letter, the sender can enter an email address and ask for one opened-letter notification. Intezaar records only that the recipient broke the seal after the arrival time. The notification contains no letter text, private media or decryption key. The email address is stored as delivery metadata for that letter.</p>,
+    answer: <p>Yes, optionally. Before sealing, the sender can enter an email address and explicitly request a posting receipt plus one opened-letter notification. Intezaar records only that the recipient broke the seal after the arrival time. The emails contain no letter text, private media, recipient link or decryption key. The email address is stored as delivery metadata for that letter.</p>,
   },
   {
     question: "Does Intezaar tell the sender what the recipient did inside the letter?",

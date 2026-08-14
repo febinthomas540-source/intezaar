@@ -12,6 +12,7 @@ import {
 import {
   scheduleArrivalLetterEmail,
   sendPostedLetterEmail,
+  sendSenderPostedLetterEmail,
   type EmailDeliveryResult,
 } from "@/lib/resend-mail";
 import { verifyMediaObjects } from "@/lib/supabase-storage";
@@ -110,7 +111,7 @@ export async function POST(request: Request) {
     let emailDelivery: EmailDeliveryResult = {
       attempted: false,
       sent: false,
-      message: "No recipient email was added. Share the private link manually.",
+      message: "Recipient email notifications were not requested.",
     };
 
     if (letter.recipient_email) {
@@ -134,7 +135,7 @@ export async function POST(request: Request) {
         media_count: media.length,
         e2ee: isE2EE,
       });
-    } else if (letter.recipient_email && emailDelivery.attempted) {
+    } else if (letter.recipient_email) {
       await insertLetterEvent(letter.id, "email_failed", {
         recipient_email: letter.recipient_email,
         provider: "resend",
@@ -144,7 +145,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const arrivalDelivery = letter.recipient_email
+    const arrivalDelivery: EmailDeliveryResult = letter.recipient_email
       ? await scheduleArrivalLetterEmail({
           letterId: letter.id,
           to: letter.recipient_email,
@@ -155,9 +156,13 @@ export async function POST(request: Request) {
           opensAt: letter.opens_at,
           e2ee: isE2EE,
         })
-      : null;
+      : {
+          attempted: false,
+          sent: false,
+          message: "Recipient ready-to-open notifications were not requested.",
+        };
 
-    if (arrivalDelivery?.sent) {
+    if (arrivalDelivery.sent) {
       await insertLetterEvent(letter.id, "arrival_email_scheduled", {
         recipient_email: letter.recipient_email,
         provider: "resend",
@@ -166,7 +171,7 @@ export async function POST(request: Request) {
         media_count: media.length,
         e2ee: isE2EE,
       });
-    } else if (arrivalDelivery?.attempted) {
+    } else if (letter.recipient_email) {
       await insertLetterEvent(letter.id, "arrival_email_schedule_failed", {
         recipient_email: letter.recipient_email,
         provider: "resend",
@@ -176,11 +181,47 @@ export async function POST(request: Request) {
       });
     }
 
+    const senderNotifications = letter.metadata?.notify_sender_on_open === true && Boolean(letter.sender_email);
+    const senderDelivery: EmailDeliveryResult = senderNotifications && letter.sender_email
+      ? await sendSenderPostedLetterEmail({
+          letterId: letter.id,
+          to: letter.sender_email,
+          senderName: letter.sender_name,
+          recipientName: letter.recipient_name,
+          opensAt: letter.opens_at,
+          openedNotificationEnabled: true,
+        })
+      : {
+          attempted: false,
+          sent: false,
+          message: "Sender email notifications were not requested.",
+        };
+
+    if (senderDelivery.sent) {
+      await insertLetterEvent(letter.id, "sender_posting_receipt_sent", {
+        provider: "resend",
+        provider_id: senderDelivery.emailId || null,
+        media_count: media.length,
+      });
+    } else if (senderNotifications) {
+      await insertLetterEvent(letter.id, "sender_posting_receipt_failed", {
+        provider: "resend",
+        reason: senderDelivery.message,
+        media_count: media.length,
+      });
+    }
+
     return NextResponse.json(
       {
         mediaReady: true,
         mediaCount: media.length,
         emailDelivery,
+        notificationDelivery: {
+          recipientPosted: emailDelivery,
+          recipientArrival: arrivalDelivery,
+          senderPosted: senderDelivery,
+          senderOpenedEnabled: senderNotifications,
+        },
       },
       { headers: { "Cache-Control": "no-store" } },
     );

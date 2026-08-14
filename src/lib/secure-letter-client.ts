@@ -19,8 +19,12 @@ const MEDIA_BUCKET = "letter-media";
 
 export type SecureDraft = {
   sender: string;
+  senderEmail: string;
+  senderNotifications: boolean;
   recipient: string;
   recipientEmail: string;
+  recipientNotifications: boolean;
+  registeredDelivery: boolean;
   occasion: string;
   heading: string;
   letter: string;
@@ -62,6 +66,13 @@ export type EmailDelivery = {
   emailId?: string;
 };
 
+export type NotificationDeliverySummary = {
+  recipientPosted: EmailDelivery;
+  recipientArrival: EmailDelivery;
+  senderPosted: EmailDelivery;
+  senderOpenedEnabled: boolean;
+};
+
 export type MediaUploadPlan = {
   key: string;
   items: Array<{
@@ -77,6 +88,7 @@ export type SecureLetterResult = {
   manageToken: string;
   opensAt: string;
   emailDelivery?: EmailDelivery;
+  notificationDelivery?: NotificationDeliverySummary;
   mediaUpload?: MediaUploadPlan | null;
   mediaReady?: boolean;
   mediaCount?: number;
@@ -113,8 +125,12 @@ let memoryPendingCreation: PendingSecureCreation | null = null;
 export function draftFingerprint(draft: SecureDraft, media: SecureMediaItem[]) {
   const source = JSON.stringify([
     draft.sender,
+    draft.senderEmail,
+    draft.senderNotifications,
     draft.recipient,
     draft.recipientEmail,
+    draft.recipientNotifications,
+    draft.registeredDelivery,
     draft.occasion,
     draft.heading,
     draft.letter,
@@ -320,8 +336,11 @@ export async function createSecureLetter(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       senderName: draft.sender,
+      senderEmail: draft.senderNotifications ? draft.senderEmail : "",
+      notifySenderOnOpen: draft.senderNotifications,
       recipientName: draft.recipient,
-      recipientEmail: draft.recipientEmail,
+      recipientEmail: draft.recipientNotifications ? draft.recipientEmail : "",
+      registeredDelivery: draft.recipientNotifications && draft.registeredDelivery,
       occasion: draft.occasion,
       format: draft.format,
       fromCity: draft.fromCity,
@@ -359,6 +378,7 @@ export async function createSecureLetter(
     manageToken: result.manageToken,
     opensAt: result.opensAt,
     emailDelivery: result.emailDelivery,
+    notificationDelivery: result.notificationDelivery,
     mediaUpload,
     mediaReady: result.mediaReady,
     mediaCount: result.mediaCount,
@@ -449,6 +469,7 @@ export async function completeMediaUpload(
     mediaReady?: boolean;
     mediaCount?: number;
     emailDelivery?: EmailDelivery;
+    notificationDelivery?: NotificationDeliverySummary;
   };
 
   if (!response.ok || !completion.mediaReady) {
@@ -460,6 +481,7 @@ export async function completeMediaUpload(
     mediaReady: true,
     mediaCount: completion.mediaCount || itemIds.length,
     emailDelivery: completion.emailDelivery,
+    notificationDelivery: completion.notificationDelivery,
     mediaUpload: null,
   } satisfies SecureLetterResult;
 }

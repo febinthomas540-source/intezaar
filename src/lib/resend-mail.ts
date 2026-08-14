@@ -12,6 +12,15 @@ type ArrivalLetterEmailInput = PostedLetterEmailInput & {
   opensAt: string;
 };
 
+type SenderPostedLetterEmailInput = {
+  letterId: string;
+  to: string;
+  senderName: string;
+  recipientName: string;
+  opensAt: string;
+  openedNotificationEnabled: boolean;
+};
+
 export type EmailDeliveryResult = {
   attempted: boolean;
   sent: boolean;
@@ -146,7 +155,7 @@ export async function sendPostedLetterEmail(
       recipient: input.to,
       emailId: result.id,
       message: input.e2ee
-        ? `Delivery notice emailed to ${input.to}, with a safe return button and a separate opening-time reminder scheduled. The decryption key is never emailed.`
+        ? `Delivery notice emailed to ${input.to}. The decryption key was not included.`
         : `Delivery notice emailed to ${input.to}.`,
     };
   } catch (error) {
@@ -251,6 +260,95 @@ export async function scheduleArrivalLetterEmail(
       sent: false,
       recipient: input.to,
       message: "The opening-time notification could not be scheduled.",
+    };
+  }
+}
+
+export async function sendSenderPostedLetterEmail(
+  input: SenderPostedLetterEmailInput,
+): Promise<EmailDeliveryResult> {
+  const configuration = resendConfiguration(input);
+  if (configuration.error) return configuration.error;
+
+  const senderName = escapeHtml(input.senderName || "there");
+  const recipientName = escapeHtml(input.recipientName || "your recipient");
+  const opensAt = new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: "UTC",
+  }).format(new Date(input.opensAt));
+
+  const html = frame(`
+    <p style="margin:0 0 12px;color:#9a392e;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Posting receipt for ${senderName}</p>
+    <h1 style="margin:0;color:#40281f;font-family:Georgia,serif;font-size:38px;line-height:1.08;font-weight:500;">Your Intezaar letter has been posted.</h1>
+    <p style="margin:22px 0 0;color:#6d5143;font-size:17px;line-height:1.65;">Your private letter for ${recipientName} is stored and will remain sealed until its chosen opening moment.</p>
+    <div style="margin:26px 0;padding:18px 20px;background:#f3e3cb;border-radius:14px;">
+      <span style="display:block;color:#9a392e;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Opens</span>
+      <strong style="display:block;margin-top:6px;color:#493126;font-family:Georgia,serif;font-size:20px;">${escapeHtml(opensAt)} UTC</strong>
+    </div>
+    <p style="margin:0;color:#6d5143;font-size:15px;line-height:1.65;">${input.openedNotificationEnabled ? "Opened-letter notification is enabled. We will email you once when the recipient breaks the seal." : "No opened-letter notification was requested."}</p>
+    <p style="margin:24px 0 0;color:#8a7162;font-size:13px;line-height:1.55;">This receipt contains no letter text, private media, recipient link or decryption key. Remember to share the complete private link with the recipient yourself.</p>
+  `);
+
+  const text = [
+    `Hi ${input.senderName || "there"},`,
+    "",
+    `Your Intezaar letter for ${input.recipientName || "your recipient"} has been posted.`,
+    `It opens: ${opensAt} UTC`,
+    input.openedNotificationEnabled
+      ? "We will email you once when the recipient breaks the seal."
+      : "No opened-letter notification was requested.",
+    "",
+    "This receipt contains no letter text, private media, recipient link or decryption key.",
+    "Remember to share the complete private link with the recipient yourself.",
+  ].join("\n");
+
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${configuration.apiKey}`,
+        "Content-Type": "application/json",
+        "Idempotency-Key": `intezaar-sender-posted-${input.letterId}`,
+      },
+      body: JSON.stringify({
+        from: configuration.from,
+        to: [input.to],
+        subject: "Your Intezaar letter has been posted",
+        html,
+        text,
+        tags: [
+          { name: "category", value: "sender_posting_receipt" },
+          { name: "letter_id", value: input.letterId.replace(/-/g, "").slice(0, 32) },
+        ],
+      }),
+      cache: "no-store",
+    });
+
+    const result = await response.json() as { id?: string; message?: string };
+    if (!response.ok || !result.id) {
+      return {
+        attempted: true,
+        sent: false,
+        recipient: input.to,
+        message: result.message || "Your posting receipt could not be sent.",
+      };
+    }
+
+    return {
+      attempted: true,
+      sent: true,
+      recipient: input.to,
+      emailId: result.id,
+      message: `Posting receipt emailed to ${input.to}.`,
+    };
+  } catch (error) {
+    console.error("Resend sender posting receipt failed:", error);
+    return {
+      attempted: true,
+      sent: false,
+      recipient: input.to,
+      message: "Your posting receipt could not be sent.",
     };
   }
 }
