@@ -375,19 +375,6 @@ export async function POST(request: Request) {
       ? idempotentPrivateToken(idempotencyKey, "manage")
       : createPrivateToken();
 
-    if (idempotencyKey) {
-      const existing = await findLetterByAccessToken(accessToken);
-      if (existing) {
-        if (existing.metadata?.creation_request_hash !== replayHash) {
-          return NextResponse.json(
-            { error: "This posting retry key was already used for a different encrypted letter." },
-            { status: 409, headers: { "Cache-Control": "no-store" } },
-          );
-        }
-        return replayCreationResponse(request, existing, accessToken, manageToken);
-      }
-    }
-
     const now = Date.now();
     const earliest = now + MIN_DELIVERY_MS;
     const latest = now + MAX_DELIVERY_MS;
@@ -461,6 +448,11 @@ export async function POST(request: Request) {
       baseMetadata.idempotent_creation = true;
     }
 
+    // Insert first instead of requiring a Supabase read before every new
+    // letter. The deterministic id and token hashes make this atomic: a first
+    // attempt inserts normally, while a retry collides and is recovered below.
+    // This also keeps a transient/preflight read failure from blocking a valid
+    // first-time post before the database has even had a chance to store it.
     try {
       await insertEncryptedLetter({
         id: letterId,
@@ -485,7 +477,13 @@ export async function POST(request: Request) {
     } catch (error) {
       if (idempotencyKey) {
         const existing = await findLetterByAccessToken(accessToken);
-        if (existing?.metadata?.creation_request_hash === replayHash) {
+        if (existing) {
+          if (existing.metadata?.creation_request_hash !== replayHash) {
+            return NextResponse.json(
+              { error: "This posting retry key was already used for a different encrypted letter." },
+              { status: 409, headers: { "Cache-Control": "no-store" } },
+            );
+          }
           return replayCreationResponse(request, existing, accessToken, manageToken);
         }
       }
