@@ -34,7 +34,7 @@ export default function PrivacyPage() {
         <ul>
           <li>sender and recipient names;</li>
           <li>recipient email addresses for optional registered delivery or delivery notices;</li>
-          <li>a sender email address when you explicitly ask for a one-time notification that a particular letter has been opened;</li>
+          <li>a sender email address when you explicitly ask for a posting receipt and a one-time notification that a particular letter has been opened;</li>
           <li>occasion, opening date and time, and optional origin or destination city;</li>
           <li>the written letter, heading and closing;</li>
           <li>photographs, voice notes, videos, captions and photo-layout choices; and</li>
@@ -78,7 +78,7 @@ export default function PrivacyPage() {
         <h2>6. Private links, email and recipient verification</h2>
         <p>Anyone who obtains the complete private recipient link, including its decryption-key fragment, may be able to decrypt a new letter after the selected opening time. Keep the complete link private and share it only with the intended recipient.</p>
         <p>For end-to-end encrypted letters, an automated Intezaar recipient email notice does not contain the decryption key. The sender must still share the complete private link with the recipient. This separation prevents Intezaar&apos;s email system from receiving or storing the key.</p>
-        <p>A sender can separately choose to provide their own email address after posting in order to receive one notification when that letter is first recorded as opened. This sender notification contains no letter text, private media, complete recipient link or decryption key. The sender email is stored as delivery metadata for that letter and is sent to Resend only when needed to provide the requested email service.</p>
+        <p>A sender can separately choose to provide their own email address before sealing in order to receive a posting receipt and one notification when that letter is first recorded as opened. These sender emails contain no letter text, private media, complete recipient link or decryption key. The sender email is stored as delivery metadata for that letter and is sent to Resend only when needed to provide the requested email service.</p>
         <p>If Registered Intezaar Mail is enabled, the recipient must also complete the email one-time-code check before the encrypted payload and private-media download URLs are released. Registered Intezaar Mail is an Intezaar verification feature, not a postal service or proof of legal delivery.</p>
       </section>
 
@@ -88,7 +88,7 @@ export default function PrivacyPage() {
         <ul>
           <li>create, secure, schedule and deliver a private letter;</li>
           <li>send an invitation or arrival-notice email when requested;</li>
-          <li>send a one-time opened-letter notification when the sender explicitly opts in;</li>
+          <li>send a posting receipt and one-time opened-letter notification when the sender explicitly opts in;</li>
           <li>record privacy-limited product events such as a seal being opened or a recipient choosing to start a new letter, without recording the private letter contents;</li>
           <li>preserve the selected recipient experience;</li>
           <li>prevent bots, abuse, fraud and unauthorised access;</li>
@@ -106,7 +106,7 @@ export default function PrivacyPage() {
         <ul>
           <li><strong>Vercel</strong> for website hosting, server functions, deployment, operational logs and first-party web analytics;</li>
           <li><strong>Supabase</strong> for the database and private encrypted-media storage;</li>
-          <li><strong>Resend</strong> for optional invitation, arrival-notice and sender opened-letter email delivery;</li>
+          <li><strong>Resend</strong> for optional invitation, arrival-notice, sender receipt and opened-letter email delivery;</li>
           <li><strong>Cloudflare Turnstile</strong> for automated-abuse and bot protection; and</li>
           <li><strong>Meta</strong> for optional advertising measurement only after the visitor chooses to allow it.</li>
         </ul>
@@ -146,7 +146,7 @@ export default function PrivacyPage() {
         <h2>12. Your choices</h2>
         <ul>
           <li>Recipient email addresses are optional.</li>
-          <li>A sender email address for a one-time opened-letter notification is optional and is collected only after an explicit opt-in.</li>
+          <li>A sender email address for a posting receipt and one-time opened-letter notification is optional and is collected only after an explicit pre-post opt-in.</li>
           <li>Media attachments are optional.</li>
           <li>You may copy and share the complete private link manually.</li>
           <li>You may allow or decline optional Meta advertising measurement.</li>

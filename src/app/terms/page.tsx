@@ -68,7 +68,7 @@ export default function TermsPage() {
       <section>
         <h2>7. Opening time, delivery and optional sender notifications</h2>
         <p>The selected date and time are checked by the Intezaar server. Before that moment, the encrypted message payload and private-media download URLs are not delivered to the recipient&apos;s browser.</p>
-        <p>After posting, a sender may optionally provide an email address and ask Intezaar to send one notification when that letter is first recorded as opened. This feature records the seal-open event only; it does not reveal the letter text, private media, complete private link or decryption key to the notification email.</p>
+        <p>Before sealing, a sender may optionally provide an email address and ask Intezaar for a posting receipt plus one notification when that letter is first recorded as opened. The opened alert records the seal-open event only; neither sender email reveals the letter text, private media, complete private link or decryption key.</p>
         <p>Intezaar does not guarantee that an invitation, arrival or opened-letter email will arrive, that a recipient will open the link, that every device will remain compatible, or that the service will be continuously available. The sender should preserve and share the complete private link directly.</p>
       </section>
 

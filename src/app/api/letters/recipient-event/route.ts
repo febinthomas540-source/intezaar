@@ -150,7 +150,7 @@ export async function POST(request: Request) {
           verified_e2ee_key: verifiedE2EEKey,
           registered_session_verified: registered,
         });
-      } else if (notification.attempted) {
+      } else {
         await insertLetterEvent(letter.id, "sender_open_notification_failed", {
           provider: "resend",
           reason: notification.message,

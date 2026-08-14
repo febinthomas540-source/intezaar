@@ -63,6 +63,175 @@
   line-height: 1.55;
 }
 
+.notification-choice {
+  margin-top: 12px;
+  padding: 15px;
+  border: 1px solid rgba(92, 57, 37, .14);
+  border-radius: 12px;
+  background: rgba(255, 250, 240, .64);
+  transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.notification-choice.active {
+  border-color: rgba(45, 105, 76, .36);
+  background: rgba(247, 252, 245, .9);
+  box-shadow: 0 8px 20px rgba(45, 105, 76, .06);
+}
+
+.registered-delivery-option .notification-choice-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  cursor: pointer;
+}
+
+.notification-choice-toggle input[type="checkbox"] {
+  width: 19px;
+  height: 19px;
+  margin: 2px 0 0;
+  flex: 0 0 auto;
+  accent-color: #2f6e50;
+}
+
+.notification-choice-toggle > span,
+.notification-choice-toggle strong,
+.notification-choice-toggle small {
+  display: block;
+}
+
+.notification-choice-toggle strong {
+  color: #4b3025;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.registered-delivery-option .notification-choice-toggle small {
+  margin: 4px 0 0;
+  color: #785e50;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.notification-choice-fields {
+  margin: 13px 0 0 30px;
+}
+
+.notification-choice-fields label {
+  color: #594035;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.notification-choice-fields input {
+  margin-top: 7px;
+}
+
+.notification-delivery-summary {
+  margin: 0 0 24px;
+  padding: 20px;
+  border: 1px solid rgba(91, 55, 36, .16);
+  border-radius: 16px;
+  background: rgba(255, 250, 240, .78);
+}
+
+.notification-delivery-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.notification-delivery-heading span {
+  display: block;
+  margin-bottom: 4px;
+  color: #8f2f20;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.notification-delivery-heading h3 {
+  margin: 0;
+  color: #4a2d22;
+  font: 500 20px/1.2 Georgia, serif;
+}
+
+.notification-delivery-heading > small {
+  color: #80675a;
+  font-size: 10px;
+}
+
+.notification-delivery-list {
+  display: grid;
+  gap: 9px;
+}
+
+.notification-delivery-list article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 14px;
+  border: 1px solid rgba(91, 55, 36, .12);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .46);
+}
+
+.notification-delivery-list article > div,
+.notification-delivery-list article strong,
+.notification-delivery-list article small {
+  display: block;
+  min-width: 0;
+}
+
+.notification-delivery-list article strong {
+  color: #4b3025;
+  font-size: 13px;
+}
+
+.notification-delivery-list article small {
+  margin-top: 4px;
+  color: #80675a;
+  font-size: 10px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.notification-delivery-list article > span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(104, 86, 76, .09);
+  color: #68564c;
+  font-size: 10px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.notification-delivery-list article[data-tone="success"] {
+  border-color: rgba(45, 105, 76, .24);
+  background: rgba(239, 248, 241, .72);
+}
+
+.notification-delivery-list article[data-tone="success"] > span {
+  background: rgba(45, 105, 76, .12);
+  color: #2f6e50;
+}
+
+.notification-delivery-list article[data-tone="failed"],
+.notification-delivery-list article[data-tone="attention"] {
+  border-color: rgba(155, 52, 41, .24);
+  background: rgba(255, 244, 239, .76);
+}
+
+.notification-delivery-list article[data-tone="failed"] > span,
+.notification-delivery-list article[data-tone="attention"] > span {
+  background: rgba(155, 52, 41, .1);
+  color: #8d3028;
+}
+
 @media (max-width: 720px) {
   .recipient-verification-choice {
     padding: 14px;
@@ -70,5 +239,32 @@
 
   .recipient-verification-choice > p {
     margin-left: 29px;
+  }
+
+  .notification-choice {
+    padding: 13px;
+  }
+
+  .notification-choice-fields {
+    margin-left: 0;
+  }
+
+  .notification-delivery-summary {
+    padding: 15px;
+  }
+
+  .notification-delivery-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .notification-delivery-list article {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .notification-delivery-list article > span {
+    justify-self: start;
   }
 }

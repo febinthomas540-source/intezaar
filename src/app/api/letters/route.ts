@@ -22,7 +22,12 @@ import {
   type LetterPhotoLayout,
   type StoredLetter,
 } from "@/lib/letter-security";
-import { scheduleArrivalLetterEmail, sendPostedLetterEmail } from "@/lib/resend-mail";
+import {
+  scheduleArrivalLetterEmail,
+  sendPostedLetterEmail,
+  sendSenderPostedLetterEmail,
+  type EmailDeliveryResult,
+} from "@/lib/resend-mail";
 import { createMediaUploadTargets } from "@/lib/supabase-storage";
 import { validateTurnstile } from "@/lib/turnstile";
 
@@ -53,6 +58,7 @@ type E2EEEnvelope = {
 type CreateLetterBody = {
   senderName?: unknown;
   senderEmail?: unknown;
+  notifySenderOnOpen?: unknown;
   recipientName?: unknown;
   recipientEmail?: unknown;
   registeredDelivery?: unknown;
@@ -240,12 +246,45 @@ async function replayCreationResponse(
   const mediaCount = typeof letter.metadata?.media_count === "number"
     ? letter.metadata.media_count
     : manifest.length;
+  const recipientNotifications = letter.metadata?.recipient_notification_email === true;
+  const senderNotifications = letter.metadata?.notify_sender_on_open === true;
+  const recoveredRecipientDelivery: EmailDeliveryResult = {
+    attempted: false,
+    sent: false,
+    recipient: letter.recipient_email || undefined,
+    message: recipientNotifications
+      ? "This post was recovered after a connection interruption. The original recipient email status is unchanged."
+      : "Recipient email notifications were not requested.",
+  };
+  const recoveredArrivalDelivery: EmailDeliveryResult = {
+    attempted: false,
+    sent: false,
+    recipient: letter.recipient_email || undefined,
+    message: recipientNotifications
+      ? "This post was recovered after a connection interruption. The original ready-to-open email status is unchanged."
+      : "Recipient ready-to-open notifications were not requested.",
+  };
+  const recoveredSenderDelivery: EmailDeliveryResult = {
+    attempted: false,
+    sent: false,
+    recipient: letter.sender_email || undefined,
+    message: senderNotifications
+      ? "This post was recovered after a connection interruption. The original sender receipt status is unchanged."
+      : "Sender email notifications were not requested.",
+  };
 
   return NextResponse.json(
     {
       recipientUrl: `${publicSiteUrl(request)}/receive/${accessToken}`,
       manageToken,
       opensAt: letter.opens_at,
+      emailDelivery: recoveredRecipientDelivery,
+      notificationDelivery: {
+        recipientPosted: recoveredRecipientDelivery,
+        recipientArrival: recoveredArrivalDelivery,
+        senderPosted: recoveredSenderDelivery,
+        senderOpenedEnabled: senderNotifications,
+      },
       mediaReady,
       mediaCount,
       mediaUpload: !mediaReady && manifest.length
@@ -295,6 +334,7 @@ export async function POST(request: Request) {
     const recipientName = cleanText(body.recipientName, 80);
     const recipientEmail = cleanEmail(body.recipientEmail);
     const registeredDelivery = body.registeredDelivery === true && Boolean(recipientEmail);
+    const senderNotifications = body.notifySenderOnOpen === true && Boolean(senderEmail);
     const occasion = cleanText(body.occasion, 100) || "Just because";
     const format = cleanText(body.format, 30);
     const fromCity = cleanText(body.fromCity, 80);
@@ -315,6 +355,12 @@ export async function POST(request: Request) {
 
     if (senderEmail === null || recipientEmail === null) {
       return NextResponse.json({ error: "Enter a valid email address or leave it blank." }, { status: 400 });
+    }
+    if (body.notifySenderOnOpen === true && !senderEmail) {
+      return NextResponse.json({ error: "Enter your email address for sender notifications." }, { status: 400 });
+    }
+    if (body.registeredDelivery === true && !recipientEmail) {
+      return NextResponse.json({ error: "Enter the recipient email for one-time-code verification." }, { status: 400 });
     }
 
     if (!formats.has(format)) {
@@ -350,8 +396,11 @@ export async function POST(request: Request) {
     const replayHash = idempotencyKey
       ? creationRequestHash({
           senderName,
+          senderEmail: senderNotifications ? senderEmail : "",
+          senderNotifications,
           recipientName,
           recipientEmail: recipientEmail || "",
+          registeredDelivery,
           occasion,
           format,
           fromCity,
@@ -436,6 +485,11 @@ export async function POST(request: Request) {
       source: "web_creator",
       turnstile_validated: !challenge.skipped,
       registered_delivery: registeredDelivery,
+      recipient_notification_email: Boolean(recipientEmail),
+      recipient_notification_mode: recipientEmail ? "posted_and_arrival_email" : "private_link_only",
+      notify_sender_on_open: senderNotifications,
+      sender_notification_email: senderNotifications,
+      sender_notification_mode: senderNotifications ? "posted_receipt_and_opened_email" : "none",
       payload_version: isE2EE ? 3 : 2,
     };
     if (isE2EE) {
@@ -459,7 +513,7 @@ export async function POST(request: Request) {
         access_token_hash: hashPrivateToken(accessToken),
         manage_token_hash: hashPrivateToken(manageToken),
         sender_name: senderName,
-        sender_email: senderEmail || null,
+        sender_email: senderNotifications ? senderEmail : null,
         recipient_name: recipientName,
         recipient_email: recipientEmail || null,
         occasion,
@@ -492,8 +546,18 @@ export async function POST(request: Request) {
 
     await insertLetterEvent(letterId, "created", { source: "web_creator", e2ee: isE2EE });
     await insertLetterEvent(letterId, "posted", { opens_at: opensAt.toISOString(), e2ee: isE2EE });
+    await insertLetterEvent(
+      letterId,
+      recipientEmail ? "recipient_notifications_enabled" : "recipient_notifications_not_requested",
+      { source: "creator", registered_delivery: registeredDelivery },
+    );
+    await insertLetterEvent(
+      letterId,
+      senderNotifications ? "sender_notifications_enabled" : "sender_notifications_not_requested",
+      { source: "creator", opened_notification: senderNotifications },
+    );
 
-    const emailDelivery = media.length
+    const emailDelivery: EmailDeliveryResult = media.length && recipientEmail
       ? {
           attempted: false,
           sent: false,
@@ -514,7 +578,7 @@ export async function POST(request: Request) {
         : {
             attempted: false,
             sent: false,
-            message: "No recipient email was added. Share the private link manually.",
+            message: "Recipient email notifications were not requested.",
           };
 
     if (!media.length && emailDelivery.sent) {
@@ -525,7 +589,7 @@ export async function POST(request: Request) {
         provider_id: emailDelivery.emailId || null,
         e2ee: isE2EE,
       });
-    } else if (!media.length && recipientEmail && emailDelivery.attempted) {
+    } else if (!media.length && recipientEmail) {
       await insertLetterEvent(letterId, "email_failed", {
         recipient_email: recipientEmail,
         provider: "resend",
@@ -534,20 +598,31 @@ export async function POST(request: Request) {
       });
     }
 
-    const arrivalDelivery = !media.length && recipientEmail
-      ? await scheduleArrivalLetterEmail({
-          letterId,
-          to: recipientEmail,
-          recipientName,
-          senderName,
-          occasion,
-          recipientUrl,
-          opensAt: opensAt.toISOString(),
-          e2ee: isE2EE,
-        })
-      : null;
+    const arrivalDelivery: EmailDeliveryResult = media.length && recipientEmail
+      ? {
+          attempted: false,
+          sent: false,
+          recipient: recipientEmail,
+          message: "The ready-to-open email will be scheduled after private media finishes uploading.",
+        }
+      : recipientEmail
+        ? await scheduleArrivalLetterEmail({
+            letterId,
+            to: recipientEmail,
+            recipientName,
+            senderName,
+            occasion,
+            recipientUrl,
+            opensAt: opensAt.toISOString(),
+            e2ee: isE2EE,
+          })
+        : {
+            attempted: false,
+            sent: false,
+            message: "Recipient ready-to-open notifications were not requested.",
+          };
 
-    if (arrivalDelivery?.sent) {
+    if (arrivalDelivery.sent) {
       await insertLetterEvent(letterId, "arrival_email_scheduled", {
         recipient_email: recipientEmail,
         provider: "resend",
@@ -555,12 +630,46 @@ export async function POST(request: Request) {
         scheduled_at: opensAt.toISOString(),
         e2ee: isE2EE,
       });
-    } else if (arrivalDelivery?.attempted) {
+    } else if (!media.length && recipientEmail) {
       await insertLetterEvent(letterId, "arrival_email_schedule_failed", {
         recipient_email: recipientEmail,
         provider: "resend",
         reason: arrivalDelivery.message,
         e2ee: isE2EE,
+      });
+    }
+
+    const senderDelivery: EmailDeliveryResult = media.length && senderNotifications
+      ? {
+          attempted: false,
+          sent: false,
+          recipient: senderEmail || undefined,
+          message: "Your posting receipt will be sent after private media finishes uploading.",
+        }
+      : senderNotifications && senderEmail
+        ? await sendSenderPostedLetterEmail({
+            letterId,
+            to: senderEmail,
+            senderName,
+            recipientName,
+            opensAt: opensAt.toISOString(),
+            openedNotificationEnabled: true,
+          })
+        : {
+            attempted: false,
+            sent: false,
+            message: "Sender email notifications were not requested.",
+          };
+
+    if (senderDelivery.sent) {
+      await insertLetterEvent(letterId, "sender_posting_receipt_sent", {
+        provider: "resend",
+        provider_id: senderDelivery.emailId || null,
+      });
+    } else if (!media.length && senderNotifications) {
+      await insertLetterEvent(letterId, "sender_posting_receipt_failed", {
+        provider: "resend",
+        reason: senderDelivery.message,
       });
     }
 
@@ -570,6 +679,12 @@ export async function POST(request: Request) {
         manageToken,
         opensAt: opensAt.toISOString(),
         emailDelivery,
+        notificationDelivery: {
+          recipientPosted: emailDelivery,
+          recipientArrival: arrivalDelivery,
+          senderPosted: senderDelivery,
+          senderOpenedEnabled: senderNotifications,
+        },
         mediaReady: media.length === 0,
         mediaCount: media.length,
         mediaUpload: media.length

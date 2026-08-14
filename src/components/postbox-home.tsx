@@ -25,7 +25,7 @@ const steps = [
   {
     number: "04",
     title: "Let the letter continue",
-    copy: "After opening, the recipient can write one back or start a Future Me letter. Senders can optionally ask for one email when the seal is opened.",
+    copy: "After opening, the recipient can write one back or start a Future Me letter. Before posting, senders can optionally request a receipt and one email when the seal is opened.",
   },
 ];
 

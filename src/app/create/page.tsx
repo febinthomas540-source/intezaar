@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { CreatorConversionUpgrade } from "@/components/creator-conversion-upgrade";
-import { RecipientArrivalNotificationUpgrade } from "@/components/recipient-arrival-notification-upgrade";
-import { SenderGrowthPrompt } from "@/components/sender-growth-prompt";
 import { StableLetterCreator } from "@/components/stable-letter-creator";
 import { TurnstilePostingGuard } from "@/components/turnstile-posting-guard";
 import { MAX_DELIVERY_MS, MIN_DELIVERY_MS } from "@/lib/letter-rules";
@@ -222,11 +220,9 @@ export default function CreatePage() {
 
   return (
     <div data-nosnippet>
-      <RecipientArrivalNotificationUpgrade />
       <StableLetterCreator />
       <TurnstilePostingGuard />
       <CreatorConversionUpgrade />
-      <SenderGrowthPrompt />
     </div>
   );
 }

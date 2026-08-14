@@ -165,9 +165,12 @@ function prepareMobileArrivalOptionals() {
 
   const notification = panel.querySelector<HTMLElement>(".registered-delivery-option");
   if (notification) {
-    const emailInput = notification.querySelector<HTMLInputElement>("input[type='email']");
+    const emailInputs = Array.from(notification.querySelectorAll<HTMLInputElement>("input[type='email']"));
+    const notificationChoice = notification.querySelector<HTMLInputElement>(".notification-choice-toggle input[type='checkbox']:checked");
     const verificationChoice = panel.querySelector<HTMLInputElement>(".recipient-verification-choice input[type='checkbox']");
-    const hasExistingChoice = Boolean(emailInput?.value.trim()) || verificationChoice?.checked === true;
+    const hasExistingChoice = emailInputs.some((input) => Boolean(input.value.trim()))
+      || Boolean(notificationChoice)
+      || verificationChoice?.checked === true;
     if (hasExistingChoice && panel.dataset.mobileNotificationOpen === undefined) {
       setOptionalState(panel, "notification", true);
     }
@@ -181,7 +184,7 @@ function prepareMobileArrivalOptionals() {
       "notification",
       "Add email notification",
       "Hide email options",
-      "Optional · opening-time email and extra privacy",
+      "Optional · recipient and sender updates",
     );
   }
 }
