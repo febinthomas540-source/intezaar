@@ -226,6 +226,23 @@ function creationRequestHash(input: Record<string, unknown>) {
   return createHash("sha256").update(JSON.stringify(input)).digest("base64url");
 }
 
+async function createMediaUploadTargetsWithRetry(items: Array<{ id: string; path: string }>) {
+  let lastError: unknown;
+
+  // Signed upload URLs are disposable and safe to request again. A single
+  // retry absorbs brief storage/API interruptions without making the sender
+  // restart an otherwise valid encrypted post.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await createMediaUploadTargets(items);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError;
+}
+
 async function replayCreationResponse(
   request: Request,
   letter: StoredLetter,
@@ -235,7 +252,7 @@ async function replayCreationResponse(
   const manifest = e2eeTransportMedia(letter);
   const mediaReady = letter.metadata?.media_ready === true;
   const uploadTargets = !mediaReady && manifest.length
-    ? await createMediaUploadTargets(manifest.map(({ id, path }) => ({ id, path })))
+    ? await createMediaUploadTargetsWithRetry(manifest.map(({ id, path }) => ({ id, path })))
     : [];
   const mediaCount = typeof letter.metadata?.media_count === "number"
     ? letter.metadata.media_count
@@ -265,6 +282,10 @@ async function replayCreationResponse(
 }
 
 export async function POST(request: Request) {
+  const incidentId = randomUUID().slice(0, 8).toUpperCase();
+  let failureStage = "request";
+  let letterStored = false;
+
   try {
     if (!request.headers.get("content-type")?.includes("application/json")) {
       return NextResponse.json({ error: "Expected a JSON request." }, { status: 415 });
@@ -414,9 +435,6 @@ export async function POST(request: Request) {
       : [];
 
     const uploadManifest = isE2EE ? e2eeManifest : legacyManifest;
-    const uploadTargets = uploadManifest.length
-      ? await createMediaUploadTargets(uploadManifest.map(({ id, path }) => ({ id, path })))
-      : [];
 
     const encrypted = encryptedPayload || encryptLetterPayload({
       version: 2,
@@ -448,50 +466,89 @@ export async function POST(request: Request) {
       baseMetadata.idempotent_creation = true;
     }
 
-    // Insert first instead of requiring a Supabase read before every new
-    // letter. The deterministic id and token hashes make this atomic: a first
-    // attempt inserts normally, while a retry collides and is recovered below.
-    // This also keeps a transient/preflight read failure from blocking a valid
-    // first-time post before the database has even had a chance to store it.
-    try {
-      await insertEncryptedLetter({
-        id: letterId,
-        access_token_hash: hashPrivateToken(accessToken),
-        manage_token_hash: hashPrivateToken(manageToken),
-        sender_name: senderName,
-        sender_email: senderEmail || null,
-        recipient_name: recipientName,
-        recipient_email: recipientEmail || null,
-        occasion,
-        letter_format: format,
-        from_city: fromCity || null,
-        to_city: toCity || null,
-        payload_ciphertext: encrypted.ciphertext,
-        payload_iv: encrypted.iv,
-        payload_auth_tag: encrypted.authTag,
-        opens_at: opensAt.toISOString(),
-        status: "posted",
-        expires_at: expiresAt.toISOString(),
-        metadata: baseMetadata,
-      });
-    } catch (error) {
-      if (idempotencyKey) {
-        const existing = await findLetterByAccessToken(accessToken);
-        if (existing) {
-          if (existing.metadata?.creation_request_hash !== replayHash) {
-            return NextResponse.json(
-              { error: "This posting retry key was already used for a different encrypted letter." },
-              { status: 409, headers: { "Cache-Control": "no-store" } },
+    const letterRow = {
+      id: letterId,
+      access_token_hash: hashPrivateToken(accessToken),
+      manage_token_hash: hashPrivateToken(manageToken),
+      sender_name: senderName,
+      sender_email: senderEmail || null,
+      recipient_name: recipientName,
+      recipient_email: recipientEmail || null,
+      occasion,
+      letter_format: format,
+      from_city: fromCity || null,
+      to_city: toCity || null,
+      payload_ciphertext: encrypted.ciphertext,
+      payload_iv: encrypted.iv,
+      payload_auth_tag: encrypted.authTag,
+      opens_at: opensAt.toISOString(),
+      status: "posted",
+      expires_at: expiresAt.toISOString(),
+      metadata: baseMetadata,
+    };
+
+    failureStage = "letter-storage";
+    let lastStorageError: unknown;
+
+    // Browser-encrypted posts use a deterministic id and token hashes, so it is
+    // safe to retry once. If an insert actually committed but its response was
+    // lost, the read below recovers that exact row instead of creating a copy.
+    for (let attempt = 0; attempt < 2 && !letterStored; attempt += 1) {
+      try {
+        await insertEncryptedLetter(letterRow);
+        letterStored = true;
+      } catch (error) {
+        lastStorageError = error;
+
+        if (idempotencyKey) {
+          let existing: StoredLetter | null = null;
+          try {
+            existing = await findLetterByAccessToken(accessToken);
+          } catch (recoveryError) {
+            console.error(
+              `Secure letter recovery read failed [${incidentId}] (attempt ${attempt + 1}):`,
+              recoveryError,
             );
           }
-          return replayCreationResponse(request, existing, accessToken, manageToken);
+
+          if (existing) {
+            if (existing.metadata?.creation_request_hash !== replayHash) {
+              return NextResponse.json(
+                { error: "This posting retry key was already used for a different encrypted letter." },
+                { status: 409, headers: { "Cache-Control": "no-store" } },
+              );
+            }
+
+            letterStored = true;
+            failureStage = "media-storage";
+            const replayResponse = await replayCreationResponse(
+              request,
+              existing,
+              accessToken,
+              manageToken,
+            );
+            return replayResponse;
+          }
         }
       }
-      throw error;
     }
+
+    if (!letterStored) throw lastStorageError;
 
     await insertLetterEvent(letterId, "created", { source: "web_creator", e2ee: isE2EE });
     await insertLetterEvent(letterId, "posted", { opens_at: opensAt.toISOString(), e2ee: isE2EE });
+
+    // Store the encrypted letter before asking the media service for upload
+    // URLs. If media preparation is temporarily unavailable, the next click
+    // recovers this row and resumes the upload instead of losing the post.
+    failureStage = "media-storage";
+    const uploadTargets = uploadManifest.length
+      ? await createMediaUploadTargetsWithRetry(
+          uploadManifest.map(({ id, path }) => ({ id, path })),
+        )
+      : [];
+
+    failureStage = "notifications";
 
     const emailDelivery = media.length
       ? {
@@ -591,10 +648,29 @@ export async function POST(request: Request) {
       },
     );
   } catch (error) {
-    console.error("Secure letter creation failed:", error);
+    console.error(
+      `Secure letter creation failed [${incidentId}] at ${failureStage}:`,
+      error,
+    );
+
+    const mediaCanResume = letterStored && failureStage === "media-storage";
     return NextResponse.json(
-      { error: "The letter could not be stored securely. Please try again." },
-      { status: 500 },
+      {
+        error: mediaCanResume
+          ? `Your encrypted letter is safely stored, but private media upload could not start. Tap retry to continue. Reference: ${incidentId}.`
+          : `Secure storage had a temporary problem. Your draft is still safe in this browser. Please try again. Reference: ${incidentId}.`,
+        code: mediaCanResume ? "media_storage_unavailable" : "secure_storage_unavailable",
+        retryable: true,
+        incidentId,
+      },
+      {
+        status: 503,
+        headers: {
+          "Cache-Control": "no-store",
+          "Retry-After": "1",
+          "X-Intezaar-Incident": incidentId,
+        },
+      },
     );
   }
 }
