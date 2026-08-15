@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { RecipientPhotoLayoutBridge } from "@/components/recipient-photo-layout-bridge";
 import {
   decryptE2EEPayload,
@@ -47,6 +47,8 @@ type OpenedMedia = DeliveredMedia & {
 };
 
 type Props = {
+  deliveryToken: string;
+  expiresAt: string;
   recipient: string;
   sender: string;
   occasion: string;
@@ -70,6 +72,11 @@ type Countdown = {
 };
 
 type E2EEStatus = "idle" | "decrypting" | "ready" | "missing-key" | "error";
+
+type RememberedE2EEKey = {
+  key: string;
+  expiresAt: string;
+};
 
 function countdownTo(value: string): Countdown {
   const total = Math.max(0, new Date(value).getTime() - Date.now());
@@ -105,7 +112,36 @@ function mediaSize(bytes: number) {
   return `${(bytes / 1_048_576).toFixed(1)} MB`;
 }
 
+function validUrlKey(value: string) {
+  return readE2EEKeyFromHash(`#k=${value}`);
+}
+
+function readRememberedE2EEKey(storageKey: string) {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(storageKey) || "null") as Partial<RememberedE2EEKey> | null;
+    const key = typeof stored?.key === "string" ? validUrlKey(stored.key) : null;
+    const expiry = typeof stored?.expiresAt === "string" ? new Date(stored.expiresAt).getTime() : Number.NaN;
+    if (!key || !Number.isFinite(expiry) || Date.now() >= expiry) {
+      window.localStorage.removeItem(storageKey);
+      return null;
+    }
+    return key;
+  } catch {
+    return null;
+  }
+}
+
+function rememberE2EEKey(storageKey: string, key: string, expiresAt: string) {
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify({ key, expiresAt } satisfies RememberedE2EEKey));
+  } catch {
+    // The complete URL still works when persistent browser storage is blocked.
+  }
+}
+
 export function SecureLetterDelivery({
+  deliveryToken,
+  expiresAt,
   recipient,
   sender,
   occasion,
@@ -119,6 +155,10 @@ export function SecureLetterDelivery({
   mediaKey,
   media,
 }: Props) {
+  const e2eeKeyStorageKey = useMemo(
+    () => `intezaar:e2ee-key:v1:${deliveryToken}`,
+    [deliveryToken],
+  );
   const storageKey = useMemo(
     () => `intezaar:received:${recipient}:${opensAt}`,
     [recipient, opensAt],
@@ -130,6 +170,10 @@ export function SecureLetterDelivery({
   const [e2eeMedia, setE2eeMedia] = useState<DeliveredMedia[]>([]);
   const [e2eeMediaKey, setE2eeMediaKey] = useState("");
   const [e2eeStatus, setE2eeStatus] = useState<E2EEStatus>(e2eePayload ? "decrypting" : "idle");
+  const [keyRevision, setKeyRevision] = useState(0);
+  const [recoveryLink, setRecoveryLink] = useState("");
+  const [recoveryError, setRecoveryError] = useState("");
+  const [recoveryBusy, setRecoveryBusy] = useState(false);
   const [openedMedia, setOpenedMedia] = useState<OpenedMedia[]>([]);
   const [mediaStatus, setMediaStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
@@ -155,6 +199,11 @@ export function SecureLetterDelivery({
   }, [storageKey]);
 
   useEffect(() => {
+    const urlKey = readE2EEKeyFromHash();
+    if (urlKey) rememberE2EEKey(e2eeKeyStorageKey, urlKey, expiresAt);
+  }, [e2eeKeyStorageKey, expiresAt]);
+
+  useEffect(() => {
     if (!e2eePayload) {
       setE2eeContent(null);
       setE2eeMedia([]);
@@ -170,7 +219,8 @@ export function SecureLetterDelivery({
     setE2eeMediaKey("");
 
     const decrypt = async () => {
-      const urlKey = readE2EEKeyFromHash();
+      const hashKey = readE2EEKeyFromHash();
+      const urlKey = hashKey || readRememberedE2EEKey(e2eeKeyStorageKey);
       if (!urlKey) {
         if (!cancelled) setE2eeStatus("missing-key");
         return;
@@ -179,6 +229,7 @@ export function SecureLetterDelivery({
       try {
         const payload = await decryptE2EEPayload(e2eePayload, urlKey);
         if (cancelled) return;
+        rememberE2EEKey(e2eeKeyStorageKey, urlKey, expiresAt);
         const privateById = new Map(payload.media.map((item) => [item.id, item]));
         const mergedMedia = media.map((item) => {
           const privateItem = privateById.get(item.id);
@@ -208,7 +259,44 @@ export function SecureLetterDelivery({
     return () => {
       cancelled = true;
     };
-  }, [e2eePayload, media]);
+  }, [e2eeKeyStorageKey, e2eePayload, expiresAt, keyRevision, media]);
+
+  async function recoverFromCompleteLink(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!e2eePayload || recoveryBusy) return;
+
+    setRecoveryBusy(true);
+    setRecoveryError("");
+    try {
+      const pastedUrl = new URL(recoveryLink.trim(), window.location.origin);
+      const expectedPath = `/receive/${deliveryToken}`;
+      const urlKey = pastedUrl.pathname === expectedPath
+        ? readE2EEKeyFromHash(pastedUrl.hash)
+        : null;
+      if (!urlKey) {
+        throw new Error("Paste the complete private link for this letter, including everything after #k=.");
+      }
+
+      // Verify locally before remembering anything. The key and plaintext are
+      // never included in this request or sent back to Intezaar.
+      await decryptE2EEPayload(e2eePayload, urlKey);
+      rememberE2EEKey(e2eeKeyStorageKey, urlKey, expiresAt);
+
+      const currentUrl = new URL(window.location.href);
+      currentUrl.hash = `k=${urlKey}`;
+      window.history.replaceState(null, "", currentUrl);
+      setRecoveryLink("");
+      setKeyRevision((revision) => revision + 1);
+    } catch (error) {
+      setRecoveryError(
+        error instanceof Error
+          ? error.message
+          : "That private link could not unlock this letter.",
+      );
+    } finally {
+      setRecoveryBusy(false);
+    }
+  }
 
   useEffect(() => {
     if (hasArrivedPayload || status !== "posted") return;
@@ -399,18 +487,40 @@ export function SecureLetterDelivery({
           <p>End-to-end encrypted</p>
           <h1>
             {missingKey
-              ? "This link is missing the private decryption key."
+              ? "This email opened without the private key."
               : failed
                 ? "This encrypted letter could not be opened on this device."
                 : "Decrypting your letter on this device…"}
           </h1>
           <span>
             {missingKey
-              ? "Open the complete private link shared by the sender. An Intezaar email notice does not contain the decryption key."
+              ? "Email apps can open a different browser from the one that first received the key. Paste the sender's complete private link below to unlock this letter on this browser."
               : failed
-                ? "Check that you opened the complete private link exactly as it was shared, then try again."
+                ? "The saved key did not unlock this letter. Paste the complete private link originally shared by the sender to recover securely."
                 : "The ciphertext has arrived. Your browser is using the private key from this link; Intezaar does not receive that key."}
           </span>
+          {missingKey || failed ? (
+            <form className={styles.keyRecovery} onSubmit={recoverFromCompleteLink}>
+              <label htmlFor="complete-private-link">Sender&apos;s complete private link</label>
+              <input
+                id="complete-private-link"
+                type="url"
+                inputMode="url"
+                autoComplete="off"
+                value={recoveryLink}
+                onChange={(event) => setRecoveryLink(event.target.value)}
+                placeholder="https://intezaar.in/receive/…#k=…"
+                required
+              />
+              <button type="submit" disabled={recoveryBusy || !recoveryLink.trim()}>
+                {recoveryBusy ? "Checking private link…" : "Unlock on this browser"}
+              </button>
+              {recoveryError ? <p role="alert">{recoveryError}</p> : null}
+              <small>
+                The key is checked and remembered only on this device until the letter expires. If you do not have the complete link, ask the sender to share it again.
+              </small>
+            </form>
+          ) : null}
         </section>
       </main>
     );
