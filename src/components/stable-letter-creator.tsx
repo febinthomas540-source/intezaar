@@ -61,8 +61,7 @@ type FormatDefinition = {
 };
 
 type ArrivalPreset = "express" | "next-day" | "3-days" | "5-days" | "7-days" | "custom";
-type SealState = "idle" | "sealing" | "sealed";
-type PostState = "idle" | "posting" | "posted";
+type SendState = "idle" | "sending" | "sent";
 type StablePhotoItem = PhotoItem & { size: number; file: File; mimeType: string; lastModified: number };
 type StableVoiceItem = VoiceItem & { size: number; file: File; mimeType: string; lastModified: number };
 type StableVideoItem = VideoItem & { file: File; mimeType: string; lastModified: number };
@@ -185,10 +184,8 @@ export function StableLetterCreator() {
   const [voices, setVoices] = useState<StableVoiceItem[]>([]);
   const [videos, setVideos] = useState<StableVideoItem[]>([]);
   const [mediaError, setMediaError] = useState("");
-  const [sealState, setSealState] = useState<SealState>("idle");
-  const [sealStatus, setSealStatus] = useState("Ready to seal");
-  const [postState, setPostState] = useState<PostState>("idle");
-  const [postStatus, setPostStatus] = useState("Ready for the post box");
+  const [sendState, setSendState] = useState<SendState>("idle");
+  const [sendStatus, setSendStatus] = useState("Ready to post");
   const [secureResult, setSecureResult] = useState<SecureLetterResult | null>(null);
   const [pendingSecureResult, setPendingSecureResult] = useState<SecureLetterResult | null>(null);
   const [pendingFingerprint, setPendingFingerprint] = useState("");
@@ -206,8 +203,8 @@ export function StableLetterCreator() {
   const mediaSlotsLeft = Math.max(0, MAX_MEDIA_ITEMS - mediaCount);
   const wordCount = letter.trim() ? letter.trim().split(/\s+/).length : 0;
   const canContinue = Boolean(sender.trim() && recipient.trim() && letter.trim());
-  const currentStep = created ? 6 : step;
-  const progress = ["Write", "Personalise", "Arrival", "Seal", "Post", "Share"];
+  const currentStep = created ? 3 : step;
+  const progress = ["Write", "Personalise", "Review & send"];
   const minArrival = toDateInput(new Date());
   const maxArrival = toDateInput(new Date(Date.now() + MAX_DELIVERY_MS));
 
@@ -288,13 +285,9 @@ export function StableLetterCreator() {
   }
 
   function resetCeremony(targetStep: number) {
-    if (targetStep < 4) {
-      setSealState("idle");
-      setSealStatus("Ready to seal");
-    }
-    if (targetStep < 5) {
-      setPostState("idle");
-      setPostStatus("Ready for the post box");
+    if (targetStep < 3) {
+      setSendState("idle");
+      setSendStatus("Ready to post");
     }
     setSecureError("");
     setStep(targetStep);
@@ -439,44 +432,27 @@ export function StableLetterCreator() {
     setArrivalError("");
   }
 
-  function continueToSeal() {
+  function continueToReview() {
     const error = arrivalErrorFor(arrivalDate, arrivalTime);
     setArrivalError(error);
-    if (!error) setStep(4);
+    if (!error) setStep(3);
   }
 
-  function startSeal() {
-    if (sealState !== "idle") return;
-    setSealState("sealing");
-    setSealStatus("Folding your letter…");
-    later(750, () => setSealStatus("Closing the envelope…"));
-    later(1500, () => setSealStatus("Pressing the wax seal…"));
-    later(2350, () => {
-      setSealState("sealed");
-      setSealStatus("Your letter is sealed");
+  function startSend() {
+    if (sendState !== "idle") return;
+    setSendState("sending");
+    setSendStatus("Sealing your letter…");
+    later(700, () => setSendStatus("Pressing the wax seal…"));
+    later(1400, () => setSendStatus("Posting your letter…"));
+    later(2100, () => {
+      setSendState("sent");
+      setSendStatus("Your letter has been posted");
     });
   }
 
-  function finishSeal() {
-    setSealState("sealed");
-    setSealStatus("Your letter is sealed");
-  }
-
-  function startPost() {
-    if (postState !== "idle" || sealState !== "sealed") return;
-    setPostState("posting");
-    setPostStatus("Taking it to the post box…");
-    later(850, () => setPostStatus("Posting your letter…"));
-    later(1750, () => setPostStatus("Marking it for dispatch…"));
-    later(2850, () => {
-      setPostState("posted");
-      setPostStatus("Your letter has been posted");
-    });
-  }
-
-  function finishPost() {
-    setPostState("posted");
-    setPostStatus("Your letter has been posted");
+  function finishSend() {
+    setSendState("sent");
+    setSendStatus("Your letter has been posted");
   }
 
   function secureDraft(): SecureDraft {
@@ -647,7 +623,7 @@ export function StableLetterCreator() {
 
   const registered = Boolean(recipientEmail.trim());
   const emailOkay = validEmail(recipientEmail);
-  const currentArrivalError = step === 3 ? arrivalErrorFor(arrivalDate, arrivalTime) : "";
+  const currentArrivalError = step === 2 ? arrivalErrorFor(arrivalDate, arrivalTime) : "";
   const deliveryMessage = secureResult?.emailDelivery?.message;
   const mediaMessage = secureResult?.mediaReady
     ? `${secureResult.mediaCount || 0} media item${secureResult.mediaCount === 1 ? "" : "s"} encrypted and stored privately.`
@@ -666,14 +642,14 @@ export function StableLetterCreator() {
           <nav className="creation-stepper" aria-label="Letter creation progress">
             {progress.map((label, index) => {
               const number = index + 1;
-              return <button key={label} type="button" className={currentStep === number ? "active" : currentStep > number ? "complete" : ""} disabled={number > currentStep || created || Boolean(secureResult) || sealState === "sealing" || postState === "posting" || secureBusy} onClick={() => number < currentStep && resetCeremony(number)}><span>{currentStep > number ? "✓" : number}</span><small>{label}</small></button>;
+              return <button key={label} type="button" className={currentStep === number ? "active" : currentStep > number ? "complete" : ""} disabled={number > currentStep || created || Boolean(secureResult) || sendState === "sending" || secureBusy} onClick={() => number < currentStep && resetCeremony(number)}><span>{currentStep > number ? "✓" : number}</span><small>{label}</small></button>;
             })}
           </nav>
 
           {!created ? (
             <form className="nostalgia-form creation-form" onSubmit={(event: FormEvent<HTMLFormElement>) => event.preventDefault()}>
               {step === 1 ? <section className="nostalgia-form-section creation-panel creation-write-panel">
-                <header className="creation-section-head"><div><span>Step 1 of 6</span><h2>Write your letter</h2><p>Say what you want them to receive when the letter arrives.</p></div><small>Draft saves on this device</small></header>
+                <header className="creation-section-head"><div><span>Step 1 of 3</span><h2>Write your letter</h2><p>Say what you want them to receive when the letter arrives.</p></div><small>Draft saves on this device</small></header>
                 <div className="nostalgia-form-grid"><label>From<input value={sender} onChange={(event) => setSender(event.target.value)} placeholder="Your name" /></label><label>To<input value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="Their name" /></label></div>
                 <div className="nostalgia-form-grid"><label>Occasion<select value={occasion} onChange={(event) => setOccasion(event.target.value)}>{occasions.map((item) => <option key={item}>{item}</option>)}</select></label><label>Opening<input value={heading} onChange={(event) => setHeading(event.target.value)} placeholder={`Dear ${recipient || "you"},`} /></label></div>
                 <div className="writing-help"><strong>Need a starting line?</strong><div>{writingStarters.map((starter) => <button key={starter.label} type="button" onClick={() => insertStarter(starter.text)}>{starter.label}</button>)}</div></div>
@@ -684,15 +660,10 @@ export function StableLetterCreator() {
               </section> : null}
 
               {step === 2 ? <section className="nostalgia-form-section creation-panel">
-                <header className="creation-section-head"><div><span>Step 2 of 6</span><h2>Personalise it</h2><p>Choose the paper and add optional memories only when they belong inside the letter.</p></div><small>{mediaCount} of {MAX_MEDIA_ITEMS} media slots used</small></header>
+                <header className="creation-section-head"><div><span>Step 2 of 3</span><h2>Personalise & choose arrival</h2><p>Choose the paper, add optional memories, and pick when it should arrive.</p></div><small>{mediaCount} of {MAX_MEDIA_ITEMS} media slots used</small></header>
                 <section className="recommended-formats"><h3>Suggested for this letter</h3><div>{recommendedFormats.map((id) => { const item = formats.find((entry) => entry.id === id)!; return <button key={id} type="button" className={format === id ? "active" : ""} onClick={() => setFormat(id)}><span className={`format-miniature format-miniature-${id}`} aria-hidden="true"><i /><i /></span><strong>{item.name}</strong><small>{item.description}</small></button>; })}</div></section>
                 <details className="format-library-disclosure"><summary>More letter styles <span>Optional</span></summary><div className="letter-format-grid">{formats.map((item) => <button key={item.id} type="button" className={format === item.id ? "active" : ""} onClick={() => setFormat(item.id)}><span className={`format-miniature format-miniature-${item.id}`} aria-hidden="true"><i /><i /></span><strong>{item.name}</strong><small>{item.description}</small></button>)}</div></details>
-                <div className="creation-personalise-layout"><div className="compact-media-studio"><header><h3>Optional media</h3><p>Add up to three total items.</p></header><div className="media-choice-row"><label className={mediaSlotsLeft ? "" : "disabled"}>＋ Photo<input type="file" accept="image/*" multiple disabled={!mediaSlotsLeft} onChange={addPhotos} /></label><label className={mediaSlotsLeft ? "" : "disabled"}>＋ Voice<input type="file" accept="audio/*" multiple disabled={!mediaSlotsLeft} onChange={addVoices} /></label><label className={mediaSlotsLeft && !videos.length ? "" : "disabled"}>＋ Video<input type="file" accept="video/*" disabled={!mediaSlotsLeft || Boolean(videos.length)} onChange={addVideo} /></label></div>{mediaError ? <p className="media-error" role="alert">{mediaError}</p> : null}<p className="media-limit-copy">Photos {mediaLimitLabel("photo")} · voice {mediaLimitLabel("voice")} · video {mediaLimitLabel("video")} · 30 MB total.</p><div className="media-item-list compact-media-list">{photos.length ? <div className="photo-edit-inside-note"><strong>{photos.length} photo{photos.length === 1 ? "" : "s"} placed</strong><span>Drag them directly on the letter. Resize, zoom, crop and caption below the preview.</span></div> : null}{voices.map((voice, index) => <article className="media-item media-item-audio" key={voice.id}><span className="media-audio-icon">▶</span><div><strong>Voice note {index + 1}</strong><input value={voice.label} onChange={(event) => setVoices((current) => current.map((item) => item.id === voice.id ? { ...item, label: event.target.value } : item))} placeholder="Editable title" /><audio controls src={voice.url} /></div><button type="button" onClick={() => removeMedia("voice", voice.id)}>Remove</button></article>)}{videos.map((video) => <article className="media-item media-item-video" key={video.id}><video controls playsInline src={video.url} /><div><strong>Video · {fileSize(video.size)}</strong><input value={video.caption} onChange={(event) => setVideos((current) => current.map((item) => item.id === video.id ? { ...item, caption: event.target.value } : item))} placeholder="Editable caption" /></div><button type="button" onClick={() => removeMedia("video", video.id)}>Remove</button></article>)}</div><p className="media-privacy-note">Selected media is encrypted in this browser and uploaded privately only after you post the letter.</p></div><details className="creation-preview-disclosure" open><summary>Preview what they will open</summary>{preview}</details></div>
-                <div className="nostalgia-form-actions"><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => resetCeremony(1)}>Back to writing</button><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={() => setStep(3)}>Choose arrival</button></div>
-              </section> : null}
-
-              {step === 3 ? <section className="nostalgia-form-section creation-panel">
-                <header className="creation-section-head"><div><span>Step 3 of 6</span><h2>Choose when it should arrive</h2><p>The letter stays sealed until the date and time you choose.</p></div><small>Free during public beta</small></header>
+                <div className="creation-personalise-layout"><div className="compact-media-studio"><header><h3>Optional media</h3><p>Add up to three total items.</p></header><div className="media-choice-row"><label className={mediaSlotsLeft ? "" : "disabled"}>＋ Photo<input type="file" accept="image/*" multiple disabled={!mediaSlotsLeft} onChange={addPhotos} /></label><label className={mediaSlotsLeft ? "" : "disabled"}>＋ Voice<input type="file" accept="audio/*" multiple disabled={!mediaSlotsLeft} onChange={addVoices} /></label><label className={mediaSlotsLeft && !videos.length ? "" : "disabled"}>＋ Video<input type="file" accept="video/*" disabled={!mediaSlotsLeft || Boolean(videos.length)} onChange={addVideo} /></label></div>{mediaError ? <p className="media-error" role="alert">{mediaError}</p> : null}<p className="media-limit-copy">Photos {mediaLimitLabel("photo")} · voice {mediaLimitLabel("voice")} · video {mediaLimitLabel("video")} · 30 MB total.</p><div className="media-item-list compact-media-list">{photos.length ? <div className="photo-edit-inside-note"><strong>{photos.length} photo{photos.length === 1 ? "" : "s"} placed</strong><span>Drag them directly on the letter. Resize, zoom, crop and caption below the preview.</span></div> : null}{voices.map((voice, index) => <article className="media-item media-item-audio" key={voice.id}><span className="media-audio-icon">▶</span><div><strong>Voice note {index + 1}</strong><input value={voice.label} onChange={(event) => setVoices((current) => current.map((item) => item.id === voice.id ? { ...item, label: event.target.value } : item))} placeholder="Editable title" /><audio controls src={voice.url} /></div><button type="button" onClick={() => removeMedia("voice", voice.id)}>Remove</button></article>)}{videos.map((video) => <article className="media-item media-item-video" key={video.id}><video controls playsInline src={video.url} /><div><strong>Video · {fileSize(video.size)}</strong><input value={video.caption} onChange={(event) => setVideos((current) => current.map((item) => item.id === video.id ? { ...item, caption: event.target.value } : item))} placeholder="Editable caption" /></div><button type="button" onClick={() => removeMedia("video", video.id)}>Remove</button></article>)}</div><p className="media-privacy-note">Selected media is encrypted in this browser and uploaded privately only after you post the letter.</p></div><details className="creation-preview-disclosure"><summary>Preview what they will open</summary>{preview}</details></div>
                 <div className="journey-duration-cards" role="group" aria-label="Quick arrival choices">
                   <button type="button" className={`express-choice ${arrivalPreset === "express" ? "active" : ""}`} onClick={() => chooseHours(12, "express")}><strong>12 hours</strong><span>Intezaar Express</span></button>
                   <button type="button" className={arrivalPreset === "next-day" ? "active" : ""} onClick={() => chooseHours(24, "next-day")}><strong>Next day</strong><span>Priority arrival</span></button>
@@ -702,27 +673,21 @@ export function StableLetterCreator() {
                 </div>
                 <p className="arrival-preset-note" data-invalid={String(Boolean(arrivalError || currentArrivalError))}>{arrivalError || currentArrivalError || "Intezaar Express starts at 12 hours. Slower journeys keep the waiting ritual at the centre."}</p>
                 <div className="arrival-postal-grid"><section className="arrival-card"><span>Arrival</span><h3>{readableDate(arrivalDate)}</h3><label>Arrival date<input type="date" min={minArrival} max={maxArrival} value={arrivalDate} onChange={(event) => { setArrivalDate(event.target.value); setArrivalPreset("custom"); setArrivalError(""); }} /></label><label>Opening time<input type="time" value={arrivalTime} onChange={(event) => { setArrivalTime(event.target.value); setArrivalPreset("custom"); setArrivalError(""); }} /></label><p>{recipient || "The recipient"} will see a sealed letter before this moment.</p></section><section className="arrival-card postal-route-card"><span>Postal route</span><h3>{fromCity || "Origin"} → {toCity || "Destination"}</h3><label>Posted from<input value={fromCity} onChange={(event) => setFromCity(event.target.value)} /></label><label>Arriving in<input value={toCity} onChange={(event) => setToCity(event.target.value)} /></label><p>The route is cinematic, not live postal or railway tracking.</p></section></div>
-                <section className="registered-delivery-option"><div><span>Optional privacy</span><h3>Registered Intezaar Mail</h3><p>Add the recipient’s email only if you want them to verify with a one-time code before sender details, the letter or private media are released.</p></div><label>Recipient email (optional)<input type="email" inputMode="email" autoComplete="email" maxLength={254} value={recipientEmail} onChange={(event) => setRecipientEmail(event.target.value)} placeholder="name@example.com" /></label><small data-active={String(registered)}>{registered ? "Registered delivery enabled · recipient verification required" : "Leave blank for ordinary private-link delivery"}</small>{!emailOkay ? <p className="registered-delivery-error" role="alert">Enter a valid email address or leave it blank.</p> : null}</section>
+                <details className="format-library-disclosure"><summary>Registered Intezaar Mail <span>Optional</span></summary><section className="registered-delivery-option"><div><span>Optional privacy</span><h3>Registered Intezaar Mail</h3><p>Add the recipient’s email only if you want them to verify with a one-time code before sender details, the letter or private media are released.</p></div><label>Recipient email (optional)<input type="email" inputMode="email" autoComplete="email" maxLength={254} value={recipientEmail} onChange={(event) => setRecipientEmail(event.target.value)} placeholder="name@example.com" /></label><small data-active={String(registered)}>{registered ? "Registered delivery enabled · recipient verification required" : "Leave blank for ordinary private-link delivery"}</small>{!emailOkay ? <p className="registered-delivery-error" role="alert">Enter a valid email address or leave it blank.</p> : null}</section></details>
                 <div className="final-review-strip"><div><small>From</small><strong>{sender}</strong></div><div><small>For</small><strong>{recipient}</strong></div><div><small>Arrival</small><strong>{readableDate(arrivalDate)}</strong></div><div><small>Opens</small><strong>{arrivalTime}</strong></div></div>
-                <div className="nostalgia-form-actions"><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => resetCeremony(2)}>Back to personalise</button><button className="nostalgia-button nostalgia-button-primary" type="button" disabled={!emailOkay || Boolean(currentArrivalError)} onClick={continueToSeal}>Continue to seal</button></div>
+                <div className="nostalgia-form-actions"><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => resetCeremony(1)}>Back to writing</button><button className="nostalgia-button nostalgia-button-primary" type="button" disabled={!emailOkay || Boolean(currentArrivalError)} onClick={continueToReview}>Continue to review</button></div>
               </section> : null}
 
-              {step === 4 ? <section className="nostalgia-form-section creation-panel ceremony-panel">
-                <header className="creation-section-head"><div><span>Step 4 of 6</span><h2>Seal the letter</h2><p>This is the moment it stops being a draft and becomes something sent.</p></div><small>{formatName(format)}</small></header>
-                <div className={`seal-stage seal-${sealState}`} aria-live="polite"><div className="seal-paper"><span>{heading || `Dear ${recipient},`}</span><i /><i /><i /></div><div className="seal-envelope"><span className="seal-envelope-back" /><span className="seal-envelope-flap" /><span className="seal-wax">I</span><strong>For {recipient}</strong></div><div className="ceremony-status"><span>{sealState === "sealed" ? "SEALED" : "INTEZAAR MAIL"}</span><strong>{sealStatus}</strong></div></div>
+              {step === 3 ? <section className="nostalgia-form-section creation-panel ceremony-panel">
+                <header className="creation-section-head"><div><span>Step 3 of 3</span><h2>{sendState === "sent" ? "Your letter has been posted" : "Review & send"}</h2><p>{sendState === "sent" ? "It will stay sealed until the moment you chose." : "This is the moment it stops being a draft and becomes something sent."}</p></div><small>{formatName(format)}</small></header>
+                <details className="creation-preview-disclosure" open><summary>Preview what they will open</summary>{preview}</details>
+                <div className={`seal-stage seal-${sendState === "sent" ? "sealed" : sendState === "sending" ? "sealing" : "idle"}`} aria-live="polite"><div className="seal-paper"><span>{heading || `Dear ${recipient},`}</span><i /><i /><i /></div><div className="seal-envelope"><span className="seal-envelope-back" /><span className="seal-envelope-flap" /><span className="seal-wax">I</span><strong>For {recipient}</strong></div><div className="ceremony-status"><span>{sendState === "sent" ? "POSTED" : "INTEZAAR MAIL"}</span><strong>{sendStatus}</strong></div></div>
                 <div className="ceremony-summary"><div><small>From</small><strong>{fromCity}</strong></div><div><small>To</small><strong>{toCity}</strong></div><div><small>Opens</small><strong>{readableDate(arrivalDate)} · {arrivalTime}</strong></div></div>
-                <div className="nostalgia-form-actions">{sealState === "idle" ? <><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => resetCeremony(3)}>Go back and edit</button><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={startSeal}>Seal the letter</button></> : null}{sealState === "sealing" ? <button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={finishSeal}>Finish animation</button> : null}{sealState === "sealed" ? <><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => { setSealState("idle"); setSealStatus("Ready to seal"); }}>Unseal and edit</button><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={() => setStep(5)}>Continue to the post box</button></> : null}</div>
-              </section> : null}
-
-              {step === 5 ? <section className="nostalgia-form-section creation-panel ceremony-panel post-panel">
-                <header className="creation-section-head"><div><span>Step 5 of 6</span><h2>{postState === "posted" ? "Your letter has been posted" : "Post your letter"}</h2><p>{postState === "posted" ? "It will stay sealed until the moment you chose." : "Drop it into the Intezaar box and let the waiting begin."}</p></div><small>{fromCity.toUpperCase()} COLLECTION</small></header>
-                <div className={`post-stage post-${postState}`} aria-live="polite"><div className="post-atmosphere"><span /><span /><span /></div><div className="posting-envelope"><span>For {recipient}</span><i>I</i></div><div className="intezaar-postbox"><strong><small>डाक</small>INTEZAAR MAIL</strong><span className="postbox-slot">LETTERS</span><span className="postbox-door"><i>POSTED</i></span><span className="postbox-base" /></div><div className="ceremony-status post-status"><span>{postState === "posted" ? "POSTED" : "FINAL COLLECTION"}</span><strong>{postStatus}</strong></div></div>
-                <div className="ceremony-summary"><div><small>Posted from</small><strong>{fromCity}</strong></div><div><small>Going to</small><strong>{toCity}</strong></div><div><small>Arrives</small><strong>{readableDate(arrivalDate)} · {arrivalTime}</strong></div></div>
                 {secureError ? <p className="secure-letter-error media-error" role="alert">{secureError}</p> : null}
-                <div className="nostalgia-form-actions">{postState === "idle" ? <><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => setStep(4)}>Back to sealed letter</button><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={startPost}>Post the letter</button></> : null}{postState === "posting" ? <button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={finishPost}>Finish animation</button> : null}{postState === "posted" ? <button className="nostalgia-button nostalgia-button-primary" type="button" disabled={secureBusy} onClick={continueToShare}>{secureBusy ? secureStatus : pendingSecureResult ? "Retry encrypted media upload" : secureStatus}</button> : null}</div>
+                <div className="nostalgia-form-actions">{sendState === "idle" ? <><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => resetCeremony(2)}>Back to personalise</button><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={startSend}>Post your letter</button></> : null}{sendState === "sending" ? <button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={finishSend}>Finish animation</button> : null}{sendState === "sent" ? <button className="nostalgia-button nostalgia-button-primary" type="button" disabled={secureBusy} onClick={continueToShare}>{secureBusy ? secureStatus : pendingSecureResult ? "Retry encrypted media upload" : secureStatus}</button> : null}</div>
               </section> : null}
             </form>
-          ) : <section className="nostalgia-create-success creation-share-panel posted-share-panel"><p className="nostalgia-eyebrow">Step 6 of 6 · Posted</p><h2>Your letter is on its way.</h2><p>{registered ? `Registered delivery is enabled for ${recipient}. They will verify with the code sent to their email before the letter can be released.` : `Send the private link to ${recipient}. They will see a sealed letter and its arrival date before they can open it.`}</p><div className="posted-stamp-card"><span>POSTED</span><strong>{fromCity} → {toCity}</strong><p>Opens {readableDate(arrivalDate)} at {arrivalTime}</p></div><div className="share-link-box"><span>Private recipient link</span><code>{secureResult?.recipientUrl || ""}</code><button type="button" onClick={copyShareLink}>{copied ? "Copied" : "Copy link"}</button></div><div className="nostalgia-success-actions"><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={shareLetter}>Share letter link</button>{secureResult?.recipientUrl ? <Link href={secureResult.recipientUrl} className="nostalgia-button nostalgia-button-ghost">Open recipient link</Link> : null}<button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => { setCreated(false); setPostState("posted"); setStep(5); }}>Back to posted letter</button></div><p className="prototype-transfer-note">{deliveryMessage ? `${deliveryMessage} ${mediaMessage}` : mediaMessage}</p></section>}
+          ) : <section className="nostalgia-create-success creation-share-panel posted-share-panel"><p className="nostalgia-eyebrow">Posted</p><h2>Your letter is on its way.</h2><p>{registered ? `Registered delivery is enabled for ${recipient}. They will verify with the code sent to their email before the letter can be released.` : `Send the private link to ${recipient}. They will see a sealed letter and its arrival date before they can open it.`}</p><div className="posted-stamp-card"><span>POSTED</span><strong>{fromCity} → {toCity}</strong><p>Opens {readableDate(arrivalDate)} at {arrivalTime}</p></div><div className="share-link-box"><span>Private recipient link</span><code>{secureResult?.recipientUrl || ""}</code><button type="button" onClick={copyShareLink}>{copied ? "Copied" : "Copy link"}</button></div><div className="nostalgia-success-actions"><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={shareLetter}>Share letter link</button>{secureResult?.recipientUrl ? <Link href={secureResult.recipientUrl} className="nostalgia-button nostalgia-button-ghost">Open recipient link</Link> : null}<button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => { setCreated(false); setSendState("sent"); setStep(3); }}>Back to posted letter</button></div><p className="prototype-transfer-note">{deliveryMessage ? `${deliveryMessage} ${mediaMessage}` : mediaMessage}</p></section>}
         </div>
       </section>
     </main>
