@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Navigation } from "@/components/navigation";
-import { ReflectionUseCases } from "@/components/reflection-use-cases";
 import styles from "./postbox-home-refresh.module.css";
 import refined from "./postbox-home-refinement.module.css";
 import trust from "./trust-transparency.module.css";
@@ -8,23 +7,23 @@ import trust from "./trust-transparency.module.css";
 const steps = [
   {
     number: "01",
-    title: "Write & seal",
-    copy: "Write the letter, then post it. The message and any private media are encrypted in your browser before Intezaar stores them — the key never leaves the private link.",
+    title: "Write your letter",
+    copy: "Write what you want to say. You do not need an account to begin.",
   },
   {
     number: "02",
-    title: "Choose the opening time",
-    copy: "Pick the date and time. Before then, the recipient sees a sealed envelope and a countdown, not the message inside.",
+    title: "Choose when it arrives",
+    copy: "Pick how long it should wait, or choose your own opening date and time.",
   },
   {
     number: "03",
-    title: "Delivered & decrypted",
-    copy: "At the chosen time, the encrypted letter unlocks on the recipient's own device. Intezaar never holds the decryption key.",
+    title: "Share the private link",
+    copy: "They see a sealed letter until the opening time. Then they can read what you wrote.",
   },
 ];
 
 const trustLinks = [
-  { href: "/how-encryption-works", label: "How encryption works" },
+  { href: "/how-encryption-works", label: "How privacy works" },
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/terms", label: "User Agreement" },
   { href: "/about", label: "About Intezaar" },
@@ -32,7 +31,7 @@ const trustLinks = [
 
 const footerLinks = [
   { href: "/about", label: "About" },
-  { href: "/how-encryption-works", label: "How encryption works" },
+  { href: "/how-encryption-works", label: "How privacy works" },
   { href: "/faq", label: "FAQ" },
   { href: "/privacy", label: "Privacy" },
   { href: "/community-guidelines", label: "Community Guidelines" },
@@ -46,24 +45,23 @@ export function PostboxHome() {
 
       <section className={`${styles.hero} ${refined.hero}`}>
         <div className={`${styles.heroCopy} ${refined.heroCopy}`}>
-          <p className={styles.eyebrow}>End-to-end encrypted letters with a chosen opening time</p>
-          <h1>Write it now. Let it arrive later.</h1>
+          <p className={styles.eyebrow}>A private letter that waits</p>
+          <h1>Write a letter. Let it arrive later.</h1>
           <p className={`${styles.heroText} ${refined.heroText}`}>
-            Intezaar lets you write a private digital letter, seal it, and choose when it can be opened — for someone else or for your future self. Your letter content and private media are end-to-end encrypted before they leave your browser.
+            Write something today, choose when it can be opened, then share the private link. Until that moment, the letter stays sealed.
           </p>
           <div className={styles.heroActions}>
             <Link href="/create" className={`${styles.primaryButton} ${refined.primaryButton}`}>Write a letter</Link>
-            <Link href="/future-self" className={`${styles.secondaryButton} ${refined.secondaryButton}`}>Write to future me</Link>
+            <Link href="/#how-it-works" className={`${styles.secondaryButton} ${refined.secondaryButton}`}>See how it works</Link>
           </div>
-          <div className={`${styles.heroTrust} ${refined.heroTrust}`} aria-label="Intezaar privacy and access highlights">
-            <span>End-to-end encrypted</span>
+          <div className={`${styles.heroTrust} ${refined.heroTrust}`} aria-label="Intezaar highlights">
+            <span>Private</span>
             <span>No account</span>
-            <span>Private link</span>
-            <span>Opens when chosen</span>
+            <span>Opens when you choose</span>
           </div>
         </div>
 
-        <div className={styles.heroVisual} aria-label="A private Intezaar letter waiting to be sealed">
+        <div className={styles.heroVisual} aria-label="A private Intezaar letter waiting to be opened">
           <div className={`${styles.letterDesk} ${refined.letterDesk}`}>
             <div className={styles.deskLabel}><span>INTEZAAR · PRIVATE DIGITAL MAIL</span><span>SEALED UNTIL OPENING</span></div>
             <article className={styles.paper}>
@@ -85,21 +83,21 @@ export function PostboxHome() {
       </section>
 
       <section className={`${styles.trustBand} ${refined.trustBand}`} aria-label="Simple and private">
-        <div><strong>End-to-end encrypted</strong><span>Letter content and private media are encrypted in the sender&apos;s browser. Intezaar does not store the decryption key.</span></div>
-        <div><strong>No account</strong><span>Start writing without creating a profile or adding a phone number.</span></div>
-        <div><strong>Not public</strong><span>Your letter is not listed or published as public content.</span></div>
-        <div><strong>Your timing</strong><span>You choose the opening date and time.</span></div>
+        <div><strong>Private</strong><span>Your letter is protected before it is stored.</span></div>
+        <div><strong>No account</strong><span>Start writing without creating a profile.</span></div>
+        <div><strong>Stays sealed</strong><span>The letter cannot be read before the opening time you choose.</span></div>
+        <div><strong>You share it</strong><span>After posting, you get one private link to send to the recipient.</span></div>
       </section>
 
       <section id="how-it-works" className={`${styles.howSection} ${refined.howSection}`}>
         <header className={styles.sectionHeading}>
           <div>
             <p className={styles.eyebrow}>How it works</p>
-            <h2>One letter. One opening time.</h2>
+            <h2>Write. Choose a time. Share.</h2>
           </div>
           <div>
             <p>
-              The recipient gets a complete private link containing the decryption key. The key stays in the browser, while Intezaar holds the encrypted letter until the chosen time.
+              That is the whole experience. Intezaar keeps the technical privacy details out of your way while you write.
             </p>
             <nav className={trust.trustLinks} aria-label="Trust information">
               {trustLinks.map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}
@@ -118,12 +116,10 @@ export function PostboxHome() {
         </div>
       </section>
 
-      <ReflectionUseCases />
-
       <section className={`${styles.finalCta} ${refined.finalCta}`}>
         <span className={`${styles.finalStamp} ${refined.finalStamp}`}>POSTED WITH PATIENCE</span>
-        <p className={styles.eyebrow}>Start with the letter</p>
-        <h2>Write it today. Choose when it opens.</h2>
+        <p className={styles.eyebrow}>Start with the words</p>
+        <h2>Write it today. Let the moment come later.</h2>
         <Link href="/create" className={`${styles.primaryButton} ${refined.primaryButton}`}>Write a letter</Link>
       </section>
 
