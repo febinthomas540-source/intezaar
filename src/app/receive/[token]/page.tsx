@@ -93,6 +93,8 @@ export default async function SecureRecipientPage({ params }: PageProps) {
   return (
     <>
       <SecureLetterDelivery
+        deliveryToken={token}
+        expiresAt={letter.expires_at || new Date(new Date(letter.opens_at).getTime() + 90 * 24 * 60 * 60 * 1000).toISOString()}
         recipient={letter.recipient_name}
         sender={letter.sender_name}
         occasion={letter.occasion}

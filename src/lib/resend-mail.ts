@@ -80,7 +80,7 @@ export async function sendPostedLetterEmail(
     ? "A private end-to-end encrypted Intezaar letter has been posted for you. Open the complete private link shared by the sender once on the browser you plan to use. After that, this browser can remember the private key locally so email reminders can bring you back to the same letter."
     : "A private Intezaar letter has been posted for you. Use the button below to return to the sealed delivery whenever you need it.";
   const e2eeNote = input.e2ee
-    ? "The email and its return button never contain the decryption key. On a new browser or device, use the complete private link shared by the sender once before relying on email reminders."
+    ? "The email and its return button never contain the decryption key. On a new browser, device or email-app browser, use the complete private link shared by the sender. If needed, Intezaar will let you paste that link to unlock securely."
     : "If the sender enabled recipient verification, you may be asked for a one-time code before the letter is released.";
 
   const html = frame(`
@@ -179,7 +179,7 @@ export async function scheduleArrivalLetterEmail(
   }
 
   const arrivalCopy = input.e2ee
-    ? "The waiting is over. If you already opened the sender's complete private link on this browser, tap below and Intezaar will return you to the letter using the key remembered locally on this device. On a new browser or device, use the sender's complete private link once."
+    ? "The waiting is over. If you already opened the sender's complete private link on this browser, tap below and Intezaar will return you to the letter using the key remembered locally on this device. On a new browser, device or email-app browser, use the sender's complete private link again."
     : "The waiting is over. The moment chosen for your private letter has arrived, and the seal can now be opened.";
 
   const html = frame(`
@@ -187,7 +187,7 @@ export async function scheduleArrivalLetterEmail(
     <h1 style="margin:0;color:#40281f;font-family:Georgia,serif;font-size:38px;line-height:1.08;font-weight:500;">Your Intezaar letter is ready.</h1>
     <p style="margin:22px 0;color:#6d5143;font-size:17px;line-height:1.65;">${arrivalCopy}</p>
     <a href="${recipientUrl}" style="display:inline-block;padding:15px 24px;border-radius:8px;background:#8f281f;color:#fff8ef;text-decoration:none;font-weight:700;">Open your letter</a>
-    <p style="margin:24px 0 0;color:#8a7162;font-size:13px;line-height:1.55;">${input.e2ee ? "This email contains a return link, never the private decryption key. Browser recovery works only on a browser that previously received the sender's complete private link." : "If recipient verification was enabled, complete the one-time-code check before the letter is released."}</p>
+    <p style="margin:24px 0 0;color:#8a7162;font-size:13px;line-height:1.55;">${input.e2ee ? "This email contains a return link, never the private decryption key. If your email app opens a different browser, paste the sender's complete private link on the recovery screen." : "If recipient verification was enabled, complete the one-time-code check before the letter is released."}</p>
   `);
 
   const text = [
@@ -196,7 +196,7 @@ export async function scheduleArrivalLetterEmail(
     "Your Intezaar letter is ready.",
     "The waiting is over. The chosen opening moment has arrived.",
     input.e2ee
-      ? "If you previously opened the complete sender-shared private link on this browser, the return link below can bring you back to the letter. On a new device, use the complete private link once."
+      ? "If you previously opened the complete sender-shared private link on this browser, the return link below can bring you back to the letter. On a new browser, device or email-app browser, use the complete private link again."
       : "Open the private delivery link and complete recipient verification if requested.",
     "",
     `Open your letter: ${input.recipientUrl}`,
