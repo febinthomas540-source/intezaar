@@ -341,7 +341,14 @@ export async function createSecureLetter(
     }),
   });
 
-  const result = await response.json() as CreateLetterApiResult;
+  let result: CreateLetterApiResult;
+  try {
+    result = await response.json() as CreateLetterApiResult;
+  } catch {
+    throw new Error(
+      "The secure posting service did not return a valid response. Your draft is safe in this browser; please try again.",
+    );
+  }
   if (!response.ok || !result.recipientUrl || !result.manageToken || !result.opensAt) {
     throw new Error(result.error || "The letter could not be stored securely.");
   }
