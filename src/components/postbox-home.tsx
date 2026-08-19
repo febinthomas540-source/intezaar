@@ -2,31 +2,23 @@ import Link from "next/link";
 import { Navigation } from "@/components/navigation";
 import styles from "./postbox-home-refresh.module.css";
 import refined from "./postbox-home-refinement.module.css";
-import trust from "./trust-transparency.module.css";
 
 const steps = [
   {
     number: "01",
-    title: "Write your letter",
-    copy: "Write what you want to say. You do not need an account to begin.",
+    title: "Write",
+    copy: "Write the letter you want them to receive.",
   },
   {
     number: "02",
-    title: "Choose when it arrives",
-    copy: "Pick how long it should wait, or choose your own opening date and time.",
+    title: "Choose the arrival",
+    copy: "Pick when the letter should become openable.",
   },
   {
     number: "03",
-    title: "Share the private link",
-    copy: "They see a sealed letter until the opening time. Then they can read what you wrote.",
+    title: "Share",
+    copy: "Send them the private link. Until the chosen time, the letter stays sealed.",
   },
-];
-
-const trustLinks = [
-  { href: "/how-encryption-works", label: "How privacy works" },
-  { href: "/privacy", label: "Privacy Policy" },
-  { href: "/terms", label: "User Agreement" },
-  { href: "/about", label: "About Intezaar" },
 ];
 
 const footerLinks = [
@@ -34,7 +26,6 @@ const footerLinks = [
   { href: "/how-encryption-works", label: "How privacy works" },
   { href: "/faq", label: "FAQ" },
   { href: "/privacy", label: "Privacy" },
-  { href: "/community-guidelines", label: "Community Guidelines" },
   { href: "/terms", label: "User Agreement" },
 ];
 
@@ -45,29 +36,28 @@ export function PostboxHome() {
 
       <section className={`${styles.hero} ${refined.hero}`}>
         <div className={`${styles.heroCopy} ${refined.heroCopy}`}>
-          <p className={styles.eyebrow}>A private letter that waits</p>
-          <h1>Write a letter. Let it arrive later.</h1>
+          <p className={styles.eyebrow}>A letter that waits</p>
+          <h1>Write a letter. Choose when it arrives.</h1>
           <p className={`${styles.heroText} ${refined.heroText}`}>
-            Write something today, choose when it can be opened, then share the private link. Until that moment, the letter stays sealed.
+            Intezaar lets you write a private digital letter today and choose when it can be opened. Share one private link; until that moment, the letter stays sealed.
           </p>
           <div className={styles.heroActions}>
-            <Link href="/create" className={`${styles.primaryButton} ${refined.primaryButton}`}>Write a letter</Link>
-            <Link href="/#how-it-works" className={`${styles.secondaryButton} ${refined.secondaryButton}`}>See how it works</Link>
+            <Link href="/create" className={`${styles.primaryButton} ${refined.primaryButton}`}>Write my letter</Link>
           </div>
           <div className={`${styles.heroTrust} ${refined.heroTrust}`} aria-label="Intezaar highlights">
+            <span>No account needed</span>
             <span>Private</span>
-            <span>No account</span>
-            <span>Opens when you choose</span>
+            <span>Free during beta</span>
           </div>
         </div>
 
-        <div className={styles.heroVisual} aria-label="A private Intezaar letter waiting to be opened">
+        <div className={styles.heroVisual} aria-label="Example of an Intezaar letter waiting to be opened">
           <div className={`${styles.letterDesk} ${refined.letterDesk}`}>
-            <div className={styles.deskLabel}><span>INTEZAAR · PRIVATE DIGITAL MAIL</span><span>SEALED UNTIL OPENING</span></div>
+            <div className={styles.deskLabel}><span>INTEZAAR MAIL</span><span>SEALED</span></div>
             <article className={styles.paper}>
               <small>PRIVATE LETTER</small>
-              <h2>For Ananya — 14 August.</h2>
-              <p>Written on 11 August. Sealed until 8:00 PM.</p>
+              <h2>For Ananya</h2>
+              <p>Written today. Waiting for the right moment.</p>
             </article>
             <div className={styles.envelope}>
               <strong>For Ananya</strong>
@@ -75,33 +65,21 @@ export function PostboxHome() {
             </div>
             <div className={styles.arrivalTicket}>
               <small>OPENS</small>
-              <strong>14 August</strong>
-              <span>8:00 PM · SEALED</span>
+              <strong>24 August</strong>
+              <span>8:00 PM</span>
             </div>
           </div>
         </div>
-      </section>
-
-      <section className={`${styles.trustBand} ${refined.trustBand}`} aria-label="Simple and private">
-        <div><strong>Private</strong><span>Your letter is protected before it is stored.</span></div>
-        <div><strong>No account</strong><span>Start writing without creating a profile.</span></div>
-        <div><strong>Stays sealed</strong><span>The letter cannot be read before the opening time you choose.</span></div>
-        <div><strong>You share it</strong><span>After posting, you get one private link to send to the recipient.</span></div>
       </section>
 
       <section id="how-it-works" className={`${styles.howSection} ${refined.howSection}`}>
         <header className={styles.sectionHeading}>
           <div>
             <p className={styles.eyebrow}>How it works</p>
-            <h2>Write. Choose a time. Share.</h2>
+            <h2>Three steps. That&apos;s it.</h2>
           </div>
           <div>
-            <p>
-              That is the whole experience. Intezaar keeps the technical privacy details out of your way while you write.
-            </p>
-            <nav className={trust.trustLinks} aria-label="Trust information">
-              {trustLinks.map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}
-            </nav>
+            <p>No complicated setup. Start with the letter and let Intezaar handle the waiting.</p>
           </div>
         </header>
 
@@ -117,10 +95,10 @@ export function PostboxHome() {
       </section>
 
       <section className={`${styles.finalCta} ${refined.finalCta}`}>
-        <span className={`${styles.finalStamp} ${refined.finalStamp}`}>POSTED WITH PATIENCE</span>
-        <p className={styles.eyebrow}>Start with the words</p>
-        <h2>Write it today. Let the moment come later.</h2>
-        <Link href="/create" className={`${styles.primaryButton} ${refined.primaryButton}`}>Write a letter</Link>
+        <span className={`${styles.finalStamp} ${refined.finalStamp}`}>INTEZAAR</span>
+        <p className={styles.eyebrow}>One letter. One moment.</p>
+        <h2>Who would you write to?</h2>
+        <Link href="/create" className={`${styles.primaryButton} ${refined.primaryButton}`}>Write my letter</Link>
       </section>
 
       <footer className={styles.footer}>
