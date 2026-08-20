@@ -185,6 +185,31 @@ export function TurnstilePostingGuard() {
   }, [portalTarget, widgetNode, scriptReady, challengeVersion]);
 
   useEffect(() => {
+    if (!siteKey) return;
+
+    const syncSecurePostingButtons = () => {
+      const blocked = status !== "ready";
+      document.querySelectorAll<HTMLButtonElement>("[data-secure-posting-submit='true']").forEach((button) => {
+        button.disabled = blocked;
+        button.setAttribute("aria-disabled", String(blocked));
+        if (blocked) {
+          button.title = status === "error"
+            ? "The secure posting check could not load. Refresh the page and try again."
+            : "Waiting for the secure posting check to complete.";
+        } else {
+          button.removeAttribute("title");
+        }
+      });
+    };
+
+    const observer = new MutationObserver(syncSecurePostingButtons);
+    observer.observe(document.body, { childList: true, subtree: true });
+    syncSecurePostingButtons();
+
+    return () => observer.disconnect();
+  }, [status]);
+
+  useEffect(() => {
     const reset = () => {
       window.__intezaarTurnstileToken = undefined;
       setStatus("loading");
