@@ -61,7 +61,7 @@ type FormatDefinition = {
 };
 
 type ArrivalPreset = "express" | "next-day" | "3-days" | "5-days" | "7-days" | "custom";
-type SendState = "idle" | "sending" | "sent";
+type SendState = "idle" | "sending" | "sealed" | "sent";
 type StablePhotoItem = PhotoItem & { size: number; file: File; mimeType: string; lastModified: number };
 type StableVoiceItem = VoiceItem & { size: number; file: File; mimeType: string; lastModified: number };
 type StableVideoItem = VideoItem & { file: File; mimeType: string; lastModified: number };
@@ -185,12 +185,12 @@ export function StableLetterCreator() {
   const [videos, setVideos] = useState<StableVideoItem[]>([]);
   const [mediaError, setMediaError] = useState("");
   const [sendState, setSendState] = useState<SendState>("idle");
-  const [sendStatus, setSendStatus] = useState("Ready to post");
+  const [sendStatus, setSendStatus] = useState("Ready to seal");
   const [secureResult, setSecureResult] = useState<SecureLetterResult | null>(null);
   const [pendingSecureResult, setPendingSecureResult] = useState<SecureLetterResult | null>(null);
   const [pendingFingerprint, setPendingFingerprint] = useState("");
   const [secureBusy, setSecureBusy] = useState(false);
-  const [secureStatus, setSecureStatus] = useState("Continue to share");
+  const [secureStatus, setSecureStatus] = useState("Post securely");
   const [secureError, setSecureError] = useState("");
   const [copied, setCopied] = useState(false);
   const timers = useRef<number[]>([]);
@@ -287,7 +287,8 @@ export function StableLetterCreator() {
   function resetCeremony(targetStep: number) {
     if (targetStep < 3) {
       setSendState("idle");
-      setSendStatus("Ready to post");
+      setSendStatus("Ready to seal");
+      setSecureStatus("Post securely");
     }
     setSecureError("");
     setStep(targetStep);
@@ -440,19 +441,20 @@ export function StableLetterCreator() {
 
   function startSend() {
     if (sendState !== "idle") return;
+    setSecureError("");
     setSendState("sending");
     setSendStatus("Sealing your letter…");
     later(700, () => setSendStatus("Pressing the wax seal…"));
-    later(1400, () => setSendStatus("Posting your letter…"));
+    later(1400, () => setSendStatus("Preparing secure posting…"));
     later(2100, () => {
-      setSendState("sent");
-      setSendStatus("Your letter has been posted");
+      setSendState("sealed");
+      setSendStatus("Sealed and ready for secure posting");
     });
   }
 
   function finishSend() {
-    setSendState("sent");
-    setSendStatus("Your letter has been posted");
+    setSendState("sealed");
+    setSendStatus("Sealed and ready for secure posting");
   }
 
   function secureDraft(): SecureDraft {
@@ -529,6 +531,8 @@ export function StableLetterCreator() {
 
     if (saved) {
       setSecureResult(saved);
+      setSendState("sent");
+      setSendStatus("Your letter has been posted");
       setSecureBusy(false);
       setCreated(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -560,10 +564,14 @@ export function StableLetterCreator() {
       setSecureResult(result);
       setPendingSecureResult(null);
       setPendingFingerprint("");
-      setSecureStatus("Continue to share");
+      setSecureStatus("Post securely");
+      setSendState("sent");
+      setSendStatus("Your letter has been posted");
       setCreated(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
+      setSendState("sealed");
+      setSendStatus("Secure posting not completed");
       setSecureError(error instanceof Error ? error.message : "The letter could not be stored securely.");
       setSecureStatus(result?.mediaUpload?.items.length ? "Retry encrypted media upload" : "Try secure posting again");
     } finally {
@@ -679,12 +687,12 @@ export function StableLetterCreator() {
               </section> : null}
 
               {step === 3 ? <section className="nostalgia-form-section creation-panel ceremony-panel">
-                <header className="creation-section-head"><div><span>Step 3 of 3</span><h2>{sendState === "sent" ? "Your letter has been posted" : "Review & send"}</h2><p>{sendState === "sent" ? "It will stay sealed until the moment you chose." : "This is the moment it stops being a draft and becomes something sent."}</p></div><small>{formatName(format)}</small></header>
+                <header className="creation-section-head"><div><span>Step 3 of 3</span><h2>{sendState === "sent" ? "Your letter has been posted" : sendState === "sealed" ? "Your letter is sealed" : "Review & send"}</h2><p>{sendState === "sent" ? "It will stay sealed until the moment you chose." : sendState === "sealed" ? "Complete secure posting before the journey begins." : "Seal the envelope, then complete secure posting to begin its journey."}</p></div><small>{formatName(format)}</small></header>
                 <details className="creation-preview-disclosure" open><summary>Preview what they will open</summary>{preview}</details>
-                <div className={`seal-stage seal-${sendState === "sent" ? "sealed" : sendState === "sending" ? "sealing" : "idle"}`} aria-live="polite"><div className="seal-paper"><span>{heading || `Dear ${recipient},`}</span><i /><i /><i /></div><div className="seal-envelope"><span className="seal-envelope-back" /><span className="seal-envelope-flap" /><span className="seal-wax">I</span><strong>For {recipient}</strong></div><div className="ceremony-status"><span>{sendState === "sent" ? "POSTED" : "INTEZAAR MAIL"}</span><strong>{sendStatus}</strong></div></div>
+                <div className={`seal-stage seal-${sendState === "sent" || sendState === "sealed" ? "sealed" : sendState === "sending" ? "sealing" : "idle"}`} aria-live="polite"><div className="seal-paper"><span>{heading || `Dear ${recipient},`}</span><i /><i /><i /></div><div className="seal-envelope"><span className="seal-envelope-back" /><span className="seal-envelope-flap" /><span className="seal-wax">I</span><strong>For {recipient}</strong></div><div className="ceremony-status"><span>{sendState === "sent" ? "POSTED" : sendState === "sealed" ? "SEALED" : "INTEZAAR MAIL"}</span><strong>{sendStatus}</strong></div></div>
                 <div className="ceremony-summary"><div><small>From</small><strong>{fromCity}</strong></div><div><small>To</small><strong>{toCity}</strong></div><div><small>Opens</small><strong>{readableDate(arrivalDate)} · {arrivalTime}</strong></div></div>
                 {secureError ? <p className="secure-letter-error media-error" role="alert">{secureError}</p> : null}
-                <div className="nostalgia-form-actions">{sendState === "idle" ? <><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => resetCeremony(2)}>Back to personalise</button><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={startSend}>Post your letter</button></> : null}{sendState === "sending" ? <button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={finishSend}>Finish animation</button> : null}{sendState === "sent" ? <button className="nostalgia-button nostalgia-button-primary" type="button" disabled={secureBusy} onClick={continueToShare}>{secureBusy ? secureStatus : pendingSecureResult ? "Retry encrypted media upload" : secureStatus}</button> : null}</div>
+                <div className="nostalgia-form-actions">{sendState === "idle" ? <><button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => resetCeremony(2)}>Back to personalise</button><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={startSend}>Seal your letter</button></> : null}{sendState === "sending" ? <button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={finishSend}>Finish sealing</button> : null}{sendState === "sealed" ? <button className="nostalgia-button nostalgia-button-primary" type="button" data-secure-posting-submit="true" disabled={secureBusy} onClick={continueToShare}>{secureBusy ? secureStatus : pendingSecureResult ? "Retry encrypted media upload" : secureStatus}</button> : null}</div>
               </section> : null}
             </form>
           ) : <section className="nostalgia-create-success creation-share-panel posted-share-panel"><p className="nostalgia-eyebrow">Posted</p><h2>Your letter is on its way.</h2><p>{registered ? `Registered delivery is enabled for ${recipient}. They will verify with the code sent to their email before the letter can be released.` : `Send the private link to ${recipient}. They will see a sealed letter and its arrival date before they can open it.`}</p><div className="posted-stamp-card"><span>POSTED</span><strong>{fromCity} → {toCity}</strong><p>Opens {readableDate(arrivalDate)} at {arrivalTime}</p></div><div className="share-link-box"><span>Private recipient link</span><code>{secureResult?.recipientUrl || ""}</code><button type="button" onClick={copyShareLink}>{copied ? "Copied" : "Copy link"}</button></div><div className="nostalgia-success-actions"><button className="nostalgia-button nostalgia-button-primary" type="button" onClick={shareLetter}>Share letter link</button>{secureResult?.recipientUrl ? <Link href={secureResult.recipientUrl} className="nostalgia-button nostalgia-button-ghost">Open recipient link</Link> : null}<button className="nostalgia-button nostalgia-button-ghost" type="button" onClick={() => { setCreated(false); setSendState("sent"); setStep(3); }}>Back to posted letter</button></div><p className="prototype-transfer-note">{deliveryMessage ? `${deliveryMessage} ${mediaMessage}` : mediaMessage}</p></section>}
