@@ -113,7 +113,11 @@ export function TurnstilePostingGuard() {
     let mount: HTMLDivElement | null = null;
 
     const syncMount = () => {
-      const actions = document.querySelector<HTMLElement>(".post-panel .nostalgia-form-actions");
+      // The current creator uses ceremony-panel. Keep post-panel as a legacy
+      // fallback so older posting surfaces continue to receive the challenge.
+      const actions = document.querySelector<HTMLElement>(
+        ".ceremony-panel .nostalgia-form-actions, .post-panel .nostalgia-form-actions",
+      );
 
       if (actions && (!mount || !mount.isConnected)) {
         mount = document.createElement("div");
