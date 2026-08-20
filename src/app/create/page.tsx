@@ -1,20 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreatorConversionUpgrade } from "@/components/creator-conversion-upgrade";
-import { RecipientArrivalNotificationUpgrade } from "@/components/recipient-arrival-notification-upgrade";
-import { SenderGrowthPrompt } from "@/components/sender-growth-prompt";
-import { StableLetterCreator } from "@/components/stable-letter-creator";
+import { SimpleLetterCreator } from "@/components/simple-letter-creator";
 import { TurnstilePostingGuard } from "@/components/turnstile-posting-guard";
 import { MAX_DELIVERY_MS, MIN_DELIVERY_MS } from "@/lib/letter-rules";
-import "../photo-adjustment.css";
-import "../seal-post.css";
-import "../mobile-creator-polish.css";
-import "../mobile-creator-navigation.css";
 import "../turnstile-posting.css";
-import "../registered-delivery.css";
-import "../recipient-arrival-notification.css";
-import "../delivery-presets.css";
 
 const DRAFT_KEY = "intezaar:create-draft:v3";
 const ONAM_CAMPAIGN_ID = "onam2026";
@@ -81,13 +71,10 @@ function looksLikeLegacyOnamCampaignDraft(raw: string | null) {
   const draft = parseDraft(raw);
   const letter = typeof draft.letter === "string" ? draft.letter.trim() : "";
 
-  // Repair the exact starter copy shipped by the earlier English and Malayalam
-  // Onam template implementations, even if another field was later changed.
   if (LEGACY_ONAM_STARTER_PREFIXES.some((prefix) => letter.startsWith(prefix))) {
     return true;
   }
 
-  // Fallback fingerprint for older campaign drafts whose text was edited.
   if (draft.occasion !== "Celebration" || draft.format !== "festival") return false;
   if (typeof draft.arrivalDate !== "string" || typeof draft.arrivalTime !== "string") return false;
 
@@ -114,8 +101,6 @@ function migrateLegacyOnamLeak() {
   const current = window.localStorage.getItem(DRAFT_KEY);
   if (!looksLikeLegacyOnamCampaignDraft(current)) return;
 
-  // Older Onam links wrote directly into the ordinary creator draft. Preserve
-  // that work as an Onam draft, then give the normal creator a clean slate.
   if (current) window.localStorage.setItem(ONAM_DRAFT_KEY, current);
   window.localStorage.removeItem(DRAFT_KEY);
 }
@@ -144,9 +129,6 @@ function applyPrefill(
       && timestamp >= now + MIN_DELIVERY_MS
       && timestamp <= now + MAX_DELIVERY_MS
     ) {
-      // Campaign links carry an absolute opening instant. Convert that
-      // instant to the visitor's local form fields so createSecureLetter()
-      // converts it back to the same UTC moment when the letter is posted.
       next.arrivalDate = localDateInput(opensAt);
       next.arrivalTime = localTimeInput(opensAt);
       next.arrivalPreset = "custom";
@@ -173,13 +155,11 @@ export default function CreatePage() {
       const isOnamCampaign = campaign === ONAM_CAMPAIGN_ID || campaign === LEGACY_MALAYALAM_ONAM_CAMPAIGN_ID;
       const activeCampaign = window.localStorage.getItem(CAMPAIGN_ACTIVE_KEY);
 
-      // Leaving the Onam creator always restores the ordinary local draft first.
       if (!isOnamCampaign && activeCampaign === ONAM_CAMPAIGN_ID) {
         restoreNormalDraft();
       }
 
       if (!isOnamCampaign) {
-        // Repair browsers that visited the older leaking Onam implementation.
         migrateLegacyOnamLeak();
         if (!hasPrefill) return;
 
@@ -195,8 +175,6 @@ export default function CreatePage() {
         const normalDraft = window.localStorage.getItem(DRAFT_KEY);
         window.localStorage.setItem(CAMPAIGN_BACKUP_KEY, normalDraft ?? NO_DRAFT_SENTINEL);
 
-        // Resume the user's Onam draft if one exists. Otherwise start the Onam
-        // flow clean instead of merging an ordinary letter into the festival one.
         const previousOnamDraft = window.localStorage.getItem(ONAM_DRAFT_KEY);
         if (previousOnamDraft) {
           window.localStorage.setItem(DRAFT_KEY, previousOnamDraft);
@@ -222,11 +200,8 @@ export default function CreatePage() {
 
   return (
     <div data-nosnippet>
-      <RecipientArrivalNotificationUpgrade />
-      <StableLetterCreator />
+      <SimpleLetterCreator />
       <TurnstilePostingGuard />
-      <CreatorConversionUpgrade />
-      <SenderGrowthPrompt />
     </div>
   );
 }

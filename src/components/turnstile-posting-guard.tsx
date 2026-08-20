@@ -37,10 +37,10 @@ const protectedCreatePaths = new Set([
 ]);
 
 function statusCopy(status: Status) {
-  if (status === "ready") return "Security check complete";
-  if (status === "expired") return "Security check expired — checking again";
-  if (status === "error") return "Security check could not load";
-  return "Preparing secure posting";
+  if (status === "ready") return "Ready to post";
+  if (status === "expired") return "Security check expired — try again";
+  if (status === "error") return "Security check unavailable";
+  return "Quick security check";
 }
 
 function blockedResponse() {
@@ -147,8 +147,6 @@ export function TurnstilePostingGuard() {
       return;
     }
 
-    // The posting animation can replace the actions area. A completed token is
-    // still valid, so keep it instead of forcing the visitor through a second check.
     if (window.__intezaarTurnstileToken) {
       setStatus("ready");
       return;
@@ -227,8 +225,6 @@ export function TurnstilePostingGuard() {
         }
       }
 
-      // When the approved widget was removed during the animation, trigger a
-      // fresh render only after its one-time token has actually been consumed.
       setChallengeVersion((version) => version + 1);
     };
 
@@ -258,9 +254,9 @@ export function TurnstilePostingGuard() {
           <div className="secure-posting-copy">
             <span className="secure-posting-dot" aria-hidden="true" />
             <div>
-              <small>SECURE POSTING CHECK</small>
+              <small>SECURITY CHECK</small>
               <strong>{statusCopy(status)}</strong>
-              <p>Cloudflare helps stop automated spam before this private letter is stored or emailed.</p>
+              <p>This helps stop automated spam.</p>
             </div>
           </div>
           <div className="secure-turnstile-widget" ref={captureWidgetNode} />

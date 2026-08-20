@@ -1,0 +1,555 @@
+.page {
+  min-height: 100svh;
+  background: #f4ede2;
+  color: #2f241f;
+}
+
+.shell {
+  width: min(100% - 32px, 760px);
+  margin: 0 auto;
+  padding: 124px 0 96px;
+}
+
+.brandIntro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 34px;
+  color: #6e5b50;
+}
+
+.brandIntro p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.postmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(125, 45, 39, .32);
+  border-radius: 999px;
+  color: #7d2d27;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+.progress {
+  display: grid;
+  grid-template-columns: auto minmax(32px, 1fr) auto;
+  align-items: center;
+  width: min(100%, 430px);
+  margin: 0 auto 26px;
+}
+
+.progress > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #8a796e;
+}
+
+.progress > div span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #cdbfb2;
+  border-radius: 50%;
+  background: #fbf7f0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.progress > div strong {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.progress > div[data-active="true"],
+.progress > div[data-complete="true"] {
+  color: #56231f;
+}
+
+.progress > div[data-active="true"] span,
+.progress > div[data-complete="true"] span {
+  border-color: #7d2d27;
+  color: #fff8ed;
+  background: #7d2d27;
+}
+
+.progress > i {
+  height: 1px;
+  margin: 0 14px;
+  background: #cdbfb2;
+}
+
+.card {
+  position: relative;
+  padding: clamp(28px, 6vw, 54px);
+  border: 1px solid rgba(79, 57, 45, .15);
+  border-radius: 24px;
+  background: #fffaf2;
+  box-shadow: 0 24px 70px rgba(63, 42, 29, .09);
+}
+
+.heading {
+  max-width: 600px;
+  margin-bottom: 34px;
+}
+
+.heading > span,
+.postedLabel {
+  display: block;
+  margin-bottom: 10px;
+  color: #8a3a31;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.heading h1,
+.success h1 {
+  margin: 0;
+  color: #32231e;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(38px, 7vw, 62px);
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -.035em;
+}
+
+.heading p,
+.success > p {
+  margin: 14px 0 0;
+  color: #705e53;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.names,
+.customArrival {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.card label {
+  display: grid;
+  gap: 8px;
+}
+
+.card label > span,
+.privateLink > span {
+  color: #6f5b50;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.card input,
+.card textarea {
+  width: 100%;
+  border: 1px solid #d8c9ba;
+  border-radius: 12px;
+  color: #34251f;
+  background: #fffdf9;
+  font: inherit;
+}
+
+.card input {
+  min-height: 54px;
+  padding: 0 15px;
+  font-size: 16px;
+}
+
+.letterField {
+  margin-top: 22px;
+}
+
+.card textarea {
+  min-height: 330px;
+  padding: 20px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  line-height: 1.75;
+  resize: vertical;
+}
+
+.card input:focus,
+.card textarea:focus,
+.card button:focus-visible,
+.card summary:focus-visible {
+  outline: 3px solid rgba(125, 45, 39, .18);
+  outline-offset: 2px;
+  border-color: #8a3a31;
+}
+
+.autosave {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 10px;
+  color: #8a796e;
+  font-size: 12px;
+}
+
+.primary,
+.secondary {
+  width: 100%;
+  min-height: 58px;
+  margin-top: 28px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primary {
+  border: 1px solid #64241f;
+  color: #fff8ed;
+  background: #7d2d27;
+  box-shadow: 0 12px 24px rgba(111, 39, 33, .15);
+}
+
+.primary:hover {
+  background: #6d2722;
+}
+
+.primary:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.secondary {
+  margin-top: 10px;
+  border: 1px solid #cbb9aa;
+  color: #4e3830;
+  background: #fffaf2;
+}
+
+.back,
+.textButton {
+  border: 0;
+  color: #755f53;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.back {
+  margin: -6px 0 24px;
+  padding: 6px 0;
+}
+
+.textButton {
+  display: block;
+  margin: 26px auto 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.arrivalChoices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.arrivalChoices button {
+  min-height: 92px;
+  padding: 16px;
+  border: 1px solid #d4c5b8;
+  border-radius: 14px;
+  color: #49362f;
+  text-align: left;
+  background: #fffdf9;
+  cursor: pointer;
+}
+
+.arrivalChoices button strong,
+.arrivalChoices button span {
+  display: block;
+}
+
+.arrivalChoices button strong {
+  margin-bottom: 6px;
+  font-size: 18px;
+}
+
+.arrivalChoices button span {
+  color: #8b786c;
+  font-size: 12px;
+}
+
+.arrivalChoices button[data-active="true"] {
+  border-color: #7d2d27;
+  box-shadow: inset 0 0 0 1px #7d2d27;
+  background: #f9eee5;
+}
+
+.customArrival {
+  margin-top: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  background: #f6eee3;
+}
+
+.arrivalSummary {
+  margin: 24px 0;
+  padding: 24px;
+  border: 1px dashed rgba(125, 45, 39, .35);
+  border-radius: 16px;
+  text-align: center;
+  background: #fbf2e6;
+}
+
+.arrivalSummary span {
+  display: block;
+  color: #8a3a31;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+
+.arrivalSummary strong {
+  display: block;
+  margin-top: 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 500;
+}
+
+.arrivalSummary p {
+  margin: 5px 0 0;
+  color: #6e5a4f;
+  font-size: 15px;
+}
+
+.optional {
+  margin-top: 10px;
+  border-top: 1px solid #e0d3c7;
+  border-bottom: 1px solid #e0d3c7;
+}
+
+.optional summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0;
+  color: #4d3931;
+  font-weight: 750;
+  cursor: pointer;
+  list-style: none;
+}
+
+.optional summary::-webkit-details-marker {
+  display: none;
+}
+
+.optional summary span {
+  color: #927f73;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.optional > p {
+  margin: 0 0 16px;
+  color: #806d61;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.optional .names {
+  padding-bottom: 20px;
+}
+
+.review {
+  margin-top: 26px;
+  padding: 20px;
+  border-radius: 14px;
+  background: #f7f1e9;
+}
+
+.review > div {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  padding: 7px 0;
+}
+
+.review > div span {
+  color: #8a776b;
+  font-size: 12px;
+}
+
+.review > div strong {
+  font-size: 14px;
+}
+
+.review p {
+  margin: 14px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid #dfd2c6;
+  color: #7d6b60;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.actions {
+  display: block;
+  margin-top: 0;
+}
+
+.error {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: #7b2722;
+  background: #f8e4e0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.success {
+  text-align: center;
+  padding-top: clamp(42px, 8vw, 72px);
+}
+
+.seal {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 20px;
+  border-radius: 48% 52% 45% 55%;
+  color: #f3d2aa;
+  background: #7d2d27;
+  box-shadow: inset 0 0 0 5px rgba(76, 20, 17, .16), 0 12px 28px rgba(85, 31, 26, .18);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 26px;
+  font-style: italic;
+}
+
+.postedLabel {
+  margin-bottom: 8px;
+}
+
+.success > p {
+  max-width: 580px;
+  margin-inline: auto;
+}
+
+.privateLink {
+  margin-top: 24px;
+  padding: 18px;
+  border-radius: 12px;
+  text-align: left;
+  background: #f5eee5;
+}
+
+.privateLink code {
+  display: block;
+  max-width: 100%;
+  margin-top: 8px;
+  overflow: hidden;
+  color: #5f4c42;
+  font-size: 11px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .shell {
+    width: min(100% - 22px, 760px);
+    padding: 100px 0 58px;
+  }
+
+  .brandIntro {
+    display: block;
+    margin-bottom: 24px;
+  }
+
+  .brandIntro p {
+    margin-top: 10px;
+    text-align: left;
+  }
+
+  .progress {
+    margin-bottom: 16px;
+  }
+
+  .progress > div strong {
+    font-size: 11px;
+  }
+
+  .card {
+    padding: 28px 18px 30px;
+    border-radius: 18px;
+  }
+
+  .heading {
+    margin-bottom: 26px;
+  }
+
+  .heading h1,
+  .success h1 {
+    font-size: clamp(38px, 12vw, 50px);
+  }
+
+  .heading p,
+  .success > p {
+    font-size: 15px;
+  }
+
+  .names,
+  .customArrival {
+    grid-template-columns: 1fr;
+  }
+
+  .card textarea {
+    min-height: 360px;
+    padding: 17px;
+    font-size: 19px;
+  }
+
+  .arrivalChoices {
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .arrivalChoices button {
+    min-height: 88px;
+    padding: 14px;
+  }
+
+  .arrivalChoices button strong {
+    font-size: 16px;
+  }
+
+  .arrivalSummary {
+    padding: 20px 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  .arrivalChoices {
+    grid-template-columns: 1fr;
+  }
+
+  .arrivalChoices button {
+    min-height: 74px;
+  }
+}
